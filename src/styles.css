@@ -1528,6 +1528,12 @@ img, svg {
   min-width: 0;
 }
 
+/* title and its details stack as two lines inside list rows */
+.row__grow > .row__title,
+.row__grow > .row__sub {
+  display: block;
+}
+
 .row__title {
   font-family: var(--font-display);
   font-weight: 600;
