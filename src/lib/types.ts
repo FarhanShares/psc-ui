@@ -36,6 +36,7 @@ export interface Clinic {
   id: string
   name: string
   area: string
+  about?: string
   distanceKm: number
   rating: number
   reviews: number

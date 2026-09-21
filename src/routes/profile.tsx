@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { Check, ChevronRight, Plus, Trash2 } from 'lucide-react'
+import { Check, ChevronRight, Pencil, Plus, Trash2 } from 'lucide-react'
 
 import { PetGlyph, Sheet } from '../components/ui'
 import {
@@ -35,10 +35,15 @@ function ProfilePage() {
   const [addrOpen, setAddrOpen] = useState(false)
   const [addrDraft, setAddrDraft] = useState({ label: '', line: '' })
 
+  const [editOpen, setEditOpen] = useState(false)
+
   function saveDetails() {
     updateProfile({ name: name.trim() || profile.name, phone, email })
     setSaved(true)
-    window.setTimeout(() => setSaved(false), 1800)
+    window.setTimeout(() => {
+      setSaved(false)
+      setEditOpen(false)
+    }, 700)
   }
 
   function openEditPet(pet: Pet) {
@@ -48,52 +53,33 @@ function ProfilePage() {
 
   return (
     <div className="page">
-      <header className="rise split" style={{ '--i': 0 } as React.CSSProperties}>
+      <header className="rise" style={{ '--i': 0 } as React.CSSProperties}>
+        <p className="tag">Profile</p>
+        <h1 className="page-title">{profile.name}</h1>
+      </header>
+
+      <section className="card card--pad rise split" style={{ '--i': 1, flexWrap: 'wrap' } as React.CSSProperties}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', minWidth: 0 }}>
-          <span className="pet-card__ava" style={{ width: '3rem', height: '3rem' }} aria-hidden>
-            <span className="page-title" style={{ fontSize: 'var(--text-md)' }}>
+          <span className="pet-card__ava" style={{ width: '3.25rem', height: '3.25rem' }} aria-hidden>
+            <span className="page-title" style={{ fontSize: 'var(--text-lg)' }}>
               {profile.name.charAt(0).toUpperCase()}
             </span>
           </span>
           <div style={{ minWidth: 0 }}>
-            <h1 className="page-title" style={{ fontSize: 'var(--text-lg)' }}>
-              {profile.name}
-            </h1>
+            <p className="row__title" style={{ fontSize: 'var(--text-md)' }}>{profile.name}</p>
             <p className="row__sub" style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {profile.email}
             </p>
+            <p className="row__sub num">{profile.phone}</p>
           </div>
         </div>
-      </header>
+        <button type="button" className="btn btn--ghost" onClick={() => setEditOpen(true)}>
+          <Pencil size={15} strokeWidth={1.75} /> Edit profile
+        </button>
+      </section>
 
-      <div className="form-grid rise" style={{ '--i': 1 } as React.CSSProperties}>
+      <div className="form-grid rise" style={{ '--i': 2 } as React.CSSProperties}>
         <div className="stack">
-          <section className="stack">
-            <div className="section-head">
-              <h2 className="section-head__title">Details</h2>
-            </div>
-            <div className="field">
-              <label className="field__label" htmlFor="pf-name">Full name</label>
-              <input id="pf-name" className="input" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
-            </div>
-            <div className="field">
-              <label className="field__label" htmlFor="pf-phone">Phone number</label>
-              <input id="pf-phone" className="input" value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" autoComplete="tel" />
-            </div>
-            <div className="field">
-              <label className="field__label" htmlFor="pf-email">Email address</label>
-              <input id="pf-email" className="input" value={email} onChange={(e) => setEmail(e.target.value)} inputMode="email" autoComplete="email" />
-            </div>
-            <button type="button" className="btn btn--primary" style={{ width: 'fit-content' }} onClick={saveDetails}>
-              {saved ? (
-                <>
-                  <Check size={15} strokeWidth={2.25} /> Saved
-                </>
-              ) : (
-                'Save changes'
-              )}
-            </button>
-          </section>
 
           <section>
             <div className="section-head">
@@ -219,6 +205,39 @@ function ProfilePage() {
           </section>
         </div>
       </div>
+
+      {/* edit profile */}
+      <Sheet
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        title="Edit profile"
+        footer={
+          <button type="button" className="btn btn--primary btn--block" onClick={saveDetails}>
+            {saved ? (
+              <>
+                <Check size={15} strokeWidth={2.25} /> Saved
+              </>
+            ) : (
+              'Save changes'
+            )}
+          </button>
+        }
+      >
+        <div className="stack">
+          <div className="field">
+            <label className="field__label" htmlFor="pf-name">Full name</label>
+            <input id="pf-name" className="input" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
+          </div>
+          <div className="field">
+            <label className="field__label" htmlFor="pf-phone">Phone number</label>
+            <input id="pf-phone" className="input" value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" autoComplete="tel" />
+          </div>
+          <div className="field">
+            <label className="field__label" htmlFor="pf-email">Email address</label>
+            <input id="pf-email" className="input" value={email} onChange={(e) => setEmail(e.target.value)} inputMode="email" autoComplete="email" />
+          </div>
+        </div>
+      </Sheet>
 
       {/* edit pet */}
       <Sheet

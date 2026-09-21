@@ -92,7 +92,7 @@ function ClinicPage() {
             {initials}
           </span>
           <span style={{ marginInline: 'var(--space-xs) 0', minWidth: 0 }}>
-            <h1 className="page-title" style={{ fontSize: 'var(--text-lg)' }}>
+            <h1 className="page-title" style={{ fontSize: 'var(--text-xl)' }}>
               {clinic.name}
             </h1>
             <span className="clinic-card__meta">
@@ -123,7 +123,14 @@ function ClinicPage() {
         </div>
       </section>
 
-      <section className="rise" style={{ '--i': 2 } as React.CSSProperties}>
+      <section className="card card--pad rise" style={{ '--i': 2 } as React.CSSProperties}>
+        <span className="tag">About this clinic</span>
+        <p style={{ marginTop: 'var(--space-2xs)', fontSize: 'var(--text-body)', color: 'var(--color-ink-2)' }}>
+          {clinic.about}
+        </p>
+      </section>
+
+      <section className="rise" style={{ '--i': 3 } as React.CSSProperties}>
         <div className="section-head">
           <h2 className="section-head__title">Services</h2>
           <span className="mono-label">{clinic.services.length} available</span>

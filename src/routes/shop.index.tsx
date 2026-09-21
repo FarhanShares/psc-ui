@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
-import { PackageCheck, Search, ShieldCheck, SlidersHorizontal, Truck } from 'lucide-react'
+import { ArrowUpDown, Check, PackageCheck, ShieldCheck, SlidersHorizontal, Truck } from 'lucide-react'
 
 import { ProductCard } from '../components/cards'
-import { EmptyState, Sheet } from '../components/ui'
+import { OptionPicker, ResultRow, SearchControl } from '../components/pickers'
+import { CategoryIcon, EmptyState, Sheet, tileClass } from '../components/ui'
 import { CATEGORIES, FREE_DELIVERY_THRESHOLD, PRODUCTS } from '../lib/data'
 import { money } from '../lib/format'
 import type { ProductCategory } from '../lib/types'
@@ -102,6 +103,28 @@ function ShopPage() {
 
   const filterPanel = (
     <div className="stack shop-filter-panel">
+      <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+        <legend className="tag" style={{ marginBottom: 'var(--space-2xs)' }}>Category</legend>
+        <div role="radiogroup" aria-label="Category">
+          {CATEGORIES.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              role="radio"
+              aria-checked={category === c.id}
+              className={`option-row${category === c.id ? ' is-selected' : ''}`}
+              onClick={() => setCategory(c.id)}
+            >
+              <span className="option-row__label">{c.id === 'all' ? 'All supplies' : c.label}</span>
+              <span className="option-row__hint">
+                {c.id === 'all' ? PRODUCTS.length : counts.get(c.id) ?? 0}
+              </span>
+              {category === c.id && <Check size={15} strokeWidth={2.25} aria-hidden />}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+
       <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
         <legend className="tag" style={{ marginBottom: 'var(--space-2xs)' }}>Price</legend>
         <div className="chips">
@@ -222,53 +245,50 @@ function ShopPage() {
         </aside>
 
         <div className="shop-content">
-          <div className="shop-toolbar">
-            <div className="search">
-              <Search size={16} strokeWidth={1.75} aria-hidden />
-              <input
-                type="search"
-                className="input"
-                placeholder="Search supplies"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                aria-label="Search supplies"
-              />
-            </div>
-            <select
-              className="select select--auto"
+          <div className="toolbar">
+            <SearchControl placeholder="Search supplies" value={query} onChange={setQuery}>
+              {(close) =>
+                query.trim() ? (
+                  results.length > 0 ? (
+                    results.map((p) => (
+                      <ResultRow
+                        key={p.id}
+                        to="/shop/$id"
+                        params={{ id: p.id }}
+                        onClose={close}
+                        title={p.name}
+                        meta={`${p.brand} · ${money(p.price)} · ${p.unit}`}
+                        tile={
+                          <span className={`tile ${tileClass(p.category)}`} style={{ width: '2.5rem', height: '2.5rem' }}>
+                            <CategoryIcon category={p.category} size={16} />
+                          </span>
+                        }
+                      />
+                    ))
+                  ) : (
+                    <p className="row__sub">Nothing matches “{query.trim()}”.</p>
+                  )
+                ) : (
+                  <p className="row__sub">Type to search all {PRODUCTS.length} supplies.</p>
+                )
+              }
+            </SearchControl>
+            <OptionPicker
+              icon={ArrowUpDown}
+              title="Sort by"
               value={sort}
-              onChange={(e) => setSort(e.target.value as SortId)}
-              aria-label="Sort products"
-            >
-              {SORTS.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
+              options={SORTS.map((s) => ({ id: s.id, label: s.label }))}
+              onChange={(id) => setSort(id as SortId)}
+            />
             <button
               type="button"
-              className="btn btn--ghost btn--sm shop-filter-btn"
+              className="picker-btn"
               onClick={() => setSheetOpen(true)}
+              aria-label={`Filters${activeCount > 0 ? `, ${activeCount} active` : ''}`}
             >
-              <SlidersHorizontal size={14} strokeWidth={1.75} />
-              Filters{activeCount > 0 ? ` · ${activeCount}` : ''}
+              <SlidersHorizontal size={17} strokeWidth={1.75} aria-hidden />
+              {activeCount > 0 && <span className="picker-btn__badge">{activeCount}</span>}
             </button>
-          </div>
-
-          <div className="chips" aria-label="Filter by category">
-            {CATEGORIES.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                className="chip"
-                aria-pressed={category === c.id}
-                onClick={() => setCategory(c.id)}
-              >
-                {c.id === 'all' ? 'All' : c.label}
-                {c.id !== 'all' && <span className="chip__count">{counts.get(c.id) ?? 0}</span>}
-              </button>
-            ))}
           </div>
 
           <p className="mono-label" aria-live="polite">

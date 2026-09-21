@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
-import { Search, SlidersHorizontal } from 'lucide-react'
+import { ArrowUpDown, Check, SlidersHorizontal } from 'lucide-react'
 
 import { ClinicCard } from '../components/cards'
+import { OptionPicker, ResultRow, SearchControl } from '../components/pickers'
 import { EmptyState, Sheet } from '../components/ui'
 import { CLINICS, SERVICE_TYPES } from '../lib/data'
 
@@ -77,6 +78,13 @@ function ClinicsPage() {
     return list
   }, [query, applied, sort])
 
+  // unfiltered matches for the mobile search sheet — search is about finding, not filtering
+  const searchResults = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return []
+    return CLINICS.filter((c) => `${c.name} ${c.area}`.toLowerCase().includes(q)).slice(0, 8)
+  }, [query])
+
   return (
     <div className="page">
       <header className="rise" style={{ '--i': 0 } as React.CSSProperties}>
@@ -86,84 +94,71 @@ function ClinicsPage() {
         </p>
       </header>
 
-      <div className="rise" style={{ '--i': 1 } as React.CSSProperties}>
-        <div className="search">
-          <Search size={16} strokeWidth={1.75} aria-hidden />
-          <input
-            type="search"
-            className="input"
-            placeholder="Search clinics or areas"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            aria-label="Search clinics"
-          />
-        </div>
-      </div>
-
-      <div
-        className="chips rise"
-        style={{ '--i': 2 } as React.CSSProperties}
-        role="radiogroup"
-        aria-label="Filter by service"
-      >
+      <div className="toolbar rise" style={{ '--i': 1 } as React.CSSProperties}>
+        <SearchControl placeholder="Search clinics or areas" value={query} onChange={setQuery}>
+          {(close) =>
+            query.trim() ? (
+              searchResults.length > 0 ? (
+                searchResults.map((c) => (
+                  <ResultRow
+                    key={c.id}
+                    to="/clinics/$id"
+                    params={{ id: c.id }}
+                    onClose={close}
+                    title={c.name}
+                    meta={`${c.area} · ${c.distanceKm.toFixed(1)} km · ★ ${c.rating.toFixed(1)}`}
+                    tile={
+                      <span className="clinic-card__mono" aria-hidden>
+                        {c.name
+                          .split(' ')
+                          .filter((w) => /^[A-Z]/.test(w))
+                          .slice(0, 2)
+                          .map((w) => w[0])
+                          .join('')}
+                      </span>
+                    }
+                  />
+                ))
+              ) : (
+                <p className="row__sub">No clinics match “{query.trim()}”.</p>
+              )
+            ) : (
+              <p className="row__sub">Type to search {CLINICS.length} clinics by name or area.</p>
+            )
+          }
+        </SearchControl>
+        <OptionPicker
+          icon={ArrowUpDown}
+          title="Sort by"
+          value={sort}
+          options={[
+            { id: 'recommended', label: 'Recommended' },
+            { id: 'distance', label: 'Nearest' },
+            { id: 'rating', label: 'Top rated' },
+          ]}
+          onChange={(id) => setSort(id as SortId)}
+        />
         <button
           type="button"
-          role="radio"
-          aria-checked={applied.service === 'all'}
-          className="chip"
-          onClick={() => setApplied((f) => ({ ...f, service: 'all' }))}
+          className="picker-btn"
+          onClick={() => {
+            setDraft(applied)
+            setSheetOpen(true)
+          }}
+          aria-label={`Filters${activeCount > 0 ? `, ${activeCount} active` : ''}`}
         >
-          All services
+          <SlidersHorizontal size={17} strokeWidth={1.75} aria-hidden />
+          {activeCount > 0 && <span className="picker-btn__badge">{activeCount}</span>}
         </button>
-        {SERVICE_TYPES.map((s) => (
-          <button
-            key={s.id}
-            type="button"
-            role="radio"
-            aria-checked={applied.service === s.id}
-            className="chip"
-            onClick={() => setApplied((f) => ({ ...f, service: s.id }))}
-          >
-            {s.label}
-          </button>
-        ))}
       </div>
 
-      <div
-        className="split rise"
-        style={{ '--i': 3, gap: 'var(--space-sm)' } as React.CSSProperties}
-      >
-        <p className="mono-label" aria-live="polite">
-          {results.length} clinic{results.length === 1 ? '' : 's'}
-        </p>
-        <div className="thead">
-          <button
-            type="button"
-            className="btn btn--ghost btn--sm"
-            onClick={() => {
-              setDraft(applied)
-              setSheetOpen(true)
-            }}
-          >
-            <SlidersHorizontal size={14} strokeWidth={1.75} />
-            Filters{activeCount > 0 ? ` · ${activeCount}` : ''}
-          </button>
-          <select
-            className="select"
-            style={{ width: 'auto', flex: 'none' }}
-            value={sort}
-            onChange={(e) => setSort(e.target.value as SortId)}
-            aria-label="Sort clinics"
-          >
-            <option value="recommended">Recommended</option>
-            <option value="distance">Nearest</option>
-            <option value="rating">Top rated</option>
-          </select>
-        </div>
-      </div>
+      <p className="mono-label rise" style={{ '--i': 2 } as React.CSSProperties} aria-live="polite">
+        {results.length} clinic{results.length === 1 ? '' : 's'}
+        {activeCount > 0 && ` · ${activeCount} filter${activeCount === 1 ? '' : 's'} on`}
+      </p>
 
       {results.length > 0 ? (
-        <div className="clinic-grid rise" style={{ '--i': 4 } as React.CSSProperties}>
+        <div className="clinic-grid rise" style={{ '--i': 3 } as React.CSSProperties}>
           {results.map((c) => (
             <ClinicCard key={c.id} id={c.id} />
           ))}
@@ -211,6 +206,27 @@ function ClinicsPage() {
         }
       >
         <div className="stack">
+          <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+            <legend className="tag" style={{ marginBottom: 'var(--space-2xs)' }}>Service</legend>
+            <div role="radiogroup" aria-label="Service">
+              {[{ id: 'all', label: 'All services' }, ...SERVICE_TYPES.map((s) => ({ id: s.id, label: s.label }))].map(
+                (o) => (
+                  <button
+                    key={o.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={draft.service === o.id}
+                    className={`option-row${draft.service === o.id ? ' is-selected' : ''}`}
+                    onClick={() => setDraft((d) => ({ ...d, service: o.id }))}
+                  >
+                    <span className="option-row__label">{o.label}</span>
+                    {draft.service === o.id && <Check size={15} strokeWidth={2.25} aria-hidden />}
+                  </button>
+                ),
+              )}
+            </div>
+          </fieldset>
+
           <div className="switch-row">
             <span className="switch-row__text">
               <span className="row__title" style={{ fontSize: 'var(--text-body)' }}>Open now</span>

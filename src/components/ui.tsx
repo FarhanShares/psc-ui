@@ -199,12 +199,16 @@ export function Sheet({
   title,
   children,
   footer,
+  className,
+  hideHead,
 }: {
   open: boolean
   onClose: () => void
   title: string
   children: React.ReactNode
   footer?: React.ReactNode
+  className?: string
+  hideHead?: boolean
 }) {
   const ref = useRef<HTMLDialogElement>(null)
   const [tall, setTall] = useState(false)
@@ -222,7 +226,7 @@ export function Sheet({
   return (
     <dialog
       ref={ref}
-      className={`sheet${tall ? ' sheet--tall' : ''}`}
+      className={`sheet${tall ? ' sheet--tall' : ''}${className ? ` ${className}` : ''}`}
       aria-label={title}
       onClose={onClose}
       onClick={(e) => {
@@ -238,12 +242,14 @@ export function Sheet({
       >
         <span className="sheet__handle" aria-hidden />
       </button>
-      <div className="sheet__head">
-        <h2 className="sheet__title">{title}</h2>
-        <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">
-          <X size={16} strokeWidth={1.75} />
-        </button>
-      </div>
+      {!hideHead && (
+        <div className="sheet__head">
+          <h2 className="sheet__title">{title}</h2>
+          <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">
+            <X size={16} strokeWidth={1.75} />
+          </button>
+        </div>
+      )}
       {children}
       {footer && <div style={{ marginTop: 'var(--space-md)' }}>{footer}</div>}
     </dialog>

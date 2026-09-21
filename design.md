@@ -50,10 +50,15 @@ Easings and durations unchanged from tokens. Reduced-motion: opacity-only ≤150
 ## Shop allowances
 - A policy trust strip under the shop header (delivery threshold, returns, curation) —
   inline list with icons, never a 3-tile card row. Claims must match app data/policy.
-- Full facet system: category chips with real counts, price bands, rating, brands,
-  in-stock. Filter sheet below 80rem; sticky filter sidebar at ≥80rem.
+- Toolbar is ONE row: `[search grows][sort icon][filter icon]`. Sort/filter are
+  icon-only pickers: Popover dropdown on wide screens, bottom sheet on phones.
+  Search is an inline input on wide screens; a large trigger opening a
+  full-screen search sheet on phones.
+- Category (shop) / Service (clinics) live INSIDE the filters sheet/sidebar —
+  no separate chip rows, no second toolbar row.
 - Desktop product grids use `auto-fill, minmax(10.75rem, 1fr)` — density follows
   available space, not fixed viewport breakpoints.
+- Profile shows a read-only summary card; "Edit profile" opens a bottom sheet.
 
 ## Microinteractions stance
 Silent success; undo toasts for removals/cancels; instant focus rings;

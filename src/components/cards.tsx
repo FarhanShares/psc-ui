@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
-import { BadgeCheck, Check, ChevronDown, Clock, MapPin, Syringe, Truck } from 'lucide-react'
+import { BadgeCheck, Check, ChevronDown, ChevronRight, Clock, MapPin, Syringe, Truck } from 'lucide-react'
 
 import { money, relativeDue, shortDate, dateFromOffset } from '../lib/format'
 import { getProduct, getService, getClinic } from '../lib/data'
@@ -80,17 +80,25 @@ export function ClinicCard({ id }: { id: string }) {
   return (
     <article className="card clinic-card">
       <div className="clinic-card__top">
-        <span className="clinic-card__mono" aria-hidden>
-          {initials}
-        </span>
-        <div style={{ minWidth: 0 }}>
-          <h3 className="clinic-card__name">{clinic.name}</h3>
-          <span className="clinic-card__meta">
-            <MapPin size={13} strokeWidth={1.75} />
-            {clinic.area} · {clinic.distanceKm.toFixed(1)} km
+        <Link
+          to="/clinics/$id"
+          params={{ id: clinic.id }}
+          className="clinic-card__link"
+          aria-label={`View ${clinic.name} details`}
+        >
+          <span className="clinic-card__mono" aria-hidden>
+            {initials}
           </span>
-        </div>
+          <span style={{ minWidth: 0 }}>
+            <h3 className="clinic-card__name">{clinic.name}</h3>
+            <span className="clinic-card__meta">
+              <MapPin size={13} strokeWidth={1.75} />
+              {clinic.area} · {clinic.distanceKm.toFixed(1)} km
+            </span>
+          </span>
+        </Link>
         <Stars rating={clinic.rating} />
+        <ChevronRight size={16} strokeWidth={1.75} className="muted" aria-hidden />
       </div>
 
       <span className="clinic-card__meta">

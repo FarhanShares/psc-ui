@@ -201,6 +201,7 @@ export const PRODUCTS: Product[] = [
 export const CLINICS: Clinic[] = [
   {
     id: 'c01',
+    about: 'A neighbourhood clinic built around preventive care — vaccinations, dental hygiene and annual exams, with same-day consults most weekdays.',
     name: 'Green Valley Veterinary',
     area: 'Maple District',
     distanceKm: 2.1,
@@ -221,6 +222,7 @@ export const CLINICS: Clinic[] = [
   },
   {
     id: 'c02',
+    about: 'General practice and soft-tissue surgery near the old port. Two consulting rooms, an on-site lab, and a calm separate cat waiting area.',
     name: 'Harborline Animal Clinic',
     area: 'Old Port',
     distanceKm: 3.4,
@@ -240,6 +242,7 @@ export const CLINICS: Clinic[] = [
   },
   {
     id: 'c03',
+    about: 'An affordable, walk-in-first clinic open into the evening — popular for quick consults and second opinions.',
     name: 'Northgate Pet Hospital',
     area: 'Northgate',
     distanceKm: 5.0,
@@ -259,6 +262,7 @@ export const CLINICS: Clinic[] = [
   },
   {
     id: 'c04',
+    about: 'A small studio practice focused on senior pets and unhurried appointments. One vet, long consults, spa-grade grooming.',
     name: 'Willow Creek Vet Studio',
     area: 'Willow Creek',
     distanceKm: 6.2,
@@ -278,6 +282,7 @@ export const CLINICS: Clinic[] = [
   },
   {
     id: 'c05',
+    about: 'A 24-hour emergency hospital with intensive care and surgery on site. Call ahead when you can — walk-ins are triaged by severity.',
     name: 'CityPaws 24h Emergency',
     area: 'Downtown',
     distanceKm: 7.8,
@@ -296,6 +301,7 @@ export const CLINICS: Clinic[] = [
   },
   {
     id: 'c06',
+    about: 'A mobile vet that brings consults and vaccinations to your door within 15 km. Calm pets, no carrier, no waiting room.',
     name: 'Breezefield Mobile Vet',
     area: 'Comes to you',
     distanceKm: 1.2,
