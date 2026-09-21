@@ -573,17 +573,11 @@ img, svg {
 
 /* ------------------------------------------------------------------ chips */
 
+/* chips always wrap — no hidden-behind-scroll content, works on every device */
 .chips {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-2xs);
-  overflow-x: auto;
-  scrollbar-width: none;
-  padding-bottom: var(--space-3xs);
-  scroll-snap-type: x proximity;
-}
-
-.chips::-webkit-scrollbar {
-  display: none;
 }
 
 .chip {
@@ -827,10 +821,6 @@ img, svg {
 }
 
 /* chips that wrap instead of scroll — inside sheets and the sidebar */
-.chips--wrap {
-  flex-wrap: wrap;
-  overflow: visible;
-}
 
 .chip__count {
   font-family: var(--font-mono);
@@ -1072,33 +1062,30 @@ img, svg {
 
 /* ------------------------------------------------------------------- rails */
 
+/* product rails are wrapping grids — a rail you can't scroll is a wall */
 .rail {
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(10.5rem, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-sm);
-  overflow-x: auto;
-  scrollbar-width: none;
-  scroll-snap-type: x mandatory;
-  padding-bottom: var(--space-3xs);
-  margin-inline: calc(var(--gutter) * -1);
-  padding-inline: var(--gutter);
+}
+
+@media (min-width: 40rem) {
+  .rail {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 48rem) {
+  .rail {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 @media (min-width: 64rem) {
   .rail {
-    grid-auto-columns: minmax(11rem, 1fr);
-    margin-inline: 0;
-    padding-inline: 0;
+    grid-template-columns: repeat(auto-fill, minmax(10.75rem, 1fr));
+    gap: var(--space-md);
   }
-}
-
-.rail::-webkit-scrollbar {
-  display: none;
-}
-
-.rail > * {
-  scroll-snap-align: start;
 }
 
 /* ------------------------------------------------------------- clinic card */
@@ -1561,6 +1548,7 @@ img, svg {
 .sheet {
   position: fixed;
   inset-inline: 0;
+  top: auto; /* without this the UA dialog stylesheet's top:0 pins the sheet to the top */
   bottom: 0;
   margin: 0 auto;
   width: 100%;
@@ -1575,6 +1563,12 @@ img, svg {
   box-shadow: var(--shadow-sheet);
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+
+/* expanded sheet — nearly full height, toggled from the handle */
+.sheet--tall {
+  max-height: 92dvh;
+  height: 92dvh;
 }
 
 @media (min-width: 64rem) {
@@ -1608,16 +1602,33 @@ img, svg {
   }
 }
 
+.sheet__handle-btn {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 2.25rem;
+  margin-inline: calc(var(--gutter) * -1);
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sheet__handle-btn:active .sheet__handle {
+  transform: scaleY(0.75);
+}
+
 .sheet__handle {
   width: 2.25rem;
   height: 0.25rem;
   border-radius: 999px;
   background: var(--color-rule-2);
-  margin: var(--space-2xs) auto var(--space-sm);
+  transition: transform var(--dur-short) var(--ease-out);
 }
 
 @media (min-width: 64rem) {
-  .sheet__handle {
+  .sheet__handle-btn {
     display: none;
   }
 }
@@ -1918,7 +1929,19 @@ img, svg {
   }
 }
 
-/* order expandable */
+/* order summary — wraps gracefully under text scaling instead of overflowing */
+.order-summary {
+  flex-wrap: wrap;
+  row-gap: var(--space-3xs);
+}
+
+.order-summary__side {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  flex: none;
+  margin-left: auto;
+}
 .order-chev {
   color: var(--color-muted);
   transition: rotate var(--dur-short) var(--ease-out);
@@ -1930,6 +1953,41 @@ details[open] .order-chev {
 
 details > summary::-webkit-details-marker {
   display: none;
+}
+
+/* spec list on product detail */
+.spec-list {
+  margin: var(--space-2xs) 0 0;
+  display: grid;
+}
+
+.spec-list__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-md);
+  padding: var(--space-2xs) 0;
+  border-bottom: 1px solid var(--color-rule);
+  font-size: var(--text-body);
+}
+
+.spec-list__row:last-child {
+  border-bottom: 0;
+}
+
+.spec-list__row dt {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  flex: none;
+}
+
+.spec-list__row dd {
+  margin: 0;
+  color: var(--color-ink);
+  text-align: right;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 /* ---------------------------------------------------------- reduced motion */

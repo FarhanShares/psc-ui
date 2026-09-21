@@ -104,7 +104,7 @@ function ShopPage() {
     <div className="stack shop-filter-panel">
       <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
         <legend className="tag" style={{ marginBottom: 'var(--space-2xs)' }}>Price</legend>
-        <div className="chips chips--wrap">
+        <div className="chips">
           {PRICE_BANDS.map((b) => (
             <button
               key={b.id}
@@ -121,7 +121,7 @@ function ShopPage() {
 
       <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
         <legend className="tag" style={{ marginBottom: 'var(--space-2xs)' }}>Rating</legend>
-        <div className="chips chips--wrap">
+        <div className="chips">
           {RATINGS.map((r) => (
             <button
               key={r.v}
@@ -138,7 +138,7 @@ function ShopPage() {
 
       <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
         <legend className="tag" style={{ marginBottom: 'var(--space-2xs)' }}>Brand</legend>
-        <div className="chips chips--wrap">
+        <div className="chips">
           {BRANDS.map((brand) => (
             <button
               key={brand}

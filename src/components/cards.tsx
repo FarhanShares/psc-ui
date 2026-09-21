@@ -120,19 +120,21 @@ export function ClinicCard({ id }: { id: string }) {
 export function OrderCard({ order }: { order: Order }) {
   return (
     <details className="card">
-      <summary className="row" style={{ cursor: 'pointer', listStyle: 'none' }}>
-        <span className="row__grow">
+      <summary className="row order-summary" style={{ cursor: 'pointer', listStyle: 'none' }}>
+        <span className="row__grow" style={{ minWidth: 0 }}>
           <span className="split" style={{ marginBottom: 2 }}>
             <span className="mono-label">#{order.id}</span>
             <OrderStatusLabel status={order.status} />
           </span>
-          <span className="row__sub">
+          <span className="row__sub num">
             {shortDate(dateFromOffset(-order.placedAtDaysAgo))} · {order.items.reduce((n, i) => n + i.qty, 0)}{' '}
-            item{order.items.reduce((n, i) => n + i.qty, 0) === 1 ? '' : 's'} · {order.addressLine}
+            item{order.items.reduce((n, i) => n + i.qty, 0) === 1 ? '' : 's'}
           </span>
         </span>
-        <span className="price price--lg">{money(order.total)}</span>
-        <ChevronDown size={14} strokeWidth={1.75} className="order-chev" aria-hidden />
+        <span className="order-summary__side">
+          <ChevronDown size={14} strokeWidth={1.75} className="order-chev" aria-hidden />
+          <span className="price price--lg">{money(order.total)}</span>
+        </span>
       </summary>
       <div style={{ padding: '0 var(--space-sm) var(--space-sm)' }}>
         <hr className="hr" style={{ marginBottom: 'var(--space-2xs)' }} />
@@ -157,6 +159,9 @@ export function OrderCard({ order }: { order: Order }) {
             incl. {money(order.delivery)} delivery
           </p>
         )}
+        <p className="row__sub num" style={{ paddingTop: 'var(--space-2xs)' }}>
+          Deliver to {order.addressLine}
+        </p>
         {order.status !== 'delivered' && (
           <p className="row__sub" style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 'var(--space-2xs)' }}>
             <Truck size={14} strokeWidth={1.75} />

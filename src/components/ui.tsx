@@ -207,25 +207,37 @@ export function Sheet({
   footer?: React.ReactNode
 }) {
   const ref = useRef<HTMLDialogElement>(null)
+  const [tall, setTall] = useState(false)
 
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    if (open && !el.open) el.showModal()
+    if (open && !el.open) {
+      setTall(false)
+      el.showModal()
+    }
     if (!open && el.open) el.close()
   }, [open])
 
   return (
     <dialog
       ref={ref}
-      className="sheet"
+      className={`sheet${tall ? ' sheet--tall' : ''}`}
       aria-label={title}
       onClose={onClose}
       onClick={(e) => {
         if (e.target === ref.current) onClose()
       }}
     >
-      <div className="sheet__handle" aria-hidden />
+      <button
+        type="button"
+        className="sheet__handle-btn"
+        onClick={() => setTall((t) => !t)}
+        aria-expanded={tall}
+        aria-label={tall ? 'Shrink sheet' : 'Expand sheet to full height'}
+      >
+        <span className="sheet__handle" aria-hidden />
+      </button>
       <div className="sheet__head">
         <h2 className="sheet__title">{title}</h2>
         <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">
