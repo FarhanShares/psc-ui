@@ -1,0 +1,299 @@
+import { useEffect, useRef, useState } from 'react'
+import { Link } from '@tanstack/react-router'
+import {
+  Bath,
+  Bone,
+  Check,
+  CircleAlert,
+  Cookie,
+  HeartPulse,
+  Pill as PillIcon,
+  Scissors,
+  Stethoscope,
+  Syringe,
+  ToyBrick,
+  X,
+} from 'lucide-react'
+
+import type { ProductCategory, ServiceType, Species } from '../lib/types'
+import { money } from '../lib/format'
+
+/* ------------------------------------------------------------ icon system */
+
+const CATEGORY_ICONS: Record<ProductCategory, typeof Bone> = {
+  food: Bone,
+  treats: Cookie,
+  grooming: Bath,
+  toys: ToyBrick,
+  health: PillIcon,
+}
+
+const SERVICE_ICONS: Record<ServiceType, typeof Bone> = {
+  consultation: Stethoscope,
+  vaccination: Syringe,
+  grooming: Scissors,
+  dental: PillIcon,
+  surgery: HeartPulse,
+  checkup: Stethoscope,
+}
+
+export function CategoryIcon({ category, size = 22 }: { category: ProductCategory; size?: number }) {
+  const Icon = CATEGORY_ICONS[category]
+  return <Icon size={size} strokeWidth={1.75} aria-hidden />
+}
+
+/** per-category tint class — the tint encodes the category, it is not decoration */
+export function tileClass(category: ProductCategory): string {
+  return `tile--${category}`
+}
+
+export function ServiceIcon({ type, size = 18 }: { type: ServiceType; size?: number }) {
+  const Icon = SERVICE_ICONS[type]
+  return <Icon size={size} strokeWidth={1.75} aria-hidden />
+}
+
+export function PetGlyph({ species, size = 18 }: { species: Species; size?: number }) {
+  return species === 'cat' ? (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M4 9.5 4.5 4l4 3h7l4-3 .5 5.5" />
+      <path d="M4.5 9.5C3.6 10.6 3 12 3 13.8 3 18.4 7 21 12 21s9-2.6 9-7.2c0-1.8-.6-3.2-1.5-4.3" />
+      <path d="M8.5 14.5h.01M15.5 14.5h.01" />
+    </svg>
+  ) : (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M5.5 11 3 6.5 6.5 8M18.5 11 21 6.5 17.5 8" />
+      <path d="M5.5 11c-1 1.3-1.5 2.6-1.5 4.2C4 18.9 7.6 21 12 21s8-2.1 8-5.8c0-1.6-.5-2.9-1.5-4.2" />
+      <path d="M5.5 11C6.6 9.6 8.9 8.8 12 8.8s5.4.8 6.5 2.2" />
+      <path d="M9 15h.01M15 15h.01M12.5 17c-.8.6-2.2.6-3 0" />
+    </svg>
+  )
+}
+
+/* ---------------------------------------------------------------- pieces */
+
+export function Stars({ rating }: { rating: number }) {
+  return (
+    <span className="rating">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+        <path d="M12 2.5 14.9 8.6 21.5 9.5 16.7 14.1 17.9 20.7 12 17.5 6.1 20.7 7.3 14.1 2.5 9.5 9.1 8.6Z" />
+      </svg>
+      {rating.toFixed(1)}
+    </span>
+  )
+}
+
+/** price with the cents set smaller — reads faster than uniform mono money */
+export function Price({ value, className = '' }: { value: number; className?: string }) {
+  const formatted = money(value)
+  const dot = formatted.lastIndexOf('.')
+  const whole = dot === -1 ? formatted : formatted.slice(0, dot)
+  const cents = dot === -1 ? '' : formatted.slice(dot)
+  return (
+    <span className={`price ${className}`.trim()}>
+      {whole}
+      {cents && <span className="price__cents">{cents}</span>}
+    </span>
+  )
+}
+
+export function Pill({ tone, children }: { tone: 'ok' | 'warn' | 'bad' | 'info'; children: React.ReactNode }) {
+  return <span className={`pill pill--${tone}`}>{children}</span>
+}
+
+export function orderStatusTone(status: string): 'ok' | 'warn' | 'bad' | 'info' {
+  if (status === 'delivered') return 'ok'
+  if (status === 'transit') return 'info'
+  return 'warn'
+}
+
+export function OrderStatusLabel({ status }: { status: string }) {
+  const label =
+    status === 'delivered' ? 'Delivered' : status === 'transit' ? 'In transit' : 'Placed'
+  return (
+    <Pill tone={orderStatusTone(status)}>
+      {status === 'transit' ? '→ ' : ''}
+      {label}
+    </Pill>
+  )
+}
+
+export function EmptyState({
+  title,
+  text,
+  actionLabel,
+  actionTo,
+  onClick,
+  icon,
+}: {
+  title: string
+  text: string
+  actionLabel?: string
+  actionTo?: string
+  onClick?: () => void
+  icon?: React.ReactNode
+}) {
+  return (
+    <div className="empty">
+      <span className="empty__icon">{icon ?? <CircleAlert size={20} strokeWidth={1.75} />}</span>
+      <p className="empty__title">{title}</p>
+      <p className="empty__text">{text}</p>
+      {actionLabel && actionTo && (
+        <Link to={actionTo} className="btn btn--primary btn--sm">
+          {actionLabel}
+        </Link>
+      )}
+      {actionLabel && !actionTo && onClick && (
+        <button type="button" className="btn btn--primary btn--sm" onClick={onClick}>
+          {actionLabel}
+        </button>
+      )}
+    </div>
+  )
+}
+
+export function Stepper({
+  value,
+  onChange,
+  min = 1,
+  max = 99,
+  label,
+}: {
+  value: number
+  onChange: (v: number) => void
+  min?: number
+  max?: number
+  label: string
+}) {
+  return (
+    <div className="stepper" role="group" aria-label={label}>
+      <button
+        type="button"
+        className="stepper__btn"
+        onClick={() => onChange(Math.max(min, value - 1))}
+        disabled={value <= min}
+        aria-label={`Decrease ${label}`}
+      >
+        −
+      </button>
+      <span className="stepper__val" aria-live="polite">
+        {value}
+      </span>
+      <button
+        type="button"
+        className="stepper__btn"
+        onClick={() => onChange(Math.min(max, value + 1))}
+        disabled={value >= max}
+        aria-label={`Increase ${label}`}
+      >
+        +
+      </button>
+    </div>
+  )
+}
+
+/* ----------------------------------------------------------------- sheet */
+
+export function Sheet({
+  open,
+  onClose,
+  title,
+  children,
+  footer,
+}: {
+  open: boolean
+  onClose: () => void
+  title: string
+  children: React.ReactNode
+  footer?: React.ReactNode
+}) {
+  const ref = useRef<HTMLDialogElement>(null)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    if (open && !el.open) el.showModal()
+    if (!open && el.open) el.close()
+  }, [open])
+
+  return (
+    <dialog
+      ref={ref}
+      className="sheet"
+      aria-label={title}
+      onClose={onClose}
+      onClick={(e) => {
+        if (e.target === ref.current) onClose()
+      }}
+    >
+      <div className="sheet__handle" aria-hidden />
+      <div className="sheet__head">
+        <h2 className="sheet__title">{title}</h2>
+        <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">
+          <X size={16} strokeWidth={1.75} />
+        </button>
+      </div>
+      {children}
+      {footer && <div style={{ marginTop: 'var(--space-md)' }}>{footer}</div>}
+    </dialog>
+  )
+}
+
+/* ----------------------------------------------------------------- field */
+
+export function Field({
+  label,
+  help,
+  error,
+  children,
+}: {
+  label: string
+  help?: string
+  error?: string
+  children: React.ReactNode
+}) {
+  const id = useRef(`f-${label.replace(/\s+/g, '-').toLowerCase()}`).current
+  const helpId = `${id}-help`
+  return (
+    <div className="field">
+      <label className="field__label" htmlFor={id}>
+        {label}
+      </label>
+      {children /* inputs receive id + aria-describedby by caller contract */}
+      <p
+        id={helpId}
+        className={`field__help${error ? ' field__help--error' : ''}`}
+        role={error ? 'alert' : undefined}
+      >
+        {error ?? help ?? ''}
+      </p>
+      <style>{``}</style>
+    </div>
+  )
+}
+
+/** input wired to Field's help id — keeps label/help/error association without prop drilling */
+export function FieldInput({
+  fieldLabel,
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement> & { fieldLabel: string }) {
+  const id = `f-${fieldLabel.replace(/\s+/g, '-').toLowerCase()}`
+  return <input id={id} aria-describedby={`${id}-help`} className="input" {...props} />
+}
+
+/* --------------------------------------------------- copy-style feedback */
+
+export function useCopiedLabel(activeMs = 1500) {
+  const [copied, setCopied] = useState(false)
+  useEffect(() => {
+    if (!copied) return
+    const t = window.setTimeout(() => setCopied(false), activeMs)
+    return () => window.clearTimeout(t)
+  }, [copied, activeMs])
+  return [copied, () => setCopied(true)] as const
+}
+
+export function CopiedCheck({ copied }: { copied: boolean }) {
+  return copied ? (
+    <Check size={14} strokeWidth={2.25} aria-hidden />
+  ) : null
+}

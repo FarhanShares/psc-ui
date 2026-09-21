@@ -1,0 +1,6 @@
+{
+  "date": "2026-09-20",
+  "findings": "Empty directory — greenfield TanStack Start build. No existing font stack, palette, motion, spacing or framework signals. Full Hallmark stack introduced.",
+  "framework": "TanStack Start (React 19, file-based routing)",
+  "styling": "hand-written CSS with OKLCH tokens (no Tailwind)"
+}

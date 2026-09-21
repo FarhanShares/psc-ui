@@ -1,0 +1,19 @@
+[
+  {
+    "date": "2026-09-20",
+    "scope": "app",
+    "macrostructure": "Responsive app shell (side rail ≥64rem + bento home + catalogue + two-col detail)",
+    "theme": "custom — Cobalt, warmed (per design.md)",
+    "theme_axes": "warm-light / bricolage-grotesque / cool-blue",
+    "enrichment": "category-tinted tiles (data-encoding)",
+    "brief": "PetSafeCare redesign — fix generic UI, weak typography, no desktop responsiveness · designed-as-app"
+  },
+  {
+    "date": "2026-09-20",
+    "macrostructure": "App shell (bento home + catalogue listings)",
+    "theme": "Cobalt",
+    "theme_axes": "cool-light / grotesk-sans / cool-blue",
+    "enrichment": "none — hairline icon tiles",
+    "brief": "PetSafeCare · pet parent app (shop, clinic booking, vaccines) · TanStack Start"
+  }
+]

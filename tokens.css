@@ -1,0 +1,116 @@
+/*
+ * PetSafeCare design tokens — Hallmark theme: Cobalt, warmed (custom, per design.md).
+ * Axes — paper band: warm light (L 97.5%, hue 85) · display: bricolage-grotesque · accent: electric cobalt (hue 256).
+ * One signal colour. Brighter card surfaces instead of shadows. No pure black, no pure white.
+ */
+:root {
+  /* paper — warm light ground */
+  --color-paper: oklch(97.5% 0.008 85);
+  --color-paper-2: oklch(95% 0.01 84);
+  --color-paper-3: oklch(92.5% 0.012 82);
+
+  /* card — brighter than paper, carries elevation without shadows */
+  --color-card: oklch(99% 0.004 85);
+
+  /* ink */
+  --color-ink: oklch(25% 0.014 70);
+  --color-ink-2: oklch(35% 0.012 68);
+  --color-muted: oklch(48% 0.012 65);
+
+  /* rules */
+  --color-rule: oklch(90% 0.008 80);
+  --color-rule-2: oklch(84.5% 0.01 78);
+
+  /* accent — the one cobalt signal */
+  --color-accent: oklch(56% 0.2 256);
+  --color-accent-deep: oklch(48% 0.19 258);
+  --color-accent-ink: oklch(99% 0.004 85);
+  --color-accent-tint: oklch(94.5% 0.03 250);
+
+  /* focus */
+  --color-focus: oklch(56% 0.2 256);
+
+  /* graphite — the one dark band */
+  --color-graphite: oklch(23% 0.014 265);
+  --color-graphite-2: oklch(30% 0.014 265);
+  --color-on-graphite: oklch(94% 0.008 85);
+  --color-on-graphite-muted: oklch(79% 0.012 75);
+  --color-graphite-rule: oklch(35% 0.014 265);
+
+  /* category tile tints — encode data, never decorate */
+  --tint-food: oklch(93% 0.045 75);
+  --tint-food-ink: oklch(46% 0.09 70);
+  --tint-treats: oklch(93% 0.05 48);
+  --tint-treats-ink: oklch(46% 0.1 45);
+  --tint-grooming: oklch(92% 0.045 200);
+  --tint-grooming-ink: oklch(42% 0.09 210);
+  --tint-toys: oklch(93% 0.045 265);
+  --tint-toys-ink: oklch(46% 0.1 265);
+  --tint-health: oklch(92% 0.05 150);
+  --tint-health-ink: oklch(42% 0.1 155);
+
+  /* status — paired with icon or text, never colour alone */
+  --color-ok: oklch(50% 0.12 155);
+  --color-ok-tint: oklch(95.5% 0.025 155);
+  --color-warn: oklch(48% 0.11 70);
+  --color-warn-tint: oklch(95.5% 0.035 80);
+  --color-bad: oklch(50% 0.18 27);
+  --color-bad-tint: oklch(95.5% 0.025 25);
+
+  /* fonts — bricolage display / figtree body / jetbrains readouts */
+  --font-display: "Bricolage Grotesque", "Figtree", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Figtree", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* type scale — big jumps, display carries the page */
+  --text-xs: 0.6875rem;    /* 11 — readout only */
+  --text-sm: 0.8125rem;    /* 13 — captions, meta */
+  --text-body: 0.9375rem;  /* 15 — compact ui text */
+  --text-base: 1rem;       /* 16 — body */
+  --text-md: 1.125rem;     /* 18 — card titles */
+  --text-lg: 1.375rem;     /* 22 — section heads */
+  --text-xl: 1.75rem;      /* 28 */
+  --text-2xl: clamp(2rem, 1.3rem + 2.2vw, 2.625rem);       /* 32–42 page titles */
+  --text-display: clamp(2.5rem, 1.6rem + 3.4vw, 3.5rem);   /* 40–56 home greeting */
+
+  /* spacing — 4pt scale */
+  --space-3xs: 0.125rem;
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.25rem;
+  --space-2xl: 3.25rem;
+  --space-3xl: 4.5rem;
+
+  /* radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+
+  /* motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+
+  /* elevation — six named levels */
+  --z-sticky: 200;
+  --z-modal: 400;
+  --z-toast: 500;
+
+  /* shadows — whisper only */
+  --shadow-whisper: 0 1px 2px oklch(25% 0.014 70 / 0.06);
+  --shadow-sheet: 0 -12px 40px -16px oklch(25% 0.014 70 / 0.22);
+  --color-scrim: oklch(25% 0.014 70 / 0.34);
+
+  /* layout */
+  --shell: 46.875rem;     /* 750px — mobile/tablet content column */
+  --rail-w: 15rem;        /* desktop side rail */
+  --page-max: 75rem;      /* desktop content cap */
+  --gutter: clamp(1rem, 2.5vw, 1.5rem);
+  --tabbar-h: 4.25rem;
+}

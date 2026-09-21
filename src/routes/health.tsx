@@ -1,0 +1,137 @@
+import { useState } from 'react'
+import { createFileRoute, Link } from '@tanstack/react-router'
+import { RefreshCw } from 'lucide-react'
+
+import { VaccineRow } from '../components/cards'
+import { PetGlyph } from '../components/ui'
+import { pushToast, syncClinicRecords, useAppState } from '../lib/store'
+
+export const Route = createFileRoute('/health')({
+  head: () => ({ title: 'Health · PetSafeCare' }),
+  component: HealthPage,
+})
+
+function HealthPage() {
+  const { pets, vaccines, lastSyncLabel } = useAppState()
+  const [petId, setPetId] = useState(pets[0]?.id ?? '')
+  const [syncing, setSyncing] = useState(false)
+
+  const pet = pets.find((p) => p.id === petId) ?? pets[0]
+  const petVaccines = vaccines
+    .filter((v) => v.petId === pet?.id)
+    .sort((a, b) => a.dueInDays - b.dueInDays)
+  const needsCount = vaccines.filter((v) => v.status === 'overdue' || v.status === 'due').length
+
+  function handleSync() {
+    if (syncing) return
+    setSyncing(true)
+    window.setTimeout(() => {
+      syncClinicRecords()
+      setSyncing(false)
+      pushToast('Clinic records up to date')
+    }, 1200)
+  }
+
+  if (!pet) {
+    return (
+      <div className="page">
+        <h1 className="page-title">Health</h1>
+        <p className="muted">Add a pet in your profile to start tracking vaccinations.</p>
+        <Link to="/profile" className="btn btn--primary" style={{ width: 'fit-content' }}>
+          Go to profile
+        </Link>
+      </div>
+    )
+  }
+
+  return (
+    <div className="page">
+      <header className="rise" style={{ '--i': 0 } as React.CSSProperties}>
+        <h1 className="page-title">Health</h1>
+        <p className="muted" style={{ fontSize: 'var(--text-sm)', marginTop: 2 }}>
+          {needsCount > 0
+            ? `${needsCount} vaccination${needsCount === 1 ? '' : 's'} need attention.`
+            : 'Every vaccination is up to date.'}
+        </p>
+      </header>
+
+      <div className="chips rise" style={{ '--i': 1 } as React.CSSProperties} role="tablist" aria-label="Choose pet">
+        {pets.map((p) => (
+          <button
+            key={p.id}
+            type="button"
+            role="tab"
+            aria-selected={pet.id === p.id}
+            aria-pressed={pet.id === p.id}
+            className="chip"
+            onClick={() => setPetId(p.id)}
+          >
+            <PetGlyph species={p.species} size={14} />
+            {p.name}
+          </button>
+        ))}
+      </div>
+
+      <div className="detail-grid rise" style={{ '--i': 2, alignItems: 'start' } as React.CSSProperties}>
+        <section className="card card--pad">
+          <h2 className="section-head__title" style={{ marginBottom: 'var(--space-2xs)' }}>
+            {pet.name}
+          </h2>
+          <p className="row__sub" style={{ marginBottom: 'var(--space-2xs)' }}>
+            {pet.breed} · {pet.ageYears} yr · {pet.weightKg.toFixed(1)} kg
+          </p>
+          {petVaccines.map((v) => (
+            <div key={v.id}>
+              <VaccineRow vax={v} />
+              {(v.status === 'overdue' || v.status === 'due') && (
+                <div style={{ display: 'flex', justifyContent: 'flex-end', paddingBlock: 'var(--space-2xs)' }}>
+                  <Link
+                    to="/clinics"
+                    search={{ service: 'vaccination' }}
+                    className="btn btn--primary btn--sm"
+                  >
+                    Book {v.name.toLowerCase()}
+                  </Link>
+                </div>
+              )}
+            </div>
+          ))}
+        </section>
+
+        <div className="stack side-col">
+          <section className="card card--pad">
+            <div className="split">
+              <span className="thead">
+                <span className="sync-dot" data-busy={syncing || undefined} aria-hidden />
+                <span className="tag">Clinic sync</span>
+              </span>
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                onClick={handleSync}
+                disabled={syncing}
+              >
+                <RefreshCw size={14} strokeWidth={1.75} />
+                {syncing ? 'Syncing…' : 'Sync now'}
+              </button>
+            </div>
+            <p className="row__title" style={{ marginTop: 'var(--space-2xs)' }}>
+              Green Valley Veterinary
+            </p>
+            <p className="row__sub">
+              Last synced {lastSyncLabel} · {vaccines.length} records linked to your pets
+            </p>
+          </section>
+
+          <section className="card card--pad">
+            <span className="tag">How sync works</span>
+            <p className="row__sub" style={{ marginTop: 'var(--space-2xs)' }}>
+              Vaccination records flow from your linked clinic into this page. A visit booked
+              through PetSafeCare updates the matching vaccine to “Booked” automatically.
+            </p>
+          </section>
+        </div>
+      </div>
+    </div>
+  )
+}
