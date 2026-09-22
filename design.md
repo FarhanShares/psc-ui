@@ -71,10 +71,17 @@ Secondary: hairline ghost. Tertiary: quiet text link.
 ## Responsive contract (non-negotiable)
 - < 40rem: phone — top bar + bottom tab bar, 750px column, 2-up product grid.
 - 40–48rem: large phone — 3-up products.
-- 48–64rem: tablet — content grows to 1024px (no phone column), 4-up products,
-  2-up clinics/history, two-column detail/form pages, 6-column home bento.
-- ≥ 64rem: fixed left rail (15rem) with brand, nav, cart; content capped at
-  75rem. 5-up products at 80rem, 6-up at 90rem; 12-column home bento.
+- 48–64rem: tablet — content grows to 1024px, 4-up products, 2-up
+  clinics/history, two-column detail/form pages, 6-column home bento.
+- ≥ 64rem: DESKTOP = ECOMMERCE SHELL — sticky site header (brand, global
+  search, nav links, cart button opening a right drawer + badge), exposed
+  filter/category sidebar on shop, hero band, footer with link columns.
+  No side rail. Mobile chrome (top bar + tab bar) hidden.
+- Shop search + category live in the URL (`q`, `cat`) so the global header
+  search and footer category links drive the page directly.
+- Desktop product grids use `auto-fill, minmax(10.75rem, 1fr)`.
+- Cart: dedicated /cart page everywhere; desktop additionally gets the
+  header cart drawer (items, steppers, subtotal, Checkout → /cart).
 - Verified at 320 / 375 / 414 / 480 / 768 / 834 / 1024 / 1280 / 1440.
 
 ## What pages MUST share

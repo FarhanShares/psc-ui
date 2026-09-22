@@ -73,8 +73,8 @@ function ProfilePage() {
             <p className="row__sub num">{profile.phone}</p>
           </div>
         </div>
-        <button type="button" className="btn btn--ghost" onClick={() => setEditOpen(true)}>
-          <Pencil size={15} strokeWidth={1.75} /> Edit profile
+        <button type="button" className="icon-btn" onClick={() => setEditOpen(true)} aria-label="Edit profile">
+          <Pencil size={16} strokeWidth={1.75} />
         </button>
       </section>
 

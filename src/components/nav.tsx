@@ -1,53 +1,33 @@
-import { useEffect } from 'react'
-import { Link, Outlet } from '@tanstack/react-router'
+import { useEffect, useRef, useState } from 'react'
+import { Link, Outlet, useNavigate } from '@tanstack/react-router'
 import {
   HeartPulse,
   Home,
+  Minus,
   PawPrint,
+  Plus,
+  Search,
   ShoppingCart,
   Stethoscope,
   Store,
+  Trash2,
   UserRound,
+  X,
 } from 'lucide-react'
 
-import { cartCount, dismissToast, hydrateFromStorage, useAppState, useToasts } from '../lib/store'
-
-/* ---------------------------------------------------------------- topbar */
-
-export function Topbar() {
-  const { cart } = useAppState()
-  const count = cartCount(cart)
-
-  return (
-    <header className="topbar">
-      <div className="topbar__inner">
-        <Link to="/" className="brand" aria-label="PetSafeCare home">
-          <span className="brand__mark" aria-hidden>
-            <PawPrint size={15} strokeWidth={2} />
-          </span>
-          <span className="brand__name">
-            Pet<span>Safe</span>Care
-          </span>
-        </Link>
-        <span className="topbar__spacer" />
-        <Link
-          to="/cart"
-          className="icon-btn"
-          aria-label={`Cart, ${count} item${count === 1 ? '' : 's'}`}
-        >
-          <ShoppingCart size={18} strokeWidth={1.75} />
-          {count > 0 && (
-            <span key={count} className="icon-btn__badge">
-              {count > 9 ? '9+' : count}
-            </span>
-          )}
-        </Link>
-      </div>
-    </header>
-  )
-}
-
-/* ------------------------------------------------------------- side rail */
+import { CategoryIcon, tileClass } from './ui'
+import { CATEGORIES, FREE_DELIVERY_THRESHOLD, getProduct } from '../lib/data'
+import { money } from '../lib/format'
+import {
+  cartCount,
+  cartTotals,
+  dismissToast,
+  hydrateFromStorage,
+  removeFromCart,
+  setCartQty,
+  useAppState,
+  useToasts,
+} from '../lib/store'
 
 const NAV_ITEMS = [
   { to: '/', label: 'Home', icon: Home, exact: true },
@@ -70,37 +50,251 @@ function BrandMark() {
   )
 }
 
-export function RailNav() {
+/* ---------------------------------------------------------------- topbar (phone) */
+
+export function Topbar() {
   const { cart } = useAppState()
   const count = cartCount(cart)
 
   return (
-    <nav className="rail-nav" aria-label="Primary">
-      <BrandMark />
-      {NAV_ITEMS.map((item) => (
+    <header className="topbar">
+      <div className="topbar__inner">
+        <BrandMark />
+        <span className="topbar__spacer" />
         <Link
-          key={item.to}
-          to={item.to}
-          className="rail-nav__link"
-          activeOptions={item.exact ? { exact: true } : undefined}
+          to="/cart"
+          className="icon-btn"
+          aria-label={`Cart, ${count} item${count === 1 ? '' : 's'}`}
         >
-          <item.icon size={18} strokeWidth={1.75} />
-          {item.label}
+          <ShoppingCart size={18} strokeWidth={1.75} />
+          {count > 0 && (
+            <span key={count} className="icon-btn__badge">
+              {count > 9 ? '9+' : count}
+            </span>
+          )}
         </Link>
-      ))}
-      <span className="rail-nav__spacer" />
-      <Link to="/cart" className="rail-nav__cart">
-        <ShoppingCart size={18} strokeWidth={1.75} />
-        Cart
-        <span key={count} className="rail-nav__badge">
-          {count > 9 ? '9+' : count}
-        </span>
-      </Link>
-    </nav>
+      </div>
+    </header>
   )
 }
 
-/* ---------------------------------------------------------------- tabbar */
+/* ------------------------------------------------- site header (desktop, ecommerce) */
+
+export function SiteHeader({ onOpenCart }: { onOpenCart: () => void }) {
+  const { cart } = useAppState()
+  const count = cartCount(cart)
+  const navigate = useNavigate()
+  const [q, setQ] = useState('')
+
+  useEffect(() => {
+    const term = q.trim()
+    if (!term) return
+    const t = window.setTimeout(() => {
+      navigate({ to: '/shop', search: (prev) => ({ ...prev, q: term }), replace: true })
+    }, 350)
+    return () => window.clearTimeout(t)
+  }, [q, navigate])
+
+  return (
+    <header className="site-header">
+      <div className="site-header__inner">
+        <BrandMark />
+        <div className="site-search">
+          <Search size={16} strokeWidth={1.75} aria-hidden />
+          <input
+            type="search"
+            placeholder="Search supplies"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            aria-label="Search supplies"
+          />
+        </div>
+        <nav className="site-nav" aria-label="Primary">
+          {NAV_ITEMS.filter((i) => !i.exact).map((item) => (
+            <Link key={item.to} to={item.to} className="site-nav__link">
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+        <button
+          type="button"
+          className="icon-btn site-header__cart"
+          onClick={onOpenCart}
+          aria-label={`Open cart, ${count} item${count === 1 ? '' : 's'}`}
+        >
+          <ShoppingCart size={18} strokeWidth={1.75} />
+          {count > 0 && (
+            <span key={count} className="icon-btn__badge">
+              {count > 9 ? '9+' : count}
+            </span>
+          )}
+        </button>
+      </div>
+    </header>
+  )
+}
+
+/* ------------------------------------------------------------- cart drawer (desktop) */
+
+export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { cart } = useAppState()
+  const { subtotal, delivery } = cartTotals(cart)
+  const ref = useRef<HTMLDialogElement>(null)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    if (open && !el.open) el.showModal()
+    if (!open && el.open) el.close()
+  }, [open])
+
+  return (
+    <dialog
+      ref={ref}
+      className="drawer"
+      aria-label="Cart"
+      onClose={onClose}
+      onClick={(e) => {
+        if (e.target === ref.current) onClose()
+      }}
+    >
+      <div className="drawer__head">
+        <h2 className="drawer__title">Cart</h2>
+        <button type="button" className="icon-btn" onClick={onClose} aria-label="Close cart">
+          <X size={16} strokeWidth={1.75} />
+        </button>
+      </div>
+
+      {cart.length === 0 ? (
+        <p className="row__sub" style={{ padding: 'var(--space-lg) 0' }}>
+          Nothing here yet — add something from the shop.
+        </p>
+      ) : (
+        <div className="drawer__items">
+          {cart.map((item) => {
+            const p = getProduct(item.productId)
+            if (!p) return null
+            return (
+              <div key={item.productId} className="drawer__item">
+                <span className={`tile ${tileClass(p.category)}`} style={{ width: '2.5rem', height: '2.5rem' }}>
+                  <CategoryIcon category={p.category} size={16} />
+                </span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span className="row__title" style={{ display: 'block', fontSize: 'var(--text-sm)' }}>
+                    {p.name}
+                  </span>
+                  <span className="row__sub num">{money(p.price)} each</span>
+                </span>
+                <span className="stepper" style={{ transform: 'scale(0.88)', transformOrigin: 'right center' }}>
+                  <button
+                    type="button"
+                    className="stepper__btn"
+                    onClick={() => setCartQty(p.id, item.qty - 1)}
+                    aria-label={`Decrease quantity of ${p.name}`}
+                  >
+                    <Minus size={13} strokeWidth={2} />
+                  </button>
+                  <span className="stepper__val">{item.qty}</span>
+                  <button
+                    type="button"
+                    className="stepper__btn"
+                    onClick={() => setCartQty(p.id, item.qty + 1)}
+                    aria-label={`Increase quantity of ${p.name}`}
+                  >
+                    <Plus size={13} strokeWidth={2} />
+                  </button>
+                </span>
+                <button
+                  type="button"
+                  className="btn btn--quiet btn--sm"
+                  onClick={() => removeFromCart(p.id)}
+                  aria-label={`Remove ${p.name}`}
+                >
+                  <Trash2 size={13} strokeWidth={1.75} />
+                </button>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {cart.length > 0 && (
+        <div className="drawer__foot">
+          <div className="summary" style={{ padding: 'var(--space-sm)' }}>
+            <div className="summary__row">
+              <span>Subtotal</span>
+              <span className="price">{money(subtotal)}</span>
+            </div>
+            <div className="summary__row">
+              <span>Delivery</span>
+              <span className="price">{delivery === 0 ? 'Free' : money(delivery)}</span>
+            </div>
+          </div>
+          {subtotal < FREE_DELIVERY_THRESHOLD && (
+            <p className="row__sub">
+              Add {money(FREE_DELIVERY_THRESHOLD - subtotal)} more for free delivery.
+            </p>
+          )}
+          <Link to="/cart" onClick={onClose} className="btn btn--primary btn--block">
+            Checkout · {money(subtotal + delivery)}
+          </Link>
+        </div>
+      )}
+    </dialog>
+  )
+}
+
+/* ------------------------------------------------------------- footer (desktop) */
+
+export function SiteFooter() {
+  return (
+    <footer className="site-footer">
+      <div className="site-footer__inner">
+        <div className="site-footer__brand">
+          <BrandMark />
+          <p className="row__sub">
+            Shop, book clinic visits, and keep vaccinations on schedule — for the ones who wait
+            up for you.
+          </p>
+        </div>
+        <nav aria-label="Shop categories">
+          <h3 className="tag">Shop</h3>
+          <ul>
+            {CATEGORIES.filter((c) => c.id !== 'all').map((c) => (
+              <li key={c.id}>
+                <Link to="/shop" search={{ cat: c.id }}>
+                  {c.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <nav aria-label="Care">
+          <h3 className="tag">Care</h3>
+          <ul>
+            <li><Link to="/clinics">Find a clinic</Link></li>
+            <li><Link to="/health">Vaccinations</Link></li>
+            <li><Link to="/bookings">My bookings</Link></li>
+          </ul>
+        </nav>
+        <nav aria-label="Account">
+          <h3 className="tag">Account</h3>
+          <ul>
+            <li><Link to="/profile">Profile</Link></li>
+            <li><Link to="/orders">Orders</Link></li>
+            <li><Link to="/cart">Cart</Link></li>
+          </ul>
+        </nav>
+      </div>
+      <div className="site-footer__baseline">
+        <span className="mono-label">PetSafeCare — demo shop &amp; clinic booking</span>
+        <span className="mono-label">Free delivery over {money(FREE_DELIVERY_THRESHOLD)} · 30-day returns</span>
+      </div>
+    </footer>
+  )
+}
+
+/* ---------------------------------------------------------------- tabbar (phone) */
 
 export function Tabbar() {
   return (
@@ -153,6 +347,8 @@ export function ToastRegion() {
 /* -------------------------------------------------------------- app frame */
 
 export function AppFrame() {
+  const [cartOpen, setCartOpen] = useState(false)
+
   useEffect(() => {
     hydrateFromStorage()
   }, [])
@@ -160,12 +356,14 @@ export function AppFrame() {
   return (
     <div className="app">
       <Topbar />
-      <RailNav />
+      <SiteHeader onOpenCart={() => setCartOpen(true)} />
       <main className="app__main">
         <Outlet />
       </main>
+      <SiteFooter />
       <Tabbar />
       <ToastRegion />
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
     </div>
   )
 }

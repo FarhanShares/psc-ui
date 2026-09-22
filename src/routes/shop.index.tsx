@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { ArrowUpDown, Check, PackageCheck, ShieldCheck, SlidersHorizontal, Truck } from 'lucide-react'
 
 import { ProductCard } from '../components/cards'
@@ -11,6 +11,13 @@ import type { ProductCategory } from '../lib/types'
 
 export const Route = createFileRoute('/shop/')({
   head: () => ({ title: 'Shop · PetSafeCare' }),
+  validateSearch: (search: Record<string, unknown>): { q?: string; cat?: string } => ({
+    q: typeof search.q === 'string' ? search.q : undefined,
+    cat:
+      typeof search.cat === 'string' && CATEGORIES.some((c) => c.id === search.cat)
+        ? search.cat
+        : undefined,
+  }),
   component: ShopPage,
 })
 
@@ -63,8 +70,21 @@ function matchesFilters(
 }
 
 function ShopPage() {
-  const [category, setCategory] = useState<ProductCategory | 'all'>('all')
-  const [query, setQuery] = useState('')
+  const navigate = useNavigate()
+  const { q: urlQ, cat: urlCat } = Route.useSearch()
+  // query + category live in the URL so the global header search and footer
+  // category links can drive this page directly
+  const query = urlQ ?? ''
+  const category = (urlCat ?? 'all') as ProductCategory | 'all'
+  const setQuery = (v: string) =>
+    navigate({ to: '/shop', search: (prev) => ({ ...prev, q: v.trim() || undefined }), replace: true })
+  const setCategory = (id: ProductCategory | 'all') =>
+    navigate({
+      to: '/shop',
+      search: (prev) => ({ ...prev, cat: id === 'all' ? undefined : id }),
+      replace: true,
+    })
+
   const [sort, setSort] = useState<SortId>('popular')
   const [filters, setFilters] = useState<Filters>(NO_FILTERS)
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -238,6 +258,26 @@ function ShopPage() {
         </li>
       </ul>
 
+      <section className="band shop-hero rise split" style={{ '--i': 1, flexWrap: 'wrap' } as React.CSSProperties} aria-label="Featured">
+        <div style={{ minWidth: 0 }}>
+          <span className="tag">Featured</span>
+          <h2 className="band__title">Flea &amp; tick season is here</h2>
+          <p className="band__meta">
+            Spot-ons and chews for dogs and cats — free delivery over {money(FREE_DELIVERY_THRESHOLD)}.
+          </p>
+        </div>
+        <button
+          type="button"
+          className="btn btn--primary"
+          onClick={() => {
+            setSort('popular')
+            document.querySelector('.grid-products')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }}
+        >
+          Shop best sellers
+        </button>
+      </section>
+
       <div className="shop-layout rise" style={{ '--i': 2 } as React.CSSProperties}>
         <aside className="shop-aside" aria-label="Product filters">
           <p className="tag" style={{ marginBottom: 'var(--space-sm)' }}>Filters</p>
@@ -280,12 +320,12 @@ function ShopPage() {
               options={SORTS.map((s) => ({ id: s.id, label: s.label }))}
               onChange={(id) => setSort(id as SortId)}
             />
-            <button
-              type="button"
-              className="picker-btn"
-              onClick={() => setSheetOpen(true)}
-              aria-label={`Filters${activeCount > 0 ? `, ${activeCount} active` : ''}`}
-            >
+        <button
+          type="button"
+          className="picker-btn filter-btn"
+          onClick={() => setSheetOpen(true)}
+          aria-label={`Filters${activeCount > 0 ? `, ${activeCount} active` : ''}`}
+        >
               <SlidersHorizontal size={17} strokeWidth={1.75} aria-hidden />
               {activeCount > 0 && <span className="picker-btn__badge">{activeCount}</span>}
             </button>
