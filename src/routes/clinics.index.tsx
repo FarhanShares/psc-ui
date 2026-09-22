@@ -27,6 +27,7 @@ const DEFAULT_FILTERS: Filters = {
 
 type SortId = 'recommended' | 'distance' | 'rating'
 
+
 export const Route = createFileRoute('/clinics/')({
   head: () => ({ title: 'Clinics · PetSafeCare' }),
   validateSearch: (search: Record<string, unknown>): { service?: string } => ({
@@ -34,6 +35,135 @@ export const Route = createFileRoute('/clinics/')({
   }),
   component: ClinicsPage,
 })
+
+
+/** filter facets bound to whichever state object the caller passes */
+function FilterFacets({
+  value,
+  onChange,
+}: {
+  value: Filters
+  onChange: (patch: Partial<Filters>) => void
+}) {
+  return (
+    <div className="stack">
+      <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+        <legend className="tag" style={{ marginBottom: 'var(--space-2xs)' }}>Service</legend>
+        <div role="radiogroup" aria-label="Service">
+          {[{ id: 'all', label: 'All services' }, ...SERVICE_TYPES.map((s) => ({ id: s.id, label: s.label }))].map(
+            (o) => (
+              <button
+                key={o.id}
+                type="button"
+                role="radio"
+                aria-checked={value.service === o.id}
+                className={`option-row${value.service === o.id ? ' is-selected' : ''}`}
+                onClick={() => onChange({ service: o.id })}
+              >
+                <span className="option-row__label">{o.label}</span>
+                {value.service === o.id && <Check size={15} strokeWidth={2.25} aria-hidden />}
+              </button>
+            ),
+          )}
+        </div>
+      </fieldset>
+
+      <div className="switch-row">
+        <span className="switch-row__text">
+          <span className="row__title" style={{ fontSize: 'var(--text-body)' }}>Open now</span>
+          <span className="row__sub">Hide clinics that are closed</span>
+        </span>
+        <input
+          type="checkbox"
+          role="switch"
+          className="switch"
+          checked={value.openNow}
+          onChange={(e) => onChange({ openNow: e.target.checked })}
+          aria-label="Open now only"
+        />
+      </div>
+      <div className="switch-row">
+        <span className="switch-row__text">
+          <span className="row__title" style={{ fontSize: 'var(--text-body)' }}>Verified only</span>
+          <span className="row__sub">Licence checked by PetSafeCare</span>
+        </span>
+        <input
+          type="checkbox"
+          role="switch"
+          className="switch"
+          checked={value.verifiedOnly}
+          onChange={(e) => onChange({ verifiedOnly: e.target.checked })}
+          aria-label="Verified clinics only"
+        />
+      </div>
+
+      <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+        <legend className="tag" style={{ marginBottom: 'var(--space-2xs)' }}>Distance</legend>
+        <div className="chips">
+          {[
+            { v: 0, l: 'Any' },
+            { v: 2, l: 'Within 2 km' },
+            { v: 5, l: 'Within 5 km' },
+            { v: 10, l: 'Within 10 km' },
+          ].map((o) => (
+            <button
+              key={o.v}
+              type="button"
+              className="chip"
+              aria-pressed={value.maxDistance === o.v}
+              onClick={() => onChange({ maxDistance: o.v })}
+            >
+              {o.l}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+
+      <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+        <legend className="tag" style={{ marginBottom: 'var(--space-2xs)' }}>Rating</legend>
+        <div className="chips">
+          {[
+            { v: 0, l: 'Any' },
+            { v: 4, l: '4.0+' },
+            { v: 4.5, l: '4.5+' },
+          ].map((o) => (
+            <button
+              key={o.v}
+              type="button"
+              className="chip"
+              aria-pressed={value.minRating === o.v}
+              onClick={() => onChange({ minRating: o.v })}
+            >
+              {o.l}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+
+      <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+        <legend className="tag" style={{ marginBottom: 'var(--space-2xs)' }}>Price level</legend>
+        <div className="chips">
+          {[
+            { v: 0, l: 'Any' },
+            { v: 1, l: '$' },
+            { v: 2, l: '$$' },
+            { v: 3, l: '$$$' },
+          ].map((o) => (
+            <button
+              key={o.v}
+              type="button"
+              className="chip"
+              aria-pressed={value.priceBand === o.v}
+              onClick={() => onChange({ priceBand: o.v })}
+            >
+              {o.l}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+    </div>
+  )
+}
 
 function ClinicsPage() {
   const { service: urlService } = Route.useSearch()
@@ -94,7 +224,24 @@ function ClinicsPage() {
         </p>
       </header>
 
-      <div className="toolbar rise" style={{ '--i': 1 } as React.CSSProperties}>
+      <div className="shop-layout rise" style={{ '--i': 1 } as React.CSSProperties}>
+        <aside className="shop-aside" aria-label="Clinic filters">
+          <p className="tag" style={{ marginBottom: 'var(--space-sm)' }}>Filters</p>
+          <FilterFacets value={applied} onChange={(patch) => setApplied((f) => ({ ...f, ...patch }))} />
+          {activeCount > 0 && (
+            <button
+              type="button"
+              className="btn btn--quiet btn--sm"
+              style={{ justifySelf: 'start', marginTop: 'var(--space-2xs)' }}
+              onClick={() => setApplied(DEFAULT_FILTERS)}
+            >
+              Clear {activeCount} filter{activeCount === 1 ? '' : 's'}
+            </button>
+          )}
+        </aside>
+
+        <div className="clinic-content">
+          <div className="toolbar">
         <SearchControl placeholder="Search clinics or areas" value={query} onChange={setQuery}>
           {(close) =>
             query.trim() ? (
@@ -140,7 +287,7 @@ function ClinicsPage() {
         />
         <button
           type="button"
-          className="picker-btn"
+          className="picker-btn filter-btn"
           onClick={() => {
             setDraft(applied)
             setSheetOpen(true)
@@ -172,7 +319,9 @@ function ClinicsPage() {
             onClick={() => setApplied(DEFAULT_FILTERS)}
           />
         </div>
-      )}
+        )}
+        </div>
+      </div>
 
       <Sheet open={sheetOpen} onClose={() => setSheetOpen(false)} title="Filters"
         footer={
@@ -205,122 +354,7 @@ function ClinicsPage() {
           </div>
         }
       >
-        <div className="stack">
-          <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
-            <legend className="tag" style={{ marginBottom: 'var(--space-2xs)' }}>Service</legend>
-            <div role="radiogroup" aria-label="Service">
-              {[{ id: 'all', label: 'All services' }, ...SERVICE_TYPES.map((s) => ({ id: s.id, label: s.label }))].map(
-                (o) => (
-                  <button
-                    key={o.id}
-                    type="button"
-                    role="radio"
-                    aria-checked={draft.service === o.id}
-                    className={`option-row${draft.service === o.id ? ' is-selected' : ''}`}
-                    onClick={() => setDraft((d) => ({ ...d, service: o.id }))}
-                  >
-                    <span className="option-row__label">{o.label}</span>
-                    {draft.service === o.id && <Check size={15} strokeWidth={2.25} aria-hidden />}
-                  </button>
-                ),
-              )}
-            </div>
-          </fieldset>
-
-          <div className="switch-row">
-            <span className="switch-row__text">
-              <span className="row__title" style={{ fontSize: 'var(--text-body)' }}>Open now</span>
-              <span className="row__sub">Hide clinics that are closed</span>
-            </span>
-            <input
-              type="checkbox"
-              role="switch"
-              className="switch"
-              checked={draft.openNow}
-              onChange={(e) => setDraft((d) => ({ ...d, openNow: e.target.checked }))}
-              aria-label="Open now only"
-            />
-          </div>
-          <div className="switch-row">
-            <span className="switch-row__text">
-              <span className="row__title" style={{ fontSize: 'var(--text-body)' }}>Verified only</span>
-              <span className="row__sub">Licence checked by PetSafeCare</span>
-            </span>
-            <input
-              type="checkbox"
-              role="switch"
-              className="switch"
-              checked={draft.verifiedOnly}
-              onChange={(e) => setDraft((d) => ({ ...d, verifiedOnly: e.target.checked }))}
-              aria-label="Verified clinics only"
-            />
-          </div>
-
-          <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
-            <legend className="tag" style={{ marginBottom: 'var(--space-2xs)' }}>Distance</legend>
-            <div className="chips">
-              {[
-                { v: 0, l: 'Any' },
-                { v: 2, l: 'Within 2 km' },
-                { v: 5, l: 'Within 5 km' },
-                { v: 10, l: 'Within 10 km' },
-              ].map((o) => (
-                <button
-                  key={o.v}
-                  type="button"
-                  className="chip"
-                  aria-pressed={draft.maxDistance === o.v}
-                  onClick={() => setDraft((d) => ({ ...d, maxDistance: o.v }))}
-                >
-                  {o.l}
-                </button>
-              ))}
-            </div>
-          </fieldset>
-
-          <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
-            <legend className="tag" style={{ marginBottom: 'var(--space-2xs)' }}>Rating</legend>
-            <div className="chips">
-              {[
-                { v: 0, l: 'Any' },
-                { v: 4, l: '4.0+' },
-                { v: 4.5, l: '4.5+' },
-              ].map((o) => (
-                <button
-                  key={o.v}
-                  type="button"
-                  className="chip"
-                  aria-pressed={draft.minRating === o.v}
-                  onClick={() => setDraft((d) => ({ ...d, minRating: o.v }))}
-                >
-                  {o.l}
-                </button>
-              ))}
-            </div>
-          </fieldset>
-
-          <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
-            <legend className="tag" style={{ marginBottom: 'var(--space-2xs)' }}>Price level</legend>
-            <div className="chips">
-              {[
-                { v: 0, l: 'Any' },
-                { v: 1, l: '$' },
-                { v: 2, l: '$$' },
-                { v: 3, l: '$$$' },
-              ].map((o) => (
-                <button
-                  key={o.v}
-                  type="button"
-                  className="chip"
-                  aria-pressed={draft.priceBand === o.v}
-                  onClick={() => setDraft((d) => ({ ...d, priceBand: o.v }))}
-                >
-                  {o.l}
-                </button>
-              ))}
-            </div>
-          </fieldset>
-        </div>
+        <FilterFacets value={draft} onChange={(patch) => setDraft((d) => ({ ...d, ...patch }))} />
       </Sheet>
     </div>
   )

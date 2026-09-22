@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { ChevronRight, RefreshCw, Syringe } from 'lucide-react'
+import { ChevronRight, PawPrint, RefreshCw, Syringe } from 'lucide-react'
 
 import { BookingCard, ProductCard } from '../components/cards'
 import { PetGlyph } from '../components/ui'
@@ -83,7 +83,7 @@ function HomePage() {
       </section>
 
       <section className="pet-strip rise span-7" style={{ '--i': 3 } as React.CSSProperties} aria-label="Your pets">
-        {pets.map((pet) => (
+        {pets.slice(0, 2).map((pet) => (
           <Link key={pet.id} to="/health" className="card card--press pet-card">
             <span className={`pet-card__ava pet-card__ava--${pet.species}`}>
               <PetGlyph species={pet.species} size={17} />
@@ -96,6 +96,17 @@ function HomePage() {
             </span>
           </Link>
         ))}
+        <Link to="/profile" className="card card--press pet-card pet-card--more" aria-label="Manage pets">
+          <span className="pet-card__ava" aria-hidden>
+            {pets.length > 2 ? <span className="pet-card__plus num">+{pets.length - 2}</span> : <PawPrint size={16} strokeWidth={1.75} />}
+          </span>
+          <span style={{ minWidth: 0 }}>
+            <span className="pet-card__name">{pets.length > 2 ? 'More pets' : 'Manage pets'}</span>
+            <span className="row__sub" style={{ display: 'block' }}>
+              {pets.length > 2 ? `${pets.length} in total` : 'Add or edit'}
+            </span>
+          </span>
+        </Link>
       </section>
 
       <section className="stack rise span-5" style={{ '--i': 4, gap: 'var(--space-sm)' } as React.CSSProperties} aria-label="Records">

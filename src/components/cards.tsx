@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { BadgeCheck, Check, ChevronDown, ChevronRight, Clock, MapPin, Syringe, Truck } from 'lucide-react'
 

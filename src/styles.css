@@ -363,6 +363,24 @@ img, svg {
   margin-top: var(--space-2xs);
 }
 
+/* scrollable checkout body inside the drawer */
+.drawer__body {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: grid;
+  gap: var(--space-sm);
+  align-content: start;
+  padding-top: var(--space-2xs);
+}
+
+.drawer__placed {
+  flex: 1;
+  display: grid;
+  align-content: center;
+  padding: var(--space-lg) 0;
+}
+
 /* ------------------------------------------------------- footer (desktop) */
 
 .site-footer {
@@ -1372,6 +1390,18 @@ img, svg {
   font-size: var(--text-body);
   color: var(--color-ink);
   line-height: 1.25;
+}
+
+/* secondary tile in the pets row — "+N more" or "Manage pets" */
+.pet-card--more .pet-card__ava {
+  background: var(--color-paper-3);
+  color: var(--color-muted);
+}
+
+.pet-card__plus {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-sm);
 }
 
 @media (min-width: 40rem) {

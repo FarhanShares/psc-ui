@@ -208,7 +208,7 @@ export function ResultRow({
   onClose,
 }: {
   to: '/shop/$id' | '/clinics/$id'
-  params: Record<string, string>
+  params: { id: string }
   tile: React.ReactNode
   title: string
   meta: string
