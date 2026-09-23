@@ -29,6 +29,8 @@ import { Route as BookingsIndexRouteImport } from './routes/bookings.index'
 import { Route as BookingsIdRouteImport } from './routes/bookings.$id'
 import { Route as ClinicsIndexRouteImport } from './routes/clinics.index'
 import { Route as ClinicsIdRouteImport } from './routes/clinics.$id'
+import { Route as GuidesIndexRouteImport } from './routes/guides.index'
+import { Route as GuidesSlugRouteImport } from './routes/guides.$slug'
 import { Route as OrdersIndexRouteImport } from './routes/orders.index'
 import { Route as OrdersIdRouteImport } from './routes/orders.$id'
 import { Route as PetsIndexRouteImport } from './routes/pets.index'
@@ -136,6 +138,16 @@ const ClinicsIdRoute = ClinicsIdRouteImport.update({
   path: '/clinics/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GuidesIndexRoute = GuidesIndexRouteImport.update({
+  id: '/guides/',
+  path: '/guides/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuidesSlugRoute = GuidesSlugRouteImport.update({
+  id: '/guides/$slug',
+  path: '/guides/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OrdersIndexRoute = OrdersIndexRouteImport.update({
   id: '/orders/',
   path: '/orders/',
@@ -186,11 +198,13 @@ export interface FileRoutesByFullPath {
   '/welcome': typeof WelcomeRoute
   '/bookings/$id': typeof BookingsIdRoute
   '/clinics/$id': typeof ClinicsIdRoute
+  '/guides/$slug': typeof GuidesSlugRoute
   '/orders/$id': typeof OrdersIdRoute
   '/pets/$id': typeof PetsIdRoute
   '/shop/$id': typeof ShopIdRoute
   '/bookings/': typeof BookingsIndexRoute
   '/clinics/': typeof ClinicsIndexRoute
+  '/guides/': typeof GuidesIndexRoute
   '/orders/': typeof OrdersIndexRoute
   '/pets/': typeof PetsIndexRoute
   '/shop/': typeof ShopIndexRoute
@@ -214,11 +228,13 @@ export interface FileRoutesByTo {
   '/welcome': typeof WelcomeRoute
   '/bookings/$id': typeof BookingsIdRoute
   '/clinics/$id': typeof ClinicsIdRoute
+  '/guides/$slug': typeof GuidesSlugRoute
   '/orders/$id': typeof OrdersIdRoute
   '/pets/$id': typeof PetsIdRoute
   '/shop/$id': typeof ShopIdRoute
   '/bookings': typeof BookingsIndexRoute
   '/clinics': typeof ClinicsIndexRoute
+  '/guides': typeof GuidesIndexRoute
   '/orders': typeof OrdersIndexRoute
   '/pets': typeof PetsIndexRoute
   '/shop': typeof ShopIndexRoute
@@ -243,11 +259,13 @@ export interface FileRoutesById {
   '/welcome': typeof WelcomeRoute
   '/bookings/$id': typeof BookingsIdRoute
   '/clinics/$id': typeof ClinicsIdRoute
+  '/guides/$slug': typeof GuidesSlugRoute
   '/orders/$id': typeof OrdersIdRoute
   '/pets/$id': typeof PetsIdRoute
   '/shop/$id': typeof ShopIdRoute
   '/bookings/': typeof BookingsIndexRoute
   '/clinics/': typeof ClinicsIndexRoute
+  '/guides/': typeof GuidesIndexRoute
   '/orders/': typeof OrdersIndexRoute
   '/pets/': typeof PetsIndexRoute
   '/shop/': typeof ShopIndexRoute
@@ -273,11 +291,13 @@ export interface FileRouteTypes {
     | '/welcome'
     | '/bookings/$id'
     | '/clinics/$id'
+    | '/guides/$slug'
     | '/orders/$id'
     | '/pets/$id'
     | '/shop/$id'
     | '/bookings/'
     | '/clinics/'
+    | '/guides/'
     | '/orders/'
     | '/pets/'
     | '/shop/'
@@ -301,11 +321,13 @@ export interface FileRouteTypes {
     | '/welcome'
     | '/bookings/$id'
     | '/clinics/$id'
+    | '/guides/$slug'
     | '/orders/$id'
     | '/pets/$id'
     | '/shop/$id'
     | '/bookings'
     | '/clinics'
+    | '/guides'
     | '/orders'
     | '/pets'
     | '/shop'
@@ -329,11 +351,13 @@ export interface FileRouteTypes {
     | '/welcome'
     | '/bookings/$id'
     | '/clinics/$id'
+    | '/guides/$slug'
     | '/orders/$id'
     | '/pets/$id'
     | '/shop/$id'
     | '/bookings/'
     | '/clinics/'
+    | '/guides/'
     | '/orders/'
     | '/pets/'
     | '/shop/'
@@ -358,11 +382,13 @@ export interface RootRouteChildren {
   WelcomeRoute: typeof WelcomeRoute
   BookingsIdRoute: typeof BookingsIdRoute
   ClinicsIdRoute: typeof ClinicsIdRoute
+  GuidesSlugRoute: typeof GuidesSlugRoute
   OrdersIdRoute: typeof OrdersIdRoute
   PetsIdRoute: typeof PetsIdRoute
   ShopIdRoute: typeof ShopIdRoute
   BookingsIndexRoute: typeof BookingsIndexRoute
   ClinicsIndexRoute: typeof ClinicsIndexRoute
+  GuidesIndexRoute: typeof GuidesIndexRoute
   OrdersIndexRoute: typeof OrdersIndexRoute
   PetsIndexRoute: typeof PetsIndexRoute
   ShopIndexRoute: typeof ShopIndexRoute
@@ -510,6 +536,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClinicsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/guides/': {
+      id: '/guides/'
+      path: '/guides'
+      fullPath: '/guides/'
+      preLoaderRoute: typeof GuidesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guides/$slug': {
+      id: '/guides/$slug'
+      path: '/guides/$slug'
+      fullPath: '/guides/$slug'
+      preLoaderRoute: typeof GuidesSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/orders/': {
       id: '/orders/'
       path: '/orders'
@@ -574,11 +614,13 @@ const rootRouteChildren: RootRouteChildren = {
   WelcomeRoute: WelcomeRoute,
   BookingsIdRoute: BookingsIdRoute,
   ClinicsIdRoute: ClinicsIdRoute,
+  GuidesSlugRoute: GuidesSlugRoute,
   OrdersIdRoute: OrdersIdRoute,
   PetsIdRoute: PetsIdRoute,
   ShopIdRoute: ShopIdRoute,
   BookingsIndexRoute: BookingsIndexRoute,
   ClinicsIndexRoute: ClinicsIndexRoute,
+  GuidesIndexRoute: GuidesIndexRoute,
   OrdersIndexRoute: OrdersIndexRoute,
   PetsIndexRoute: PetsIndexRoute,
   ShopIndexRoute: ShopIndexRoute,

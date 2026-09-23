@@ -5278,3 +5278,194 @@ html[data-session="in"] [data-guest-view] {
 .sync-dot--off {
   background: var(--color-rule-2);
 }
+
+/* ---------------------------------------------------------------- guides */
+
+.guide-grid {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+@media (min-width: 40rem) {
+  .guide-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 64rem) {
+  .guide-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.guide-card {
+  display: flex;
+  flex-direction: column;
+  color: inherit;
+  overflow: hidden;
+}
+
+.guide-card__band {
+  display: grid;
+  place-items: center;
+  height: 4.5rem;
+  border-bottom: 1px solid var(--color-rule);
+}
+
+/* the band tint encodes the topic, like category tiles encode category */
+.guide-card__band--health    { background: var(--tint-health);   color: var(--tint-health-ink); }
+.guide-card__band--nutrition { background: var(--tint-food);     color: var(--tint-food-ink); }
+.guide-card__band--everyday  { background: var(--tint-grooming); color: var(--tint-grooming-ink); }
+.guide-card__band--visits    { background: var(--color-accent-tint); color: var(--color-accent-deep); }
+
+.guide-card__body {
+  flex: 1;
+  display: grid;
+  align-content: start;
+  gap: var(--space-2xs);
+  padding: var(--space-sm) var(--space-md) var(--space-md);
+}
+
+.guide-card__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-md);
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  color: var(--color-ink);
+}
+
+.guide-card__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xs);
+  margin-top: var(--space-2xs);
+}
+
+.guide-card__meta .mono-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.guide-card__species {
+  display: inline-flex;
+  gap: var(--space-2xs);
+  color: var(--color-muted);
+}
+
+@media (hover: hover) {
+  .guide-card:hover .guide-card__title {
+    color: var(--color-accent-deep);
+  }
+}
+
+@media (min-width: 40rem) {
+  .guide-card--featured {
+    grid-column: 1 / -1;
+    flex-direction: row;
+  }
+
+  .guide-card--featured .guide-card__band {
+    height: auto;
+    width: 38%;
+    min-height: 11rem;
+    border-bottom: 0;
+    border-right: 1px solid var(--color-rule);
+  }
+
+  .guide-card--featured .guide-card__body {
+    align-content: center;
+    padding: var(--space-lg);
+  }
+
+  .guide-card--featured .guide-card__title {
+    font-size: var(--text-xl);
+    letter-spacing: -0.025em;
+  }
+}
+
+.guide-card__desc {
+  font-size: var(--text-body);
+}
+
+.guide-filters {
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.article-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2xs) var(--space-md);
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+
+.article-meta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.takeaways {
+  display: grid;
+  gap: var(--space-xs);
+  padding: var(--space-md);
+  background: var(--color-card);
+  border: 1px solid var(--color-rule);
+  border-left: 3px solid var(--color-accent);
+  border-radius: var(--radius-md);
+}
+
+.prose__list {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: grid;
+  gap: var(--space-2xs);
+  font-size: var(--text-base);
+  line-height: 1.6;
+}
+
+.prose__list li::marker {
+  color: var(--color-accent-deep);
+}
+
+.disclaimer {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: flex-start;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-paper-2);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm) !important;
+  color: var(--color-ink-2);
+}
+
+.disclaimer > svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--color-muted);
+}
+
+.guide-cta {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: var(--color-card);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-md);
+}
+
+.guide-cta .row__grow > * {
+  display: block;
+}
+
+.prose .tag {
+  font-size: var(--text-xs);
+  line-height: 1.4;
+}

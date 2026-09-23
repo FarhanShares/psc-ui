@@ -119,7 +119,7 @@ function EmergencyPage() {
 
       <p className="row__sub rise" style={{ '--i': 3 } as React.CSSProperties}>
         This page is general guidance, not a diagnosis. Poison helplines and your own vet remain the best source
-        of advice for your pet.
+        of advice for your pet. See also: <Link to="/guides/$slug" params={{ slug: 'toxic-foods' }}>foods and plants that are toxic to pets</Link>.
       </p>
     </div>
   )

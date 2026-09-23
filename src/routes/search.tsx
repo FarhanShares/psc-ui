@@ -3,6 +3,8 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { ChevronRight, Clock, HelpCircle, Search, X } from 'lucide-react'
 
 import { ProductCard } from '../components/cards'
+import { GuideCard } from '../components/guide-card'
+import { GUIDES } from '../lib/guides'
 import { CategoryIcon, EmptyState, ServiceIcon, Stars, tileClass } from '../components/ui'
 import { CATEGORIES, CLINICS, FAQS, PRODUCTS, SERVICE_TYPES } from '../lib/data'
 import { initials, money } from '../lib/format'
@@ -54,10 +56,11 @@ function SearchPage() {
       clinics: CLINICS.filter((c) => has(`${c.name} ${c.area} ${c.services.map((s) => `${s.name} ${s.type}`).join(' ')}`)),
       services: SERVICE_TYPES.filter((s) => has(s.label)),
       help: FAQS.filter((f) => has(`${f.q} ${f.a}`)).slice(0, 3),
+      guides: GUIDES.filter((g) => has(`${g.title} ${g.description} ${g.takeaways.join(' ')} ${g.sections.map((x) => x.heading).join(' ')}`)).slice(0, 4),
     }
   }, [term])
 
-  const total = results ? results.products.length + results.clinics.length + results.services.length + results.help.length : 0
+  const total = results ? results.products.length + results.clinics.length + results.services.length + results.help.length + results.guides.length : 0
 
   return (
     <div className="page">
@@ -200,6 +203,22 @@ function SearchPage() {
                     </span>
                     <Stars rating={c.rating} />
                   </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {results.guides.length > 0 && (
+            <section>
+              <div className="section-head">
+                <h2 className="section-head__title">Care guides</h2>
+                <Link to="/guides" className="section-head__link">
+                  All guides <ChevronRight size={13} strokeWidth={2} />
+                </Link>
+              </div>
+              <div className="guide-grid">
+                {results.guides.map((g, i) => (
+                  <GuideCard key={g.slug} guide={g} i={i} />
                 ))}
               </div>
             </section>

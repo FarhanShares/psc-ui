@@ -13,6 +13,8 @@ import { plural } from '../lib/format'
 import { seo } from '../lib/seo'
 import { removePet, useAppState } from '../lib/store'
 import { RequireAccount } from '../components/gate'
+import { GuideCard } from '../components/guide-card'
+import { guidesFor } from '../lib/guides'
 
 export const Route = createFileRoute('/pets/$id')({
   head: () => seo({ title: 'Pet profile', noindex: true }),
@@ -228,6 +230,22 @@ function PetPage() {
           />
         </section>
       )}
+
+      <section className="rise" style={{ '--i': 5 } as React.CSSProperties}>
+        <div className="section-head">
+          <h2 className="section-head__title">Guides for {pet.species === 'cat' ? 'cat' : 'dog'} parents</h2>
+          <Link to="/guides" search={{ for: pet.species }} className="section-head__link">
+            All guides
+          </Link>
+        </div>
+        <div className="guide-grid">
+          {guidesFor(pet.species)
+            .slice(0, 3)
+            .map((g, i) => (
+              <GuideCard key={g.slug} guide={g} i={i} />
+            ))}
+        </div>
+      </section>
 
       <EditPetSheet pet={pet} open={editOpen} onClose={() => setEditOpen(false)} />
       <LogWeightSheet pet={pet} open={weightOpen} onClose={() => setWeightOpen(false)} />

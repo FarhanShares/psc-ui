@@ -12,10 +12,12 @@ import {
 } from 'lucide-react'
 
 import { ClinicCard } from './cards'
+import { GuideCard } from './guide-card'
 import { ProductRail } from './product-rail'
 import { CategoryIcon, PetGlyph, ServiceIcon, tileClass } from './ui'
 import { CATEGORIES, CLINICS, FREE_DELIVERY_THRESHOLD, PRODUCTS, SERVICE_TYPES } from '../lib/data'
 import { money } from '../lib/format'
+import { GUIDES } from '../lib/guides'
 import { signInDemo } from '../lib/store'
 import type { ProductCategory, ServiceType } from '../lib/types'
 
@@ -181,6 +183,20 @@ export function Landing({ recentlyViewed }: { recentlyViewed: string[] }) {
             </li>
           ))}
         </ol>
+      </section>
+
+      <section className="rise" style={{ '--i': 6 } as React.CSSProperties}>
+        <div className="section-head">
+          <h2 className="section-head__title">Care guides</h2>
+          <Link to="/guides" className="section-head__link">
+            All {GUIDES.length} guides <ChevronRight size={13} strokeWidth={2} />
+          </Link>
+        </div>
+        <div className="guide-grid">
+          {GUIDES.slice(0, 3).map((g, i) => (
+            <GuideCard key={g.slug} guide={g} i={i} />
+          ))}
+        </div>
       </section>
 
       <Link to="/emergency" className="emergency-strip rise" style={{ '--i': 6 } as React.CSSProperties}>

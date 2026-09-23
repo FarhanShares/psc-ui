@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, notFound, Link } from '@tanstack/react-router'
 import { Bell, Check, ChevronRight, MessageCircleQuestion, PackageCheck, Truck } from 'lucide-react'
 
 import { Crumbs, RatingSummary, ReviewList, SaveButton } from '../components/blocks'
@@ -53,6 +53,10 @@ const VARIES_BY: Record<AxisId, string> = {
 }
 
 export const Route = createFileRoute('/shop/$id')({
+  // unknown ids are real 404s (status + noindex), not soft "not found" pages
+  beforeLoad: ({ params }) => {
+    if (!getProduct(params.id)) throw notFound()
+  },
   validateSearch: (s: Record<string, unknown>): { v?: string } => ({
     v: typeof s.v === 'string' ? s.v : undefined,
   }),

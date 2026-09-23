@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { CATEGORIES, CLINICS, PRODUCTS, SERVICE_TYPES } from '../lib/data'
 import { BRANDS } from '../lib/shop-landing'
+import { GUIDES, GUIDE_TOPICS } from '../lib/guides'
 import { absoluteUrl } from '../lib/seo'
 
 /** public, indexable URLs only — account pages are noindex and left out */
@@ -30,6 +31,11 @@ function urls(): Array<{ loc: string; priority: string; changefreq: string }> {
   for (const s of SERVICE_TYPES) out.push({ loc: `/clinics?service=${s.id}`, priority: '0.7', changefreq: 'weekly' })
   for (const p of PRODUCTS) out.push({ loc: `/shop/${p.id}`, priority: '0.7', changefreq: 'weekly' })
   for (const c of CLINICS) out.push({ loc: `/clinics/${c.id}`, priority: '0.7', changefreq: 'weekly' })
+  out.push({ loc: '/guides', priority: '0.8', changefreq: 'weekly' })
+  for (const t of GUIDE_TOPICS) {
+    if (GUIDES.filter((g) => g.topic === t.id).length >= 2) out.push({ loc: `/guides?topic=${t.id}`, priority: '0.6', changefreq: 'monthly' })
+  }
+  for (const g of GUIDES) out.push({ loc: `/guides/${g.slug}`, priority: '0.8', changefreq: 'monthly' })
   return out
 }
 

@@ -112,7 +112,9 @@ the only ornament, and they encode data (category), never decorate.
 
 ## Screen inventory (2026-09-23)
 Public, indexable: `/`, `/shop` (+ `?cat=`), `/shop/$id`, `/clinics` (+ `?service=`),
-`/clinics/$id`, `/emergency`, `/help`, `/about`, `/privacy`, `/terms`, `/login`, `/signup`.
+`/clinics/$id`, `/guides` (+ `?topic=`, `?for=`), `/guides/$slug`, `/emergency`, `/help`,
+`/about`, `/privacy`, `/terms`, `/login`, `/signup`. Unknown product/clinic/guide ids
+throw `notFound()` in `beforeLoad` → real 404 status, never a soft 200.
 Account, `noindex`: `/cart`, `/orders`, `/orders/$id`, `/bookings`, `/bookings/$id`,
 `/pets`, `/pets/$id`, `/health`, `/profile`, `/saved`, `/notifications`, `/search`.
 Auth screens and `/welcome` onboarding render without shop chrome (`BARE_ROUTES` in `nav.tsx`).
@@ -132,7 +134,13 @@ Auth screens and `/welcome` onboarding render without shop chrome (`BARE_ROUTES`
 - Every route builds its head through `seo()` in `src/lib/seo.ts` — title,
   description, canonical, Open Graph/Twitter, optional JSON-LD. Never hand-roll meta.
 - JSON-LD by page: Organization + WebSite/SearchAction (root), Product + Offer +
-  BreadcrumbList (product), VeterinaryCare (clinic), ItemList (listings), FAQPage (help).
+  BreadcrumbList (product), VeterinaryCare (clinic), ItemList (listings), FAQPage (help),
+  Article + BreadcrumbList (guides), CollectionPage (guide index).
+- Care guides (`src/lib/guides.ts`) are the content hub: general guidance only,
+  every guide carries the not-veterinary-advice note and a next step (book a
+  service, emergency link). Topic bands reuse the category tints and encode the
+  topic. Guides link out to products and clinics, and are linked from the
+  landing, pet profiles, help, search and the footer.
 - Filtered/search result pages (`/shop?q=`, `/search`) are `noindex, follow`.
 - `sitemap.xml` is generated from data; `public/robots.txt` disallows account pages.
 - Set `VITE_SITE_URL` in production so canonicals point at the real domain.

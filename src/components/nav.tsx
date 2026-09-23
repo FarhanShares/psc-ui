@@ -491,6 +491,7 @@ export function SiteFooter() {
             <li><Link to="/clinics">Find a clinic</Link></li>
             <li><Link to="/clinics" search={{ service: 'vaccination' }}>Vaccinations</Link></li>
             <li><Link to="/clinics" search={{ service: 'grooming' }}>Grooming</Link></li>
+            <li><Link to="/guides">Care guides</Link></li>
             <li><Link to="/emergency">Emergency</Link></li>
           </ul>
         </nav>

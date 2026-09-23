@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { CalendarDays, ChevronDown, HeartPulse, Mail, MessageCircle, Package, Phone, Siren, UserRound } from 'lucide-react'
+import { BookOpen, CalendarDays, ChevronDown, HeartPulse, Mail, MessageCircle, Package, Phone, Siren, UserRound } from 'lucide-react'
 
 import { Crumbs, SuccessMark } from '../components/blocks'
 import { Sheet } from '../components/ui'
@@ -137,6 +137,13 @@ function HelpPage() {
               </span>
             </a>
           </section>
+          <Link to="/guides" className="card card--press row">
+            <span className="menu-row__icon" aria-hidden><BookOpen size={16} strokeWidth={1.75} /></span>
+            <span className="row__grow">
+              <span className="row__title">Care guides</span>
+              <span className="row__sub">Vaccines, food, fleas, dental care and more</span>
+            </span>
+          </Link>
           <p className="row__sub">
             Read our <Link to="/terms">terms</Link> and <Link to="/privacy">privacy policy</Link>, or learn{' '}
             <Link to="/about">about PetSafeCare</Link>.

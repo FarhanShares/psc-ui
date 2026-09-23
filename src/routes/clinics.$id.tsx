@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, notFound, Link, useNavigate } from '@tanstack/react-router'
 import { BadgeCheck, Clock, MapPin, Navigation, Phone, Share2 } from 'lucide-react'
 
 import { Crumbs, RatingSummary, ReviewList, SaveButton, SuccessMark } from '../components/blocks'
@@ -14,6 +14,10 @@ import { bookService, pushToast, useAppState } from '../lib/store'
 import type { ClinicService } from '../lib/types'
 
 export const Route = createFileRoute('/clinics/$id')({
+  // unknown ids are real 404s (status + noindex), not soft "not found" pages
+  beforeLoad: ({ params }) => {
+    if (!getClinic(params.id)) throw notFound()
+  },
   head: ({ params }) => {
     const c = getClinic(params.id)
     if (!c) return seo({ title: 'Clinic not found', noindex: true })

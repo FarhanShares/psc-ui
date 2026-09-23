@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import {
   Bell,
+  BookOpen,
   CalendarDays,
   Check,
   ChevronRight,
@@ -235,6 +236,7 @@ function ProfilePage() {
             <h2 className="section-head__title section-head">Support</h2>
             <div className="menu">
               <MenuRow to="/help" icon={<LifeBuoy size={16} strokeWidth={1.75} />} title="Help centre" sub="FAQs and contact" />
+              <MenuRow to="/guides" icon={<BookOpen size={16} strokeWidth={1.75} />} title="Care guides" sub="Vaccines, food, fleas and more" />
               <MenuRow to="/about" icon={<Info size={16} strokeWidth={1.75} />} title="About PetSafeCare" />
               <MenuRow to="/privacy" icon={<Shield size={16} strokeWidth={1.75} />} title="Privacy policy" />
               <MenuRow to="/terms" icon={<FileText size={16} strokeWidth={1.75} />} title="Terms of service" />
