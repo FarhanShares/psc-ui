@@ -488,8 +488,8 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
             {money(placedOrder.total)} · arriving in 2–4 days at {placedOrder.addressLine}
           </p>
           <div style={{ display: 'grid', gap: 'var(--space-2xs)', marginTop: 'var(--space-md)' }}>
-            <Link to="/orders" onClick={onClose} className="btn btn--primary btn--block">
-              View order
+            <Link to="/orders/$id" params={{ id: placedOrder.id }} onClick={onClose} className="btn btn--primary btn--block">
+              Track order
             </Link>
             <button type="button" className="btn btn--ghost btn--block" onClick={onClose}>
               Keep shopping

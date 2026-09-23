@@ -1,14 +1,16 @@
 import { useState } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { RefreshCw } from 'lucide-react'
+import { ChevronRight, Plus, RefreshCw } from 'lucide-react'
 
 import { AddPetSheet } from '../components/add-pet'
+import { AddRecordSheet } from '../components/pet-sheets'
 import { VaccineRow } from '../components/cards'
 import { PetGlyph } from '../components/ui'
 import { pushToast, syncClinicRecords, useAppState } from '../lib/store'
+import { seo } from '../lib/seo'
 
 export const Route = createFileRoute('/health')({
-  head: () => ({ meta: [{ title: 'Health · PetSafeCare' }] }),
+  head: () => seo({ title: 'Health', path: '/health', noindex: true }),
   component: HealthPage,
 })
 
@@ -17,12 +19,15 @@ function HealthPage() {
   const [petId, setPetId] = useState(pets[0]?.id ?? '')
   const [syncing, setSyncing] = useState(false)
   const [addPetOpen, setAddPetOpen] = useState(false)
+  const [recordOpen, setRecordOpen] = useState(false)
 
   const pet = pets.find((p) => p.id === petId) ?? pets[0]
   const petVaccines = vaccines
     .filter((v) => v.petId === pet?.id)
     .sort((a, b) => a.dueInDays - b.dueInDays)
-  const needsCount = vaccines.filter((v) => v.status === 'overdue' || v.status === 'due').length
+  // records only count when their pet still exists
+  const liveVaccines = vaccines.filter((v) => pets.some((p) => p.id === v.petId))
+  const needsCount = liveVaccines.filter((v) => v.status === 'overdue' || v.status === 'due').length
 
   function handleSync() {
     if (syncing) return
@@ -80,15 +85,25 @@ function HealthPage() {
 
       <div className="detail-grid rise" style={{ '--i': 2, alignItems: 'start' } as React.CSSProperties}>
         <section className="card card--pad">
-          <h2 className="section-head__title" style={{ marginBottom: 'var(--space-2xs)' }}>
-            {pet.name}
-          </h2>
+          <div className="section-head" style={{ marginBottom: 'var(--space-3xs)' }}>
+            <Link to="/pets/$id" params={{ id: pet.id }} className="section-head__title pet-link">
+              {pet.name} <ChevronRight size={15} strokeWidth={2} aria-hidden />
+            </Link>
+            <button type="button" className="link-btn" onClick={() => setRecordOpen(true)}>
+              <Plus size={14} strokeWidth={2} /> Add record
+            </button>
+          </div>
           <p className="row__sub" style={{ marginBottom: 'var(--space-2xs)' }}>
             {pet.breed} · {pet.ageYears} yr · {pet.weightKg.toFixed(1)} kg
           </p>
+          {petVaccines.length === 0 && (
+            <p className="row__sub" style={{ paddingBlock: 'var(--space-sm)' }}>
+              No records for {pet.name} yet — add one from a certificate or the pet passport.
+            </p>
+          )}
           {petVaccines.map((v) => (
             <div key={v.id}>
-              <VaccineRow vax={v} />
+              <VaccineRow vax={v} showPet={false} />
               {(v.status === 'overdue' || v.status === 'due') && (
                 <div style={{ display: 'flex', justifyContent: 'flex-end', paddingBlock: 'var(--space-2xs)' }}>
                   <Link
@@ -125,7 +140,7 @@ function HealthPage() {
               Green Valley Veterinary
             </p>
             <p className="row__sub">
-              Last synced {lastSyncLabel} · {vaccines.length} records linked to your pets
+              Last synced {lastSyncLabel} · {liveVaccines.length} records linked to your pets
             </p>
           </section>
 
@@ -138,6 +153,7 @@ function HealthPage() {
           </section>
         </div>
       </div>
+      <AddRecordSheet pets={pets} petId={pet.id} open={recordOpen} onClose={() => setRecordOpen(false)} />
     </div>
   )
 }

@@ -4,9 +4,10 @@ import { Package } from 'lucide-react'
 import { OrderCard } from '../components/cards'
 import { EmptyState } from '../components/ui'
 import { useAppState } from '../lib/store'
+import { seo } from '../lib/seo'
 
 export const Route = createFileRoute('/orders/')({
-  head: () => ({ meta: [{ title: 'Orders · PetSafeCare' }] }),
+  head: () => seo({ title: 'Orders', path: '/orders', noindex: true }),
   component: OrdersPage,
 })
 

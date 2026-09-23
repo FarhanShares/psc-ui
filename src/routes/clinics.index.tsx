@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { ArrowUpDown, Check, SlidersHorizontal } from 'lucide-react'
 
@@ -6,6 +6,7 @@ import { ClinicCard } from '../components/cards'
 import { OptionPicker, ResultRow, SearchControl } from '../components/pickers'
 import { EmptyState, Sheet } from '../components/ui'
 import { CLINICS, SERVICE_TYPES } from '../lib/data'
+import { absoluteUrl, seo } from '../lib/seo'
 
 type Filters = {
   service: string // service type id or 'all'
@@ -29,7 +30,27 @@ type SortId = 'recommended' | 'distance' | 'rating'
 
 
 export const Route = createFileRoute('/clinics/')({
-  head: () => ({ meta: [{ title: 'Clinics · PetSafeCare' }] }),
+  head: ({ match }) => {
+    const svc = SERVICE_TYPES.find((t) => t.id === (match.search as { service?: string }).service)
+    const title = svc ? `${svc.label} — vet clinics near you` : 'Vet clinics near you — book online'
+    return seo({
+      title,
+      description: svc
+        ? `Compare ${CLINICS.filter((c) => c.services.some((s) => s.type === svc.id)).length} clinics offering ${svc.label.toLowerCase()}: prices, ratings, opening hours and live availability. Book in under a minute.`
+        : `Compare ${CLINICS.length} local vet clinics — consultations, vaccinations, grooming, dental and surgery. See prices and ratings, then book online.`,
+      path: svc ? `/clinics?service=${svc.id}` : '/clinics',
+      jsonLd: {
+        '@type': 'ItemList',
+        name: title,
+        itemListElement: CLINICS.filter((c) => !svc || c.services.some((s) => s.type === svc.id)).map((c, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          url: absoluteUrl(`/clinics/${c.id}`),
+          name: c.name,
+        })),
+      },
+    })
+  },
   validateSearch: (search: Record<string, unknown>): { service?: string } => ({
     service: typeof search.service === 'string' ? search.service : undefined,
   }),
@@ -176,6 +197,12 @@ function ClinicsPage() {
   })
   const [draft, setDraft] = useState<Filters>(applied)
 
+  // footer / home links change ?service= while this page is mounted
+  useEffect(() => {
+    const next = urlService && SERVICE_TYPES.some((s) => s.id === urlService) ? urlService : 'all'
+    setApplied((f) => (f.service === next ? f : { ...f, service: next }))
+  }, [urlService])
+
   const activeCount =
     (applied.service !== 'all' ? 1 : 0) +
     (applied.maxDistance > 0 ? 1 : 0) +
@@ -218,7 +245,11 @@ function ClinicsPage() {
   return (
     <div className="page">
       <header className="rise" style={{ '--i': 0 } as React.CSSProperties}>
-        <h1 className="page-title">Clinics</h1>
+        <h1 className="page-title">
+          {applied.service !== 'all'
+            ? `${SERVICE_TYPES.find((t) => t.id === applied.service)?.label ?? ''} clinics`
+            : 'Clinics'}
+        </h1>
         <p className="muted" style={{ fontSize: 'var(--text-sm)', marginTop: 2 }}>
           Consultations, vaccinations and grooming — booked in under a minute.
         </p>

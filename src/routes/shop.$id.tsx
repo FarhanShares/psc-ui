@@ -2,11 +2,13 @@ import { useState } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { Check, ChevronLeft, MessageCircleQuestion, PackageCheck, Truck } from 'lucide-react'
 
+import { Crumbs, RatingSummary, ReviewList, SaveButton } from '../components/blocks'
 import { ProductCard } from '../components/cards'
-import { CategoryIcon, Pill, Price, Stars, Stepper, tileClass, useCopiedLabel } from '../components/ui'
-import { FREE_DELIVERY_THRESHOLD, PRODUCTS, getProduct } from '../lib/data'
+import { CategoryIcon, PetGlyph, Pill, Price, Stars, Stepper, tileClass, useCopiedLabel } from '../components/ui'
+import { CATEGORIES, FREE_DELIVERY_THRESHOLD, PRODUCTS, getProduct, productReviews, ratingBreakdown } from '../lib/data'
 import { money } from '../lib/format'
-import { addToCart } from '../lib/store'
+import { absoluteUrl, breadcrumbLd, seo } from '../lib/seo'
+import { addToCart, cartCount, useAppState } from '../lib/store'
 
 const CATEGORY_NOTES: Record<string, string> = {
   food: 'Switch to a new food gradually over about a week, mixing growing amounts into the current diet.',
@@ -17,7 +19,42 @@ const CATEGORY_NOTES: Record<string, string> = {
 }
 
 export const Route = createFileRoute('/shop/$id')({
-  head: ({ params }) => ({ meta: [{ title: `${getProduct(params.id)?.name ?? 'Product'} · PetSafeCare` }] }),
+  head: ({ params }) => {
+    const p = getProduct(params.id)
+    if (!p) return seo({ title: 'Product not found', noindex: true })
+    const cat = CATEGORIES.find((c) => c.id === p.category)?.label ?? p.category
+    return seo({
+      title: `${p.name} — ${p.unit}`,
+      description: `${p.blurb} ${money(p.price)} from ${p.brand}. Free delivery over ${money(FREE_DELIVERY_THRESHOLD)}.`,
+      path: `/shop/${p.id}`,
+      type: 'product',
+      jsonLd: [
+        {
+          '@type': 'Product',
+          name: p.name,
+          sku: `PSC-${p.id.toUpperCase()}`,
+          brand: { '@type': 'Brand', name: p.brand },
+          category: cat,
+          description: p.blurb,
+          image: absoluteUrl('/og-image.png'),
+          aggregateRating: { '@type': 'AggregateRating', ratingValue: p.rating, reviewCount: p.reviews },
+          offers: {
+            '@type': 'Offer',
+            url: absoluteUrl(`/shop/${p.id}`),
+            priceCurrency: 'USD',
+            price: p.price.toFixed(2),
+            availability: p.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+            itemCondition: 'https://schema.org/NewCondition',
+          },
+        },
+        breadcrumbLd([
+          ['Shop', '/shop'],
+          [cat, `/shop?cat=${p.category}`],
+          [p.name, `/shop/${p.id}`],
+        ]),
+      ],
+    })
+  },
   component: ProductPage,
 })
 
@@ -26,6 +63,7 @@ function ProductPage() {
   const product = getProduct(id)
   const [qty, setQty] = useState(1)
   const [added, markAdded] = useCopiedLabel(1600)
+  const { cart } = useAppState()
 
   if (!product) {
     return (
@@ -46,27 +84,46 @@ function ProductPage() {
     (p) => p.category !== product.category && p.id !== product.id,
   ).sort((a, b) => b.rating - a.rating)
   const related = [...inCategory, ...fillers].slice(0, 4)
+  const reviews = productReviews(product.id)
+  const catLabel = CATEGORIES.find((c) => c.id === product.category)?.label ?? product.category
+  const inCart = cartCount(cart.filter((i) => i.productId === product.id))
+
+  function add() {
+    addToCart(product!.id, qty)
+    markAdded()
+  }
 
   return (
     <div className="page">
-      <Link to="/shop" className="thead rise" style={{ '--i': 0 } as React.CSSProperties}>
-        <ChevronLeft size={15} strokeWidth={2} />
-        <span style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>Shop</span>
-      </Link>
+      <Crumbs
+        items={[
+          { label: 'Shop', to: '/shop' },
+          { label: catLabel, to: '/shop', search: { cat: product.category } },
+          { label: product.name },
+        ]}
+      />
 
       <div className="detail-grid rise" style={{ '--i': 1 } as React.CSSProperties}>
-        <div className="card">
+        <div className="card" style={{ position: 'relative' }}>
           <span className={`tile tile--card ${tileClass(product.category)}`}>
             <CategoryIcon category={product.category} size={72} />
           </span>
+          <SaveButton kind="product" id={product.id} name={product.name} variant="overlay" />
           <div style={{ padding: 'var(--space-md)' }}>
             <p className="tag">{product.brand}</p>
             <h1 className="page-title" style={{ fontSize: 'var(--text-xl)', marginBlock: 'var(--space-3xs) var(--space-2xs)' }}>
               {product.name}
             </h1>
-            <div className="split" style={{ marginBlock: 'var(--space-2xs) var(--space-xs)' }}>
+            <div className="split" style={{ marginBlock: 'var(--space-2xs) var(--space-xs)', justifyContent: 'flex-start' }}>
               <Stars rating={product.rating} />
-              <span className="row__sub num">{product.reviews} reviews</span>
+              <a href="#reviews" className="row__sub num">{product.reviews} reviews</a>
+              <span className="suits">
+                {product.suits.map((sp) => (
+                  <span key={sp} className="chip chip--static">
+                    <PetGlyph species={sp} size={13} /> {sp === 'dog' ? 'Dogs' : 'Cats'}
+                  </span>
+                ))}
+              </span>
             </div>
             <p style={{ fontSize: 'var(--text-body)', color: 'var(--color-ink-2)' }}>{product.blurb}</p>
             <div className="split" style={{ marginTop: 'var(--space-sm)' }}>
@@ -87,15 +144,12 @@ function ProductPage() {
             <Stepper value={qty} onChange={setQty} label={`Quantity of ${product.name}`} />
           </div>
 
-          <div>
+          <div className="buy-row">
             <button
               type="button"
               className="btn btn--primary btn--block"
               disabled={product.stock === 0}
-              onClick={() => {
-                addToCart(product.id, qty)
-                markAdded()
-              }}
+              onClick={add}
             >
               {added ? (
                 <>
@@ -107,7 +161,13 @@ function ProductPage() {
                 'Add to cart'
               )}
             </button>
+            <SaveButton kind="product" id={product.id} name={product.name} variant="labeled" />
           </div>
+          {inCart > 0 && (
+            <p className="row__sub">
+              {inCart} in your cart · <Link to="/cart">Review cart</Link>
+            </p>
+          )}
 
           <section className="card card--pad stack" style={{ gap: 'var(--space-2xs)' }}>
             <div className="row__sub" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -159,6 +219,14 @@ function ProductPage() {
         </dl>
       </section>
 
+      <section id="reviews" className="card card--pad rise" style={{ '--i': 3, scrollMarginTop: '5rem' } as React.CSSProperties}>
+        <h2 className="section-head__title section-head">Reviews</h2>
+        <RatingSummary rating={product.rating} total={product.reviews} breakdown={ratingBreakdown(product.rating, product.reviews)} />
+        <div style={{ marginTop: 'var(--space-md)' }}>
+          <ReviewList reviews={reviews} />
+        </div>
+      </section>
+
       {related.length > 0 && (
         <section className="rise" style={{ '--i': 3 } as React.CSSProperties}>
           <div className="section-head">
@@ -175,6 +243,24 @@ function ProductPage() {
             ))}
           </div>
         </section>
+      )}
+
+      {product.stock > 0 && (
+        <div className="buy-bar" aria-label="Quick add">
+          <span style={{ minWidth: 0 }}>
+            <Price value={product.price * qty} className="price--lg" />
+            <span className="row__sub" style={{ display: 'block' }}>{qty > 1 ? `${qty} × ${money(product.price)}` : product.unit}</span>
+          </span>
+          <button type="button" className="btn btn--primary" onClick={add}>
+            {added ? (
+              <>
+                <Check size={15} strokeWidth={2.25} /> Added
+              </>
+            ) : (
+              'Add to cart'
+            )}
+          </button>
+        </div>
       )}
     </div>
   )

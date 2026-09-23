@@ -5,7 +5,8 @@ import { addPet, pushToast } from '../lib/store'
 
 /** shared add-pet flow — used from Home, Health, and Profile */
 export function AddPetSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [draft, setDraft] = useState({ name: '', species: 'dog' as 'dog' | 'cat', breed: '' })
+  const EMPTY = { name: '', species: 'dog' as 'dog' | 'cat', breed: '', age: '', sex: undefined as 'male' | 'female' | undefined }
+  const [draft, setDraft] = useState(EMPTY)
 
   function submit() {
     const name = draft.name.trim()
@@ -14,8 +15,10 @@ export function AddPetSheet({ open, onClose }: { open: boolean; onClose: () => v
       name,
       species: draft.species,
       breed: draft.breed.trim() || (draft.species === 'cat' ? 'Domestic cat' : 'Mixed breed'),
+      ageYears: draft.age ? Math.max(0, Number(draft.age)) : undefined,
+      sex: draft.sex,
     })
-    setDraft({ name: '', species: 'dog', breed: '' })
+    setDraft(EMPTY)
     onClose()
     pushToast(`${name} joined the family`)
   }
@@ -69,6 +72,37 @@ export function AddPetSheet({ open, onClose }: { open: boolean; onClose: () => v
             onChange={(e) => setDraft((d) => ({ ...d, breed: e.target.value }))}
             placeholder="Leave blank if unsure"
           />
+        </div>
+        <div className="two-col">
+          <div className="field">
+            <label className="field__label" htmlFor="np-age">Age (years)</label>
+            <input
+              id="np-age"
+              className="input"
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={30}
+              value={draft.age}
+              onChange={(e) => setDraft((d) => ({ ...d, age: e.target.value }))}
+              placeholder="1"
+            />
+          </div>
+          <fieldset className="plain-fieldset">
+            <legend className="field__label">Sex</legend>
+            <div className="segmented">
+              {(['female', 'male'] as const).map((sx) => (
+                <button
+                  key={sx}
+                  type="button"
+                  aria-pressed={draft.sex === sx}
+                  onClick={() => setDraft((d) => ({ ...d, sex: sx }))}
+                >
+                  {sx === 'female' ? 'Female' : 'Male'}
+                </button>
+              ))}
+            </div>
+          </fieldset>
         </div>
       </div>
     </Sheet>

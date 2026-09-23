@@ -1,15 +1,26 @@
 import { useState } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { ChevronRight, PawPrint, Plus, RefreshCw, Syringe } from 'lucide-react'
+import { ChevronRight, HeartPulse, PawPrint, Plus, RefreshCw, Siren, Stethoscope, Store, Syringe } from 'lucide-react'
 
 import { AddPetSheet } from '../components/add-pet'
 import { BookingCard } from '../components/cards'
 import { ProductRail } from '../components/product-rail'
 import { PetGlyph } from '../components/ui'
 import { greeting, longDate, dateFromOffset } from '../lib/format'
+import { seo } from '../lib/seo'
 import { useAppState } from '../lib/store'
 
-export const Route = createFileRoute('/')({ component: HomePage })
+export const Route = createFileRoute('/')({
+  head: () => seo({ title: 'PetSafeCare', path: '/' }),
+  component: HomePage,
+})
+
+const QUICK = [
+  { to: '/clinics', label: 'Book a vet', icon: Stethoscope },
+  { to: '/shop', label: 'Shop', icon: Store },
+  { to: '/health', label: 'Vaccines', icon: HeartPulse },
+  { to: '/emergency', label: 'Emergency', icon: Siren },
+] as const
 
 const PICKS = ['p04', 'p11', 'p06', 'p09', 'p02', 'p12', 'p01', 'p08']
 
@@ -36,6 +47,17 @@ function HomePage() {
         <p className="tag" style={{ color: 'var(--color-accent-deep)' }}>{greeting()}</p>
         <h1 className="home-title">Hi, {profile.name}</h1>
       </header>
+
+      <nav className="quick-grid rise span-hero" style={{ '--i': 1 } as React.CSSProperties} aria-label="Quick actions">
+        {QUICK.map((q) => (
+          <Link key={q.to} to={q.to} className={`quick${q.to === '/emergency' ? ' quick--sos' : ''}`}>
+            <span className="quick__icon" aria-hidden>
+              <q.icon size={20} strokeWidth={1.75} />
+            </span>
+            {q.label}
+          </Link>
+        ))}
+      </nav>
 
       {needsAttention && needsPet && (
         <section className="band rise span-8" style={{ '--i': 1 } as React.CSSProperties} aria-label="Vaccination due">
@@ -117,7 +139,7 @@ function HomePage() {
       ) : (
         <section className="pet-strip rise span-7" style={{ '--i': 3 } as React.CSSProperties} aria-label="Your pets">
           {pets.slice(0, 2).map((pet) => (
-            <Link key={pet.id} to="/health" className="card card--press pet-card">
+            <Link key={pet.id} to="/pets/$id" params={{ id: pet.id }} className="card card--press pet-card">
               <span className={`pet-card__ava pet-card__ava--${pet.species}`}>
                 <PetGlyph species={pet.species} size={17} />
               </span>
@@ -129,7 +151,7 @@ function HomePage() {
               </span>
             </Link>
           ))}
-          <Link to="/profile" className="card card--press pet-card pet-card--more" aria-label="Manage pets">
+          <Link to="/pets" className="card card--press pet-card pet-card--more" aria-label="Manage pets">
             <span className="pet-card__ava" aria-hidden>
               {pets.length > 2 ? <span className="pet-card__plus num">+{pets.length - 2}</span> : <PawPrint size={16} strokeWidth={1.75} />}
             </span>

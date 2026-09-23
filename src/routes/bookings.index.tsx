@@ -5,9 +5,10 @@ import { CalendarDays } from 'lucide-react'
 import { BookingCard } from '../components/cards'
 import { EmptyState } from '../components/ui'
 import { useAppState } from '../lib/store'
+import { seo } from '../lib/seo'
 
 export const Route = createFileRoute('/bookings/')({
-  head: () => ({ meta: [{ title: 'Bookings · PetSafeCare' }] }),
+  head: () => seo({ title: 'Bookings', path: '/bookings', noindex: true }),
   component: BookingsPage,
 })
 

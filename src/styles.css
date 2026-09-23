@@ -4157,3 +4157,213 @@ label.option-row {
   color: var(--color-accent);
   font-weight: 700;
 }
+
+/* ------------------------------------------------------ home quick actions */
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2xs);
+}
+
+.quick {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2xs);
+  padding: var(--space-sm) var(--space-3xs);
+  background: var(--color-card);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-md);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+  text-align: center;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color var(--dur-short) var(--ease-out),
+              transform var(--dur-micro) var(--ease-out);
+}
+
+.quick__icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-accent-tint);
+  color: var(--color-accent-deep);
+}
+
+.quick--sos .quick__icon {
+  background: var(--color-bad-tint);
+  color: var(--color-bad);
+}
+
+@media (hover: hover) {
+  .quick:hover {
+    border-color: var(--color-accent);
+  }
+}
+
+.quick:active {
+  transform: translateY(1px);
+}
+
+@media (min-width: 48rem) {
+  .quick {
+    grid-auto-flow: column;
+    justify-content: start;
+    align-items: center;
+    padding: var(--space-sm);
+    font-size: var(--text-body);
+  }
+}
+
+/* ----------------------------------------------------- detail page extras */
+
+.action-grid--4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+button.action-tile {
+  cursor: pointer;
+  font: inherit;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-sm);
+}
+
+.save-tile[aria-pressed="true"],
+.save-tile[aria-pressed="true"] svg {
+  color: var(--color-bad);
+}
+
+.clinic-hero {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+}
+
+.clinic-hero .clinic-card__meta a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.suits {
+  display: inline-flex;
+  gap: var(--space-2xs);
+  margin-left: auto;
+}
+
+.suits .chip {
+  min-height: 1.75rem;
+  font-size: var(--text-xs);
+  padding-inline: var(--space-xs);
+}
+
+.buy-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2xs);
+}
+
+/* phones: price + add stay in reach above the tab bar */
+.buy-bar {
+  position: fixed;
+  inset-inline: 0;
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  z-index: calc(var(--z-sticky) - 1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--gutter);
+  background: color-mix(in srgb, var(--color-card) 94%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid var(--color-rule);
+}
+
+@media (min-width: 48rem) {
+  .buy-bar {
+    display: none;
+  }
+}
+
+/* leave room so the bar never covers the page's last content */
+.page:has(> .buy-bar) {
+  padding-bottom: 4.5rem;
+}
+
+@media (min-width: 48rem) {
+  .page:has(> .buy-bar) {
+    padding-bottom: 0;
+  }
+}
+
+.profile-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.profile-head__ava {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex: none;
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-xl);
+}
+
+.add-tile {
+  width: 100%;
+  text-align: left;
+  border-style: dashed;
+  cursor: pointer;
+}
+
+.pet-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3xs);
+}
+
+@media (hover: hover) {
+  .pet-link:hover {
+    color: var(--color-accent-deep);
+  }
+}
+
+.free-meter {
+  display: grid;
+  gap: var(--space-2xs);
+}
+
+.free-meter__track {
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-paper-3);
+  overflow: hidden;
+}
+
+.free-meter__track span {
+  display: block;
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 3px;
+  transition: width var(--dur-long) var(--ease-out);
+}
+
+@media (min-width: 48rem) {
+  .home-grid > .pet-strip {
+    align-self: start;
+  }
+}

@@ -7,10 +7,34 @@ import { OptionPicker, ResultRow, SearchControl } from '../components/pickers'
 import { CategoryIcon, EmptyState, Sheet, tileClass } from '../components/ui'
 import { CATEGORIES, FREE_DELIVERY_THRESHOLD, PRODUCTS } from '../lib/data'
 import { money } from '../lib/format'
+import { absoluteUrl, seo } from '../lib/seo'
 import type { ProductCategory } from '../lib/types'
 
 export const Route = createFileRoute('/shop/')({
-  head: () => ({ meta: [{ title: 'Shop · PetSafeCare' }] }),
+  head: ({ match }) => {
+    const cat = CATEGORIES.find((c) => c.id === (match.search as { cat?: string }).cat && c.id !== 'all')
+    const q = (match.search as { q?: string }).q
+    const title = cat ? `${cat.label} for dogs & cats` : 'Pet supplies — food, treats, grooming & health'
+    return seo({
+      title,
+      description: cat
+        ? `Shop ${cat.label.toLowerCase()} for your dog or cat — curated brands, honest reviews, free delivery over ${money(FREE_DELIVERY_THRESHOLD)} and 30-day returns.`
+        : `Pet food, treats, grooming, toys and health essentials from trusted brands. Free delivery over ${money(FREE_DELIVERY_THRESHOLD)}, 30-day returns.`,
+      path: cat ? `/shop?cat=${cat.id}` : '/shop',
+      // filtered search result pages shouldn't compete with the catalogue
+      noindex: !!q,
+      jsonLd: {
+        '@type': 'ItemList',
+        name: title,
+        itemListElement: PRODUCTS.filter((p) => !cat || p.category === cat.id).map((p, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          url: absoluteUrl(`/shop/${p.id}`),
+          name: p.name,
+        })),
+      },
+    })
+  },
   validateSearch: (search: Record<string, unknown>): { q?: string; cat?: string } => ({
     q: typeof search.q === 'string' ? search.q : undefined,
     cat:
@@ -235,7 +259,7 @@ function ShopPage() {
     <div className="page">
       <header className="rise" style={{ '--i': 0 } as React.CSSProperties}>
         <p className="tag">Shop</p>
-        <h1 className="shop-title">{activeCategory ? activeCategory.label : 'Supplies'}</h1>
+        <h1 className="shop-title">{activeCategory ? activeCategory.label : 'Pet supplies'}</h1>
         <p className="muted" style={{ fontSize: 'var(--text-sm)', marginTop: 2 }}>
           {activeCategory
             ? `${counts.get(category) ?? 0} ${activeCategory.label.toLowerCase()} essentials — delivered.`

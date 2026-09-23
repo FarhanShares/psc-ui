@@ -63,7 +63,7 @@ export function SaveButton({
   kind: 'product' | 'clinic'
   id: string
   name: string
-  variant?: 'icon' | 'overlay' | 'labeled'
+  variant?: 'icon' | 'overlay' | 'labeled' | 'tile'
 }) {
   const { savedProducts, savedClinics } = useAppState()
   const on = (kind === 'product' ? savedProducts : savedClinics).includes(id)
@@ -72,7 +72,7 @@ export function SaveButton({
   return (
     <button
       type="button"
-      className={`save-btn save-btn--${variant}`}
+      className={variant === 'tile' ? 'action-tile save-tile' : `save-btn save-btn--${variant}`}
       aria-pressed={on}
       aria-label={on ? `Remove ${name} from saved` : `Save ${name}`}
       onClick={(e) => {
@@ -81,8 +81,8 @@ export function SaveButton({
         toggle(id)
       }}
     >
-      <Heart size={variant === 'overlay' ? 16 : 17} strokeWidth={1.9} fill={on ? 'currentColor' : 'none'} aria-hidden />
-      {variant === 'labeled' && <span>{on ? 'Saved' : 'Save'}</span>}
+      <Heart size={variant === 'overlay' ? 16 : 18} strokeWidth={1.9} fill={on ? 'currentColor' : 'none'} aria-hidden />
+      {(variant === 'labeled' || variant === 'tile') && <span>{on ? 'Saved' : 'Save'}</span>}
     </button>
   )
 }
@@ -103,8 +103,7 @@ export function RatingSummary({
     <div className="rating-summary">
       <div className="rating-summary__score">
         <span className="rating-summary__big">{rating.toFixed(1)}</span>
-        <Stars rating={rating} />
-        <span className="row__sub num">{total} reviews</span>
+        <span className="row__sub num">out of 5 · {total} reviews</span>
       </div>
       <ul className="rating-bars" aria-label="Rating breakdown">
         {breakdown.map((n, i) => (

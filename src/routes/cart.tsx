@@ -3,13 +3,15 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { Check, ChevronLeft, MapPin, ShoppingCart, Trash2 } from 'lucide-react'
 
 import { CategoryIcon, EmptyState, Stepper, tileClass } from '../components/ui'
-import { FREE_DELIVERY_THRESHOLD, getProduct } from '../lib/data'
+import { FREE_DELIVERY_THRESHOLD, PRODUCTS, getProduct } from '../lib/data'
+import { ProductCard } from '../components/cards'
 import { money } from '../lib/format'
 import { cartTotals, placeOrder, removeFromCart, setCartQty, useAppState } from '../lib/store'
 import type { Order } from '../lib/types'
+import { seo } from '../lib/seo'
 
 export const Route = createFileRoute('/cart')({
-  head: () => ({ meta: [{ title: 'Cart · PetSafeCare' }] }),
+  head: () => seo({ title: 'Cart', path: '/cart', noindex: true }),
   component: CartPage,
 })
 
@@ -31,7 +33,15 @@ function CartPage() {
   const [placedOrder, setPlacedOrder] = useState<Order | null>(null)
 
   const address = profile.addresses.find((a) => a.id === addressId)
-  const missing = subtotal - FREE_DELIVERY_THRESHOLD
+  const missing = FREE_DELIVERY_THRESHOLD - subtotal
+  // cheapest in-stock items that close the free-delivery gap, then top-rated fillers
+  const topUps = PRODUCTS.filter((p) => p.stock > 0 && !cart.some((i) => i.productId === p.id))
+    .sort((a, b) => {
+      const aFits = a.price >= missing ? 0 : 1
+      const bFits = b.price >= missing ? 0 : 1
+      return aFits - bFits || (aFits === 0 ? a.price - b.price : b.rating - a.rating)
+    })
+    .slice(0, 4)
 
   function handlePlaceOrder() {
     if (!address) {
@@ -75,8 +85,8 @@ function CartPage() {
           {placedOrder.addressLine}
         </p>
         <div style={{ display: 'grid', gap: 'var(--space-2xs)', marginTop: 'var(--space-md)' }}>
-          <Link to="/orders" className="btn btn--primary">
-            View order
+          <Link to="/orders/$id" params={{ id: placedOrder.id }} className="btn btn--primary">
+            Track order
           </Link>
           <Link to="/shop" className="btn btn--ghost">
             Keep shopping
@@ -176,10 +186,13 @@ function CartPage() {
                   <span>Delivery</span>
                   <span className="price">{delivery === 0 ? 'Free' : money(delivery)}</span>
                 </div>
-                {missing > 0 && missing + delivery <= FREE_DELIVERY_THRESHOLD && (
-                  <p className="row__sub">
-                    Add {money(missing)} more for free delivery.
-                  </p>
+                {missing > 0 && (
+                  <div className="free-meter">
+                    <span className="free-meter__track" aria-hidden>
+                      <span style={{ width: `${Math.min(100, (subtotal / FREE_DELIVERY_THRESHOLD) * 100)}%` }} />
+                    </span>
+                    <p className="row__sub">Add {money(missing)} more for free delivery.</p>
+                  </div>
                 )}
                 <div className="summary__row summary__row--total">
                   <span>Total</span>
@@ -190,8 +203,26 @@ function CartPage() {
               <button type="button" className="btn btn--primary btn--block" onClick={() => setStage('checkout')}>
                 Checkout · {money(total)}
               </button>
+              <Link to="/shop" className="btn btn--quiet" style={{ justifySelf: 'center' }}>
+                Continue shopping
+              </Link>
             </div>
           </div>
+
+          {topUps.length > 0 && (
+            <section className="rise" style={{ '--i': 2 } as React.CSSProperties}>
+              <div className="section-head">
+                <h2 className="section-head__title">
+                  {missing > 0 ? 'Top up for free delivery' : 'Often added'}
+                </h2>
+              </div>
+              <div className="grid-products">
+                {topUps.map((p, i) => (
+                  <ProductCard key={p.id} id={p.id} i={i} />
+                ))}
+              </div>
+            </section>
+          )}
         </>
       )}
 
