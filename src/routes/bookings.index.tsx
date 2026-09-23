@@ -6,10 +6,15 @@ import { BookingCard } from '../components/cards'
 import { EmptyState } from '../components/ui'
 import { useAppState } from '../lib/store'
 import { seo } from '../lib/seo'
+import { RequireAccount } from '../components/gate'
 
 export const Route = createFileRoute('/bookings/')({
   head: () => seo({ title: 'Bookings', path: '/bookings', noindex: true }),
-  component: BookingsPage,
+  component: () => (
+    <RequireAccount kind="bookings">
+      <BookingsPage />
+    </RequireAccount>
+  ),
 })
 
 type TabId = 'upcoming' | 'completed' | 'cancelled'

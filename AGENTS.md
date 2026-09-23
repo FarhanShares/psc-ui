@@ -68,19 +68,37 @@ Read `design.md` before touching any style. Core rules:
   (`resolveVariant`, `variantLabel`, `priceRange`…) — cart/order lines are
   keyed by productId + variantId; the product page's option is `?v=`.
 
-## Auth (demo)
+## Auth & accounts (demo)
 
-- Screens: `/login`, `/signup`; forgot-password is a sheet on `/login`
-  (email → six-digit code → new password → sign in). Social buttons create a
-  guest session.
-- Store model: `users: RegisteredUser[]` (name/email/password — **plain text,
-  demo only, no real security**) + `signedIn` boolean. `signIn(email, pw)`
-  returns an error string or null; `signUpAccount` checks duplicates;
-  `resetPassword(email, newPw)` completes the forgot loop. Demo account seeded:
-  `farhan@example.com` / `demo1234` (hint is displayed on the login screen).
-- Browsing is allowed signed-out; `/profile` renders a signed-out state with
-  sign-in entry points. Auth routes render bare (no shop chrome) via
-  `BARE_ROUTES` in `nav.tsx`.
+- Screens: `/login`, `/signup`, `/welcome` (post-signup onboarding: pets →
+  reminders → done); forgot-password is a sheet on `/login` (email → six-digit
+  code → new password → sign in). All three render bare via `BARE_ROUTES`.
+- Credentials: `users: RegisteredUser[]` (name/email/password — **plain text,
+  demo only, no real security**). `signIn(email, pw)` / `signUpAccount` /
+  `resetPassword` / `changePassword` return an error string or null. Social
+  buttons call `signInSocial(provider)` — one account per provider, returns
+  `true` when new (route it to `/welcome`). Demo: `farhan@example.com` /
+  `demo1234` (hinted on /login; one tap from the landing via `signInDemo()`).
+- **Per-account data.** The signed-in account's data sits at the top level of
+  `AppState` (pages read `state.orders` etc. unchanged); `ACCOUNT_KEYS` lists
+  what belongs to an account. Signing out parks it in `accounts[sessionKey]`
+  and the top level becomes an empty guest. Signing in restores it and merges
+  the guest's cart + saved items. New accounts start empty (`emptyAccount()`).
+  Adding per-account state? Add it to `ACCOUNT_KEYS`, `emptyAccount()` and
+  `demoAccount()`. Device-level state (recent searches, recently viewed) stays
+  outside `ACCOUNT_KEYS`.
+- **The server renders a signed-out guest.** `/` is the public landing for
+  guests (and crawlers), the dashboard for members. Account pages wrap their
+  component in `<RequireAccount kind="…">` (src/components/gate.tsx) and show a
+  sign-in gate to guests. A pre-paint script in `__root.tsx` sets
+  `html[data-session]` from localStorage so `[data-guest-view]` content is
+  hidden for returning members until the store hydrates — mark any new
+  guest-only view with `data-guest-view`.
+- Guests may browse, save and fill a cart; checkout and clinic booking send
+  them to `/login?redirect=…` and bring them back with the cart intact.
+- Checkout is one shared hook + fields (`src/components/checkout.tsx`) used by
+  `/cart` and the desktop drawer. Call `co.start()` when checkout opens (never
+  seed form state at mount — the first render is the guest snapshot).
 - SEO: use `seo({ title, description, path })` from `src/lib/seo.ts` for route
   heads (adds canonical/OG/JSON-LD).
 

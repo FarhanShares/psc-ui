@@ -104,3 +104,32 @@ export function formatExpiry(raw: string): string {
   }
   return d.length > 2 ? `${d.slice(0, 2)} / ${d.slice(2)}` : d
 }
+
+/* --------------------------------------------------------- card checks */
+
+function luhnOk(digits: string): boolean {
+  let sum = 0
+  for (let i = 0; i < digits.length; i++) {
+    let d = Number(digits[digits.length - 1 - i])
+    if (i % 2 === 1) {
+      d *= 2
+      if (d > 9) d -= 9
+    }
+    sum += d
+  }
+  return sum % 10 === 0
+}
+
+/** returns a specific, fixable message — or null when the card looks usable */
+export function cardProblem(card: string, expiry: string, cvc: string): string | null {
+  const digits = card.replace(/\D/g, '')
+  if (digits.length < 13) return 'That card number looks too short. Enter all the digits on the front.'
+  if (!luhnOk(digits)) return 'That card number doesn’t look right — check for a mistyped digit.'
+  const m = /^(\d{2}) \/ (\d{2})$/.exec(expiry)
+  if (!m) return 'Add the card’s expiry date as MM / YY.'
+  const now = new Date()
+  const exp = new Date(2000 + Number(m[2]), Number(m[1]), 0) // last day of that month
+  if (exp < new Date(now.getFullYear(), now.getMonth(), 1)) return 'That card has expired. Try another card.'
+  if (cvc.length < 3) return 'Add the 3- or 4-digit security code from the back of the card.'
+  return null
+}

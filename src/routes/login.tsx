@@ -5,7 +5,7 @@ import { AuthShell, PasswordInput, SocialButtons } from '../components/auth'
 import { SuccessMark } from '../components/blocks'
 import { Sheet } from '../components/ui'
 import { seo } from '../lib/seo'
-import { pushToast, resetPassword, signIn, signInGuest } from '../lib/store'
+import { pushToast, resetPassword, signIn, signInSocial } from '../lib/store'
 
 export const Route = createFileRoute('/login')({
   validateSearch: (s: Record<string, unknown>): { redirect?: string } => ({
@@ -138,7 +138,17 @@ function LoginPage() {
         </>
       }
     >
-      <SocialButtons onPick={() => { setBusy(true); window.setTimeout(() => { signInGuest(); navigate({ to: redirect ?? '/' }) }, 700) }} />
+      <SocialButtons
+        onPick={(provider) => {
+          setBusy(true)
+          window.setTimeout(() => {
+            const isNew = signInSocial(provider)
+            // a first social sign-in is a brand-new, empty account — onboard it
+            if (isNew) navigate({ to: '/welcome', search: redirect ? { redirect } : {} })
+            else navigate({ to: redirect ?? '/' })
+          }, 700)
+        }}
+      />
       <form className="stack" onSubmit={submit} noValidate>
         <div className="field">
           <label className="field__label" htmlFor="li-email">Email</label>

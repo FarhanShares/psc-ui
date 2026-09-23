@@ -3,6 +3,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { ChevronRight, HeartPulse, PawPrint, Plus, RefreshCw, Siren, Stethoscope, Store, Syringe } from 'lucide-react'
 
 import { AddPetSheet } from '../components/add-pet'
+import { Landing } from '../components/landing'
 import { BookingCard } from '../components/cards'
 import { ProductRail } from '../components/product-rail'
 import { PetGlyph } from '../components/ui'
@@ -12,8 +13,14 @@ import { useAppState } from '../lib/store'
 
 export const Route = createFileRoute('/')({
   head: () => seo({ title: 'PetSafeCare', path: '/' }),
-  component: HomePage,
+  component: Home,
 })
+
+/** members get their dashboard; visitors (and the server render) get the landing */
+function Home() {
+  const { signedIn, recentlyViewed } = useAppState()
+  return signedIn ? <HomePage /> : <Landing recentlyViewed={recentlyViewed} />
+}
 
 const QUICK = [
   { to: '/clinics', label: 'Book a vet', icon: Stethoscope },
@@ -25,7 +32,7 @@ const QUICK = [
 const PICKS = ['p04', 'p14', 'p11', 'p15', 'p06', 'p09', 'p02', 'p12', 'p01', 'p16']
 
 function HomePage() {
-  const { profile, pets, vaccines, bookings, orders, lastSyncLabel } = useAppState()
+  const { profile, pets, vaccines, bookings, orders, lastSyncLabel, clinicLinked, recentlyViewed } = useAppState()
   const [addPetOpen, setAddPetOpen] = useState(false)
 
   // records only count when their pet still exists
@@ -45,7 +52,7 @@ function HomePage() {
     <div className="page home-grid">
       <header className="rise span-hero">
         <p className="tag" style={{ color: 'var(--color-accent-deep)' }}>{greeting()}</p>
-        <h1 className="home-title">Hi, {profile.name}</h1>
+        <h1 className="home-title">Hi, {profile.name.split(' ')[0] || 'there'}</h1>
       </header>
 
       <nav className="quick-grid rise span-hero" style={{ '--i': 1 } as React.CSSProperties} aria-label="Quick actions">
@@ -184,7 +191,9 @@ function HomePage() {
             <span className="row__sub">
               {activeOrders > 0
                 ? `${activeOrders} order${activeOrders === 1 ? '' : 's'} on the way`
-                : 'Everything delivered'}
+                : orders.length > 0
+                  ? 'Everything delivered'
+                  : 'No orders yet'}
             </span>
           </span>
           <ChevronRight size={16} strokeWidth={1.75} className="muted" />
@@ -200,21 +209,31 @@ function HomePage() {
           </span>
           <ChevronRight size={16} strokeWidth={1.75} className="muted" />
         </Link>
-        <Link to="/health" className="card card--press card--pad">
-          <div className="split">
-            <span className="thead">
-              <span className="sync-dot" aria-hidden />
-              <span className="tag">Clinic sync</span>
-            </span>
-            <RefreshCw size={14} strokeWidth={1.75} className="muted" />
-          </div>
-          <p className="row__title" style={{ marginTop: 'var(--space-2xs)' }}>
-            Green Valley Veterinary
-          </p>
-          <p className="row__sub">
-            Records last synced {lastSyncLabel} · {liveVaccines.length} vaccination records
-          </p>
-        </Link>
+        {clinicLinked ? (
+          <Link to="/health" className="card card--press card--pad">
+            <div className="split">
+              <span className="thead">
+                <span className="sync-dot" aria-hidden />
+                <span className="tag">Clinic sync</span>
+              </span>
+              <RefreshCw size={14} strokeWidth={1.75} className="muted" />
+            </div>
+            <p className="row__title" style={{ marginTop: 'var(--space-2xs)' }}>
+              Green Valley Veterinary
+            </p>
+            <p className="row__sub">
+              Records last synced {lastSyncLabel} · {liveVaccines.length} vaccination records
+            </p>
+          </Link>
+        ) : (
+          <Link to="/health" className="card card--press card--pad">
+            <span className="tag">Health records</span>
+            <p className="row__title" style={{ marginTop: 'var(--space-2xs)' }}>
+              {liveVaccines.length > 0 ? `${liveVaccines.length} vaccination records` : 'Add vaccination records'}
+            </p>
+            <p className="row__sub">No clinic linked yet — records sync after your first booked visit</p>
+          </Link>
+        )}
       </section>
 
       <section className="rise span-hero" style={{ '--i': 5 } as React.CSSProperties}>
@@ -226,6 +245,15 @@ function HomePage() {
         </div>
         <ProductRail ids={PICKS} />
       </section>
+
+      {recentlyViewed.length > 1 && (
+        <section className="rise span-hero" style={{ '--i': 6 } as React.CSSProperties}>
+          <div className="section-head">
+            <h2 className="section-head__title">Recently viewed</h2>
+          </div>
+          <ProductRail ids={recentlyViewed} label="Recently viewed" />
+        </section>
+      )}
 
       <AddPetSheet open={addPetOpen} onClose={() => setAddPetOpen(false)} />
     </div>

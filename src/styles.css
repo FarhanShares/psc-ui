@@ -5070,3 +5070,211 @@ a.pdp__brand {
     height: 2.75rem;
   }
 }
+
+/* ------------------------------------------------------- signed-out gates */
+
+/* a stored signed-in session hides guest-only views until the store hydrates
+   and swaps them for the real page — no flash of "Sign in" for members */
+html[data-session="in"] [data-guest-view] {
+  visibility: hidden;
+}
+
+.gate {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-sm);
+  padding: var(--space-lg) var(--space-md);
+  background: var(--color-card);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-md);
+  max-width: 34rem;
+}
+
+.gate__icon {
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-accent-tint);
+  color: var(--color-accent-deep);
+}
+
+.gate__text {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-md);
+  line-height: 1.35;
+  color: var(--color-ink);
+  letter-spacing: -0.01em;
+}
+
+.gate__actions {
+  width: 100%;
+  margin-top: var(--space-2xs);
+}
+
+/* ------------------------------------------------------------ landing (/) */
+
+.landing-hero {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-sm);
+  max-width: 46rem;
+  padding-top: var(--space-xs);
+}
+
+.landing-hero .home-title {
+  max-width: 18ch;
+}
+
+.landing-hero__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs);
+  margin-top: var(--space-2xs);
+}
+
+.landing-hero .value-strip {
+  margin-top: var(--space-xs);
+}
+
+.cat-tile__count {
+  display: block;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: var(--text-xs);
+  opacity: 0.8;
+}
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-sm);
+}
+
+@media (min-width: 48rem) {
+  .steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.step {
+  position: relative;
+  display: grid;
+  gap: var(--space-2xs);
+  align-content: start;
+}
+
+.step__icon {
+  color: var(--color-accent-deep);
+  margin-bottom: var(--space-2xs);
+}
+
+.step__num {
+  position: absolute;
+  top: var(--space-md);
+  right: var(--space-md);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-muted);
+}
+
+/* ------------------------------------------------------------ onboarding */
+
+.progress-dots {
+  list-style: none;
+  margin: 0 0 var(--space-md);
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2xs);
+}
+
+.progress-dots li {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-paper-3);
+  transition: background-color var(--dur-long) var(--ease-out);
+}
+
+.progress-dots li.is-on {
+  background: var(--color-accent);
+}
+
+.onb-pets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2xs);
+}
+
+.onb-nav {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-2xs);
+}
+
+.topbar__signin {
+  min-height: 2.75rem;
+  padding-inline: var(--space-xs);
+}
+
+.site-header__signin {
+  margin-inline: var(--space-3xs);
+}
+
+/* --------------------------------------------------------------- checkout */
+
+.checkout__h {
+  margin-bottom: var(--space-2xs);
+}
+
+.checkout section > .addr-list + .add-row,
+.checkout section > .addr-list + .new-entry {
+  margin-top: var(--space-2xs);
+}
+
+.add-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  width: 100%;
+  min-height: 2.75rem;
+  padding: var(--space-xs) var(--space-sm);
+  background: none;
+  border: 1px dashed var(--color-rule-2);
+  border-radius: var(--radius-md);
+  color: var(--color-accent-deep);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.add-row svg:first-child {
+  color: var(--color-muted);
+}
+
+@media (hover: hover) {
+  .add-row:hover {
+    border-color: var(--color-accent);
+  }
+}
+
+.two-col--label {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+}
+
+@media (max-width: 29.99rem) {
+  .two-col--label {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.sync-dot--off {
+  background: var(--color-rule-2);
+}

@@ -115,7 +115,18 @@ Public, indexable: `/`, `/shop` (+ `?cat=`), `/shop/$id`, `/clinics` (+ `?servic
 `/clinics/$id`, `/emergency`, `/help`, `/about`, `/privacy`, `/terms`, `/login`, `/signup`.
 Account, `noindex`: `/cart`, `/orders`, `/orders/$id`, `/bookings`, `/bookings/$id`,
 `/pets`, `/pets/$id`, `/health`, `/profile`, `/saved`, `/notifications`, `/search`.
-Auth screens render without shop chrome (`BARE_ROUTES` in `nav.tsx`).
+Auth screens and `/welcome` onboarding render without shop chrome (`BARE_ROUTES` in `nav.tsx`).
+
+## Signed-out doctrine
+- Guests see the product, never someone's data: `/` is a public landing
+  (value, categories, popular products, clinics, how it works, one-tap demo);
+  account pages show a sign-in gate that says what signing in unlocks
+  (three concrete points, Sign in + Create free account, redirect back).
+- Guests can browse, save and build a cart. The login wall appears only at the
+  moment of commitment (checkout, confirming a booking) and always returns
+  the person to where they were with their cart merged.
+- New accounts are empty and go through `/welcome`; every empty state after
+  that is a designed moment (no clinic linked, no address, no saved card).
 
 ## SEO contract
 - Every route builds its head through `seo()` in `src/lib/seo.ts` — title,

@@ -3,6 +3,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { BadgeCheck, Clock, MapPin, Navigation, Phone, Share2 } from 'lucide-react'
 
 import { Crumbs, RatingSummary, ReviewList, SaveButton, SuccessMark } from '../components/blocks'
+import { AddPetSheet } from '../components/add-pet'
 import { ClinicCard } from '../components/cards'
 import { SlotPicker } from '../components/slot-picker'
 import { PetGlyph, ServiceIcon, Sheet, Stars } from '../components/ui'
@@ -53,7 +54,8 @@ export const Route = createFileRoute('/clinics/$id')({
 function ClinicPage() {
   const { id } = Route.useParams()
   const clinic = getClinic(id)
-  const { pets } = useAppState()
+  const { pets, signedIn } = useAppState()
+  const [addPetOpen, setAddPetOpen] = useState(false)
   const navigate = useNavigate()
 
   const [bookingService, setBookingService] = useState<ClinicService | null>(null)
@@ -76,7 +78,8 @@ function ClinicPage() {
     )
   }
 
-  const pet = pets.find((p) => p.id === petId)
+  // a pet added from inside the sheet becomes the choice straight away
+  const pet = pets.find((p) => p.id === petId) ?? pets[0]
   const nearby = CLINICS.filter((c) => c.id !== clinic.id)
     .sort((a, b) => Math.abs(a.distanceKm - clinic.distanceKm) - Math.abs(b.distanceKm - clinic.distanceKm))
     .slice(0, 2)
@@ -100,7 +103,7 @@ function ClinicPage() {
       const booking = bookService({
         clinicId: clinic!.id,
         serviceId: bookingService.id,
-        petId,
+        petId: pet.id,
         dayOffset: day,
         time: slot,
       })
@@ -264,10 +267,14 @@ function ClinicPage() {
                 View booking
               </button>
             </div>
-          ) : pets.length === 0 ? (
-            <Link to="/pets" className="btn btn--primary btn--block">
-              Add a pet first
+          ) : !signedIn ? (
+            <Link to="/login" search={{ redirect: `/clinics/${clinic.id}` }} className="btn btn--primary btn--block">
+              Sign in to book
             </Link>
+          ) : pets.length === 0 ? (
+            <button type="button" className="btn btn--primary btn--block" onClick={() => setAddPetOpen(true)}>
+              Add your pet to book
+            </button>
           ) : (
             <button
               type="button"
@@ -296,7 +303,12 @@ function ClinicPage() {
         ) : (
           bookingService && (
             <div className="stack">
-              {pets.length === 0 ? (
+              {!signedIn ? (
+                <p className="row__sub" style={{ fontSize: 'var(--text-body)' }}>
+                  Check the times below, then sign in to confirm — it takes a few seconds and you’ll
+                  come straight back here.
+                </p>
+              ) : pets.length === 0 ? (
                 <p className="row__sub" style={{ fontSize: 'var(--text-body)' }}>
                   Add your pet so the clinic knows who’s coming — it takes ten seconds.
                 </p>
@@ -309,7 +321,7 @@ function ClinicPage() {
                         key={p.id}
                         type="button"
                         className="chip"
-                        aria-pressed={petId === p.id}
+                        aria-pressed={pet?.id === p.id}
                         onClick={() => setPetId(p.id)}
                       >
                         <PetGlyph species={p.species} size={14} />
@@ -349,6 +361,7 @@ function ClinicPage() {
           )
         )}
       </Sheet>
+      <AddPetSheet open={addPetOpen} onClose={() => setAddPetOpen(false)} />
     </div>
   )
 }

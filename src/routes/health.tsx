@@ -8,14 +8,19 @@ import { VaccineRow } from '../components/cards'
 import { PetGlyph } from '../components/ui'
 import { pushToast, syncClinicRecords, useAppState } from '../lib/store'
 import { seo } from '../lib/seo'
+import { RequireAccount } from '../components/gate'
 
 export const Route = createFileRoute('/health')({
   head: () => seo({ title: 'Health', path: '/health', noindex: true }),
-  component: HealthPage,
+  component: () => (
+    <RequireAccount kind="health">
+      <HealthPage />
+    </RequireAccount>
+  ),
 })
 
 function HealthPage() {
-  const { pets, vaccines, lastSyncLabel } = useAppState()
+  const { pets, vaccines, lastSyncLabel, clinicLinked } = useAppState()
   const [petId, setPetId] = useState(pets[0]?.id ?? '')
   const [syncing, setSyncing] = useState(false)
   const [addPetOpen, setAddPetOpen] = useState(false)
@@ -123,29 +128,45 @@ function HealthPage() {
         </section>
 
         <div className="stack side-col">
-          <section className="card card--pad">
-            <div className="split">
+          {clinicLinked ? (
+            <section className="card card--pad">
+              <div className="split">
+                <span className="thead">
+                  <span className="sync-dot" data-busy={syncing || undefined} aria-hidden />
+                  <span className="tag">Clinic sync</span>
+                </span>
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--sm"
+                  onClick={handleSync}
+                  disabled={syncing}
+                >
+                  <RefreshCw size={14} strokeWidth={1.75} />
+                  {syncing ? 'Syncing…' : 'Sync now'}
+                </button>
+              </div>
+              <p className="row__title" style={{ marginTop: 'var(--space-2xs)' }}>
+                Green Valley Veterinary
+              </p>
+              <p className="row__sub">
+                Last synced {lastSyncLabel} · {liveVaccines.length} records linked to your pets
+              </p>
+            </section>
+          ) : (
+            <section className="card card--pad">
               <span className="thead">
-                <span className="sync-dot" data-busy={syncing || undefined} aria-hidden />
-                <span className="tag">Clinic sync</span>
+                <span className="sync-dot sync-dot--off" aria-hidden />
+                <span className="tag">No clinic linked</span>
               </span>
-              <button
-                type="button"
-                className="btn btn--ghost btn--sm"
-                onClick={handleSync}
-                disabled={syncing}
-              >
-                <RefreshCw size={14} strokeWidth={1.75} />
-                {syncing ? 'Syncing…' : 'Sync now'}
-              </button>
-            </div>
-            <p className="row__title" style={{ marginTop: 'var(--space-2xs)' }}>
-              Green Valley Veterinary
-            </p>
-            <p className="row__sub">
-              Last synced {lastSyncLabel} · {liveVaccines.length} records linked to your pets
-            </p>
-          </section>
+              <p className="row__sub" style={{ marginTop: 'var(--space-2xs)' }}>
+                Book a visit through PetSafeCare and that clinic starts sharing records here. Until
+                then, add records yourself from a certificate or pet passport.
+              </p>
+              <Link to="/clinics" className="btn btn--ghost btn--sm" style={{ marginTop: 'var(--space-sm)', width: 'fit-content' }}>
+                Find a clinic
+              </Link>
+            </section>
+          )}
 
           <section className="card card--pad">
             <span className="tag">How sync works</span>

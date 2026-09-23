@@ -130,6 +130,8 @@ export interface Order {
   total: number
   status: OrderStatus
   addressLine: string
+  /** "Visa ending 4242" — frozen at purchase; absent on older orders */
+  paidWith?: string
 }
 
 export type BookingStatus = 'upcoming' | 'completed' | 'cancelled'
@@ -148,6 +150,16 @@ export interface Address {
   id: string
   label: string
   line: string
+  isDefault: boolean
+}
+
+export interface PaymentCard {
+  id: string
+  brand: 'Visa' | 'Mastercard' | 'Amex' | 'Card'
+  last4: string
+  /** MM / YY */
+  exp: string
+  name: string
   isDefault: boolean
 }
 

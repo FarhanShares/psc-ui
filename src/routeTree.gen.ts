@@ -24,6 +24,7 @@ import { Route as SearchRouteImport } from './routes/search'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as BookingsIndexRouteImport } from './routes/bookings.index'
 import { Route as BookingsIdRouteImport } from './routes/bookings.$id'
 import { Route as ClinicsIndexRouteImport } from './routes/clinics.index'
@@ -110,6 +111,11 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WelcomeRoute = WelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BookingsIndexRoute = BookingsIndexRouteImport.update({
   id: '/bookings/',
   path: '/bookings/',
@@ -177,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/welcome': typeof WelcomeRoute
   '/bookings/$id': typeof BookingsIdRoute
   '/clinics/$id': typeof ClinicsIdRoute
   '/orders/$id': typeof OrdersIdRoute
@@ -204,6 +211,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/welcome': typeof WelcomeRoute
   '/bookings/$id': typeof BookingsIdRoute
   '/clinics/$id': typeof ClinicsIdRoute
   '/orders/$id': typeof OrdersIdRoute
@@ -232,6 +240,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/welcome': typeof WelcomeRoute
   '/bookings/$id': typeof BookingsIdRoute
   '/clinics/$id': typeof ClinicsIdRoute
   '/orders/$id': typeof OrdersIdRoute
@@ -261,6 +270,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/sitemap.xml'
     | '/terms'
+    | '/welcome'
     | '/bookings/$id'
     | '/clinics/$id'
     | '/orders/$id'
@@ -288,6 +298,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/sitemap.xml'
     | '/terms'
+    | '/welcome'
     | '/bookings/$id'
     | '/clinics/$id'
     | '/orders/$id'
@@ -315,6 +326,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/sitemap.xml'
     | '/terms'
+    | '/welcome'
     | '/bookings/$id'
     | '/clinics/$id'
     | '/orders/$id'
@@ -343,6 +355,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
+  WelcomeRoute: typeof WelcomeRoute
   BookingsIdRoute: typeof BookingsIdRoute
   ClinicsIdRoute: typeof ClinicsIdRoute
   OrdersIdRoute: typeof OrdersIdRoute
@@ -462,6 +475,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/welcome': {
+      id: '/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof WelcomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/bookings/': {
       id: '/bookings/'
       path: '/bookings'
@@ -551,6 +571,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
+  WelcomeRoute: WelcomeRoute,
   BookingsIdRoute: BookingsIdRoute,
   ClinicsIdRoute: ClinicsIdRoute,
   OrdersIdRoute: OrdersIdRoute,

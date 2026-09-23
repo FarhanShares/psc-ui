@@ -10,7 +10,7 @@ import { hasOptions, optionSummary, priceRange, resolveVariant, variantLabel, va
 import type { AxisId, Product, ProductVariant } from '../lib/types'
 import { money } from '../lib/format'
 import { absoluteUrl, breadcrumbLd, seo } from '../lib/seo'
-import { addToCart, cartCount, pushToast, useAppState } from '../lib/store'
+import { addToCart, cartCount, noteViewed, pushToast, useAppState } from '../lib/store'
 import { VariantPicker, VariantPrice } from '../components/variant-picker'
 
 const CATEGORY_NOTES: Record<string, string> = {
@@ -124,6 +124,10 @@ function ProductPage() {
     setQty(1)
     setNotified(false)
   }, [id, v])
+
+  useEffect(() => {
+    if (getProduct(id)) noteViewed(id)
+  }, [id])
 
   // the sticky phone bar appears only after the inline buy row leaves the screen
   useEffect(() => {

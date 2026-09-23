@@ -18,6 +18,7 @@ import type {
   CartItem,
   Notice,
   Order,
+  PaymentCard,
   Pet,
   Profile,
   VaccineRecord,
@@ -44,15 +45,79 @@ export interface AppState {
   pets: typeof PETS
   vaccines: VaccineRecord[]
   lastSyncLabel: string
+  /** a clinic shares records with this account (new accounts start unlinked) */
+  clinicLinked: boolean
   savedProducts: string[]
   savedClinics: string[]
   readNotices: string[]
+  cards: PaymentCard[]
   recentSearches: string[]
+  /** device-level, not per account — product ids, newest first */
+  recentlyViewed: string[]
   signedIn: boolean
+  /** which account the top-level data belongs to (email, or `social:<provider>`) */
+  sessionKey: string | null
   users: RegisteredUser[]
+  /** data of every account that is not currently signed in */
+  accounts: Record<string, AccountData>
 }
 
-function seedState(): AppState {
+/**
+ * Per-account slice. The signed-in account's data lives at the top level of
+ * AppState (so every page reads `state.orders` etc. unchanged); on sign-out it
+ * is parked in `accounts` and the top level becomes an empty guest session.
+ */
+const ACCOUNT_KEYS = [
+  'cart',
+  'orders',
+  'bookings',
+  'profile',
+  'pets',
+  'vaccines',
+  'lastSyncLabel',
+  'clinicLinked',
+  'savedProducts',
+  'savedClinics',
+  'readNotices',
+  'cards',
+] as const
+
+export type AccountData = Pick<AppState, (typeof ACCOUNT_KEYS)[number]>
+
+function pickAccount(s: AppState): AccountData {
+  const out = {} as Record<string, unknown>
+  for (const k of ACCOUNT_KEYS) out[k] = s[k]
+  return out as AccountData
+}
+
+function emptyAccount(name = '', email = ''): AccountData {
+  return {
+    cart: [],
+    orders: [],
+    bookings: [],
+    profile: {
+      name,
+      phone: '',
+      email,
+      addresses: [],
+      notifyVaccines: true,
+      notifyOrders: true,
+      notifyOffers: false,
+    },
+    pets: [],
+    vaccines: [],
+    lastSyncLabel: 'never',
+    clinicLinked: false,
+    savedProducts: [],
+    savedClinics: [],
+    readNotices: [],
+    cards: [],
+  }
+}
+
+const DEMO_EMAIL = 'farhan@example.com'
+
+function demoAccount(): AccountData {
   return {
     cart: [],
     orders: SEED_ORDERS,
@@ -61,13 +126,28 @@ function seedState(): AppState {
     pets: PETS,
     vaccines: VACCINES,
     lastSyncLabel: '2 days ago',
+    clinicLinked: true,
     savedProducts: ['p12', 'p09'],
     savedClinics: ['c04'],
     readNotices: [],
+    cards: [{ id: 'pm1', brand: 'Visa', last4: '4242', exp: '09 / 29', name: 'Farhan', isDefault: true }],
+  }
+}
+
+/**
+ * The server renders a signed-out guest: public pages (home landing, shop,
+ * clinics) are what crawlers and first-time visitors see. The demo account is
+ * one sign-in away (credentials hinted on /login, one tap on the landing).
+ */
+function seedState(): AppState {
+  return {
+    ...emptyAccount(),
     recentSearches: [],
-    signedIn: true,
-    // demo account so sign-out -> sign-in round-trips with real credential checks
-    users: [{ name: 'Farhan', email: 'farhan@example.com', password: 'demo1234' }],
+    recentlyViewed: [],
+    signedIn: false,
+    sessionKey: null,
+    users: [{ name: 'Farhan', email: DEMO_EMAIL, password: 'demo1234' }],
+    accounts: { [DEMO_EMAIL]: demoAccount() },
   }
 }
 
@@ -97,19 +177,13 @@ function persist() {
     window.localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({
-        cart: state.cart,
-        orders: state.orders,
-        bookings: state.bookings,
-        profile: state.profile,
-        pets: state.pets,
-        vaccines: state.vaccines,
-        lastSyncLabel: state.lastSyncLabel,
-        savedProducts: state.savedProducts,
-        savedClinics: state.savedClinics,
-        readNotices: state.readNotices,
+        ...pickAccount(state),
         recentSearches: state.recentSearches,
+        recentlyViewed: state.recentlyViewed,
         signedIn: state.signedIn,
+        sessionKey: state.sessionKey,
         users: state.users,
+        accounts: state.accounts,
       }),
     )
   } catch {
@@ -117,10 +191,34 @@ function persist() {
   }
 }
 
+/** mirrors the session onto <html> so pre-hydration CSS can hide guest-only views */
+function syncSessionAttr() {
+  if (typeof document === 'undefined') return
+  document.documentElement.dataset.session = state.signedIn ? 'in' : 'out'
+}
+
 function setState(patch: Partial<AppState>) {
   state = { ...state, ...patch }
   persist()
+  syncSessionAttr()
   emit()
+}
+
+/**
+ * Storage written before per-account data existed has one account's data at
+ * the top level and no `accounts` map. Adopt it as that account's data; if the
+ * session was signed out, park it and start a clean guest session.
+ */
+function migrate(saved: Partial<AppState>): Partial<AppState> {
+  if (saved.accounts) return saved
+  const merged = { ...state, ...saved } as AppState
+  const key = normEmail(merged.profile?.email || DEMO_EMAIL)
+  const legacy = { clinicLinked: saved.clinicLinked ?? true, cards: saved.cards ?? demoAccount().cards }
+  const data = pickAccount({ ...merged, ...legacy })
+  if (saved.signedIn) {
+    return { ...saved, ...legacy, sessionKey: key, accounts: {} }
+  }
+  return { ...emptyAccount(), recentSearches: merged.recentSearches, signedIn: false, sessionKey: null, users: merged.users, accounts: { [key]: data } }
 }
 
 export function hydrateFromStorage() {
@@ -129,8 +227,10 @@ export function hydrateFromStorage() {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY)
     if (!raw) return
-    const saved = JSON.parse(raw) as Partial<AppState>
-    state = { ...state, ...saved }
+    const parsed = JSON.parse(raw) as Partial<AppState>
+    state = { ...state, ...migrate(parsed) }
+    if (!parsed.accounts) persist() // write the migrated shape once
+    syncSessionAttr()
     emit()
   } catch {
     // corrupt storage — keep seed
@@ -261,7 +361,7 @@ export function cartTotals(cart: CartItem[]) {
 
 /* --------------------------------------------------------------- orders */
 
-export function placeOrder(addressLine: string): Order {
+export function placeOrder(addressLine: string, paidWith?: string): Order {
   const { subtotal, delivery, total } = cartTotals(state.cart)
   const order: Order = {
     id: `PS-${1043 + state.orders.length}`,
@@ -282,6 +382,7 @@ export function placeOrder(addressLine: string): Order {
     total,
     status: 'placed',
     addressLine,
+    paidWith,
   }
   setState({ orders: [order, ...state.orders], cart: [] })
   return order
@@ -319,7 +420,7 @@ export function bookService(input: {
     petId: input.petId,
     time: input.time,
   }
-  setState({ bookings: [booking, ...state.bookings] })
+  setState({ bookings: [booking, ...state.bookings], clinicLinked: true })
 
   // if this books an overdue/due vaccine for that pet, mark it scheduled
   const clinic = CLINICS.find((c) => c.id === input.clinicId)
@@ -518,7 +619,44 @@ export function clearRecentSearches() {
 
 /* ------------------------------------------------------------- session */
 
-const normEmail = (email: string) => email.trim().toLowerCase()
+function normEmail(email: string) {
+  return email.trim().toLowerCase()
+}
+
+/** park the active account's data so the top level can be reused */
+function parkedAccounts(): Record<string, AccountData> {
+  if (!state.signedIn || !state.sessionKey) return state.accounts
+  return { ...state.accounts, [state.sessionKey]: pickAccount(state) }
+}
+
+/**
+ * Switch the top level to `key`'s data. What a guest put in the cart or saved
+ * before signing in comes along — nobody should lose a basket to a login wall.
+ */
+function openSession(key: string, fallback: AccountData, profilePatch?: Partial<Profile>) {
+  const guest = state.signedIn ? emptyAccount() : pickAccount(state)
+  const accounts = parkedAccounts()
+  const acct = accounts[key] ?? fallback
+  const rest = { ...accounts }
+  delete rest[key]
+
+  const cart = [...acct.cart]
+  for (const line of guest.cart) {
+    const hit = cart.find((c) => c.productId === line.productId && c.variantId === line.variantId)
+    if (hit) hit.qty = Math.min(99, hit.qty + line.qty)
+    else cart.push(line)
+  }
+  setState({
+    ...acct,
+    cart: cart.map((c) => ({ ...c })),
+    savedProducts: [...new Set([...guest.savedProducts, ...acct.savedProducts])],
+    savedClinics: [...new Set([...guest.savedClinics, ...acct.savedClinics])],
+    profile: { ...acct.profile, ...profilePatch },
+    signedIn: true,
+    sessionKey: key,
+    accounts: rest,
+  })
+}
 
 /** credential sign-in — returns an error string, or null on success */
 export function signIn(email: string, password: string): string | null {
@@ -526,16 +664,35 @@ export function signIn(email: string, password: string): string | null {
   if (!account || account.password !== password) {
     return 'That email and password don’t match an account. Try again, or reset your password.'
   }
-  setState({
-    signedIn: true,
-    profile: { ...state.profile, name: account.name, email: account.email },
+  openSession(account.email, account.email === DEMO_EMAIL ? demoAccount() : emptyAccount(account.name, account.email), {
+    name: account.name,
+    email: account.email,
   })
   return null
 }
 
-/** social / one-tap path — session without a stored credential (demo) */
-export function signInGuest(patch?: Partial<Profile>) {
-  setState({ signedIn: true, profile: patch ? { ...state.profile, ...patch } : state.profile })
+/** one tap into the seeded demo account (used by the landing page) */
+export function signInDemo() {
+  const demo = state.users.find((u) => u.email === DEMO_EMAIL)
+  if (demo) signIn(demo.email, demo.password)
+  else openSession(DEMO_EMAIL, demoAccount())
+}
+
+/**
+ * Social / one-tap path — a session without a stored password (demo). Each
+ * provider maps to one account, so signing in again restores it.
+ * Returns true when the account is brand new (send it to onboarding).
+ */
+export function signInSocial(provider: string): boolean {
+  const key = `social:${provider.toLowerCase()}`
+  const isNew = !state.accounts[key]
+  openSession(key, emptyAccount(`${provider} user`, ''))
+  return isNew
+}
+
+/** kept for callers that predate provider-specific sessions */
+export function signInGuest() {
+  return signInSocial('Guest')
 }
 
 /** register a real account — returns an error string, or null on success */
@@ -544,11 +701,10 @@ export function signUpAccount(name: string, email: string, password: string): st
   if (state.users.some((u) => u.email === em)) {
     return 'An account with that email already exists. Sign in instead, or use a different email.'
   }
-  setState({
-    users: [...state.users, { name: name.trim(), email: em, password }],
-    signedIn: true,
-    profile: { ...state.profile, name: name.trim(), email: em },
-  })
+  const accounts = { ...state.accounts }
+  delete accounts[em] // leftovers from a deleted account never leak into a new one
+  setState({ users: [...state.users, { name: name.trim(), email: em, password }], accounts })
+  openSession(em, emptyAccount(name.trim(), em))
   return null
 }
 
@@ -564,8 +720,96 @@ export function resetPassword(email: string, newPassword: string): string | null
   return null
 }
 
+/** true when the session has a password (email accounts), false for social */
+export function hasPassword(s: AppState): boolean {
+  return !!s.sessionKey && s.users.some((u) => u.email === s.sessionKey)
+}
+
+export function changePassword(current: string, next: string): string | null {
+  const user = state.users.find((u) => u.email === state.sessionKey)
+  if (!user) return 'This account signs in with Apple or Google, so it has no password to change.'
+  if (user.password !== current) return 'Your current password isn’t right. Try again, or sign out and reset it.'
+  if (next.length < 8) return 'Use at least 8 characters for the new password.'
+  if (next === current) return 'Pick a password you haven’t used for this account.'
+  setState({ users: state.users.map((u) => (u === user ? { ...u, password: next } : u)) })
+  return null
+}
+
 export function signOut() {
-  setState({ signedIn: false, cart: [] })
+  setState({ ...emptyAccount(), accounts: parkedAccounts(), signedIn: false, sessionKey: null })
+}
+
+/** remove the signed-in account, its password and all of its data */
+export function deleteAccount() {
+  const key = state.sessionKey
+  const accounts = { ...state.accounts }
+  if (key) delete accounts[key]
+  setState({
+    ...emptyAccount(),
+    users: state.users.filter((u) => u.email !== key),
+    accounts,
+    signedIn: false,
+    sessionKey: null,
+  })
+}
+
+/** everything this account holds, as a downloadable JSON string */
+export function exportAccountData(): string {
+  const data = pickAccount(state)
+  return JSON.stringify({ exportedAt: new Date().toISOString(), account: state.sessionKey, ...data }, null, 2)
+}
+
+/* ------------------------------------------------------ payment methods */
+
+export function cardBrand(digits: string): PaymentCard['brand'] {
+  if (/^4/.test(digits)) return 'Visa'
+  if (/^(5[1-5]|2[2-7])/.test(digits)) return 'Mastercard'
+  if (/^3[47]/.test(digits)) return 'Amex'
+  return 'Card'
+}
+
+export function cardLabel(c: PaymentCard): string {
+  return `${c.brand} ending ${c.last4}`
+}
+
+export function addCard(input: { digits: string; exp: string; name: string; makeDefault?: boolean }): PaymentCard {
+  const card: PaymentCard = {
+    id: `pm-${Date.now().toString(36)}`,
+    brand: cardBrand(input.digits),
+    last4: input.digits.slice(-4),
+    exp: input.exp,
+    name: input.name.trim() || state.profile.name,
+    isDefault: input.makeDefault || state.cards.length === 0,
+  }
+  const others = card.isDefault ? state.cards.map((c) => ({ ...c, isDefault: false })) : state.cards
+  setState({ cards: [...others, card] })
+  return card
+}
+
+export function setDefaultCard(id: string) {
+  setState({ cards: state.cards.map((c) => ({ ...c, isDefault: c.id === id })) })
+}
+
+export function removeCard(id: string) {
+  const prev = state.cards
+  const gone = prev.find((c) => c.id === id)
+  let cards = prev.filter((c) => c.id !== id)
+  if (gone?.isDefault && cards.length) cards = cards.map((c, i) => ({ ...c, isDefault: i === 0 }))
+  setState({ cards })
+  if (gone) {
+    pushToast(`${cardLabel(gone)} removed`, { actionLabel: 'Undo', onAction: () => setState({ cards: prev }) })
+  }
+}
+
+/* ------------------------------------------------------ recently viewed */
+
+export function noteViewed(productId: string) {
+  if (state.recentlyViewed[0] === productId) return
+  setState({ recentlyViewed: [productId, ...state.recentlyViewed.filter((x) => x !== productId)].slice(0, 12) })
+}
+
+export function clearRecentlyViewed() {
+  setState({ recentlyViewed: [] })
 }
 
 /* -------------------------------------------------------- notifications */
@@ -576,6 +820,7 @@ export function signOut() {
  * Only the read/unread set is stored.
  */
 export function deriveNotices(s: AppState): Notice[] {
+  if (!s.signedIn) return []
   const out: Notice[] = []
   const petName = (id: string) => s.pets.find((p) => p.id === id)?.name
 
@@ -648,7 +893,7 @@ export function deriveNotices(s: AppState): Notice[] {
     }
   }
 
-  out.push({
+  if (s.clinicLinked) out.push({
     id: `sync-${s.lastSyncLabel}`,
     kind: 'sync',
     title: 'Clinic records synced',

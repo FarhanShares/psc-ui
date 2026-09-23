@@ -9,10 +9,15 @@ import { dateFromOffset, longDate, money, plural, shortDate } from '../lib/forma
 import { seo } from '../lib/seo'
 import { pushToast, reorder, useAppState } from '../lib/store'
 import type { Order } from '../lib/types'
+import { RequireAccount } from '../components/gate'
 
 export const Route = createFileRoute('/orders/$id')({
   head: ({ params }) => seo({ title: `Order #${params.id}`, path: `/orders/${params.id}`, noindex: true }),
-  component: OrderPage,
+  component: () => (
+    <RequireAccount kind="orders">
+      <OrderPage />
+    </RequireAccount>
+  ),
 })
 
 const RETURN_REASONS = [
@@ -167,7 +172,7 @@ function OrderPage() {
               <CreditCard size={15} strokeWidth={1.75} aria-hidden />
               <span>
                 <span className="tag">Paid with</span>
-                <span className="row__title num" style={{ display: 'block' }}>Card ending 4242</span>
+                <span className="row__title num" style={{ display: 'block' }}>{order.paidWith ?? 'Card ending 4242'}</span>
               </span>
             </div>
           </section>

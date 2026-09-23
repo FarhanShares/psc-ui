@@ -3,7 +3,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 
 import { AuthShell, PasswordInput, SocialButtons } from '../components/auth'
 import { seo } from '../lib/seo'
-import { pushToast, signInGuest, signUpAccount } from '../lib/store'
+import { signInSocial, signUpAccount } from '../lib/store'
 
 export const Route = createFileRoute('/signup')({
   validateSearch: (s: Record<string, unknown>): { redirect?: string } => ({
@@ -39,11 +39,12 @@ function SignupPage() {
   const [busy, setBusy] = useState(false)
   const st = strength(password)
 
-  function socialSignIn() {
+  function socialSignIn(provider: string) {
     setBusy(true)
     window.setTimeout(() => {
-      signInGuest()
-      navigate({ to: redirect ?? '/pets' })
+      const isNew = signInSocial(provider)
+      if (isNew) navigate({ to: '/welcome', search: redirect ? { redirect } : {} })
+      else navigate({ to: redirect ?? '/' })
     }, 800)
   }
 
@@ -65,8 +66,7 @@ function SignupPage() {
         setErrors({ form: err })
         return
       }
-      pushToast(`Welcome, ${name.trim().split(' ')[0]} — add your pets to get reminders`)
-      navigate({ to: redirect ?? '/pets' })
+      navigate({ to: '/welcome', search: redirect ? { redirect } : {} })
     }, 800)
   }
 

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { Check, ChevronLeft, ShoppingCart } from 'lucide-react'
 
 import { EmptyState } from '../components/ui'
@@ -7,11 +7,11 @@ import { FREE_DELIVERY_THRESHOLD, PRODUCTS, getProduct } from '../lib/data'
 import { ProductCard } from '../components/cards'
 import { CartLine } from '../components/cart-line'
 import { lineKey } from '../lib/catalog'
-import { formatCardNumber, formatExpiry, money } from '../lib/format'
+import { money } from '../lib/format'
 import { cartTotals, placeOrder, useAppState } from '../lib/store'
 import type { Order } from '../lib/types'
 import { seo } from '../lib/seo'
-import { AddressPicker } from '../components/address-picker'
+import { CheckoutFields, useCheckout } from '../components/checkout'
 
 export const Route = createFileRoute('/cart')({
   head: () => seo({ title: 'Cart', path: '/cart', noindex: true }),
@@ -19,24 +19,16 @@ export const Route = createFileRoute('/cart')({
 })
 
 function CartPage() {
-  const { cart, profile, savedProducts } = useAppState()
+  const { cart, savedProducts, signedIn } = useAppState()
+  const navigate = useNavigate()
   const savedInStock = savedProducts.filter((id) => (getProduct(id)?.stock ?? 0) > 0)
   const { subtotal, delivery, total } = cartTotals(cart)
 
   const [stage, setStage] = useState<'cart' | 'checkout' | 'placed'>('cart')
-  const [addressId, setAddressId] = useState(
-    () => profile.addresses.find((a) => a.isDefault)?.id ?? profile.addresses[0]?.id ?? '',
-  )
-  const [name, setName] = useState(profile.name)
-  const [phone, setPhone] = useState(profile.phone)
-  const [card, setCard] = useState('')
-  const [expiry, setExpiry] = useState('')
-  const [cvc, setCvc] = useState('')
+  const co = useCheckout()
   const [placing, setPlacing] = useState(false)
-  const [error, setError] = useState('')
   const [placedOrder, setPlacedOrder] = useState<Order | null>(null)
 
-  const address = profile.addresses.find((a) => a.id === addressId)
   const missing = FREE_DELIVERY_THRESHOLD - subtotal
   // cheapest in-stock items that close the free-delivery gap, then top-rated fillers
   const topUps = PRODUCTS.filter((p) => p.stock > 0 && !cart.some((i) => i.productId === p.id))
@@ -48,31 +40,27 @@ function CartPage() {
     .slice(0, 4)
 
   function handlePlaceOrder() {
-    if (!address) {
-      setError('Choose a delivery address before placing the order.')
-      return
-    }
-    if (card.replace(/\s/g, '').length < 12) {
-      setError('That card number looks too short. Enter all digits, or try another card.')
-      return
-    }
-    if (!/^\d{2} \/ \d{2}$/.test(expiry)) {
-      setError('Add the card’s expiry date as MM / YY.')
-      return
-    }
-    if (cvc.length < 3) {
-      setError('Add the 3- or 4-digit security code from the back of the card.')
-      return
-    }
-    setError('')
+    const details = co.submit()
+    if (!details) return
     setPlacing(true)
     window.setTimeout(() => {
-      const order = placeOrder(address.line)
+      const order = placeOrder(details.addressLine, details.paidWith)
       setPlacedOrder(order)
       setPlacing(false)
       setStage('placed')
     }, 900)
   }
+
+  function goToCheckout() {
+    // guests keep their cart through sign-in — it merges into the account
+    if (!signedIn) {
+      navigate({ to: '/login', search: { redirect: '/cart' } })
+      return
+    }
+    co.start()
+    setStage('checkout')
+  }
+
 
   /* ------------------------------------------------------------ placed */
   if (stage === 'placed' && placedOrder) {
@@ -196,9 +184,14 @@ function CartPage() {
                 </div>
               </div>
 
-              <button type="button" className="btn btn--primary btn--block" onClick={() => setStage('checkout')}>
-                Checkout · {money(total)}
+              <button type="button" className="btn btn--primary btn--block" onClick={goToCheckout}>
+                {signedIn ? `Checkout · ${money(total)}` : 'Sign in to check out'}
               </button>
+              {!signedIn && (
+                <p className="row__sub" style={{ textAlign: 'center' }}>
+                  Your cart comes with you when you sign in.
+                </p>
+              )}
               <Link to="/shop" className="btn btn--quiet" style={{ justifySelf: 'center' }}>
                 Continue shopping
               </Link>
@@ -229,107 +222,14 @@ function CartPage() {
           </h1>
 
           <div className="detail-grid rise" style={{ '--i': 1, alignItems: 'start' } as React.CSSProperties}>
-            <div className="stack">
-              <section>
-                <div className="section-head">
-                  <h2 className="section-head__title">Delivery address</h2>
-                  <Link to="/profile" className="section-head__link">
-                    Manage
-                  </Link>
-                </div>
-                <AddressPicker addresses={profile.addresses} value={addressId} onChange={setAddressId} />
-              </section>
-
-              <section className="stack">
-                <div className="section-head">
-                  <h2 className="section-head__title">Contact</h2>
-                </div>
-                <div className="field">
-                  <label className="field__label" htmlFor="co-name">
-                    Full name
-                  </label>
-                  <input
-                    id="co-name"
-                    className="input"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    autoComplete="name"
-                  />
-                </div>
-                <div className="field">
-                  <label className="field__label" htmlFor="co-phone">
-                    Phone number
-                  </label>
-                  <input
-                    id="co-phone"
-                    className="input"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    autoComplete="tel"
-                    inputMode="tel"
-                  />
-                  <p className="field__help">The courier calls this number on arrival.</p>
-                </div>
-              </section>
-
-              <section className="stack">
-                <div className="section-head">
-                  <h2 className="section-head__title">Payment</h2>
-                  <span className="tag">Demo — no charge</span>
-                </div>
-                <div className="field">
-                  <label className="field__label" htmlFor="co-card">
-                    Card number
-                  </label>
-                  <input
-                    id="co-card"
-                    className="input"
-                    value={card}
-                    onChange={(e) => setCard(formatCardNumber(e.target.value))}
-                    inputMode="numeric"
-                    placeholder="4242 4242 4242 4242"
-                    autoComplete="cc-number"
-                  />
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-sm)' }}>
-                  <div className="field">
-                    <label className="field__label" htmlFor="co-exp">
-                      Expiry
-                    </label>
-                    <input
-                      id="co-exp"
-                      className="input"
-                      value={expiry}
-                      onChange={(e) => setExpiry(formatExpiry(e.target.value))}
-                      inputMode="numeric"
-                      placeholder="09 / 29"
-                      autoComplete="cc-exp"
-                    />
-                  </div>
-                  <div className="field">
-                    <label className="field__label" htmlFor="co-cvc">
-                      CVC
-                    </label>
-                    <input
-                      id="co-cvc"
-                      className="input"
-                      value={cvc}
-                      onChange={(e) => setCvc(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                      inputMode="numeric"
-                      placeholder="123"
-                      autoComplete="cc-csc"
-                    />
-                  </div>
-                </div>
-              </section>
-            </div>
+            <CheckoutFields co={co} prefix="co" />
 
             <div className="stack side-col">
               <div className="summary">
                 <div className="summary__row">
                   <span>
                     {cart.reduce((n, i) => n + i.qty, 0)} item
-                    {cart.reduce((n, i) => n + i.qty, 0) === 1 ? '' : 's'} · {address?.label ?? 'no address'}
+                    {cart.reduce((n, i) => n + i.qty, 0) === 1 ? '' : 's'} · {co.addressLabel ?? 'no address'}
                   </span>
                   <span className="price">{money(total)}</span>
                 </div>
@@ -340,9 +240,9 @@ function CartPage() {
               </div>
 
               <div>
-                {error && (
+                {co.error && (
                   <p className="field__help field__help--error" role="alert" style={{ marginBottom: 'var(--space-2xs)' }}>
-                    {error}
+                    {co.error}
                   </p>
                 )}
                 <button

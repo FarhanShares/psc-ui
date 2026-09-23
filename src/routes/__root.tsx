@@ -60,7 +60,14 @@ export const Route = createRootRoute({
         },
         { rel: 'stylesheet', href: appCss },
       ],
-      scripts: base.scripts,
+      scripts: [
+        // before first paint: tell CSS whether a signed-in session is stored, so
+        // returning users never see the guest landing/gates flash pre-hydration
+        {
+          children: `try{var s=JSON.parse(localStorage.getItem('petsafecare.state.v1')||'null');document.documentElement.dataset.session=s&&s.signedIn?'in':'out'}catch(e){}`,
+        },
+        ...base.scripts,
+      ],
     }
   },
   component: AppFrame,
@@ -71,7 +78,8 @@ export const Route = createRootRoute({
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    // the pre-paint session script sets data-session before React hydrates
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>

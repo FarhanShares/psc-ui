@@ -19,10 +19,15 @@ import { dateFromOffset, isoDay, longDate, money, relativeDay } from '../lib/for
 import { seo } from '../lib/seo'
 import { cancelBooking, pushToast, rescheduleBooking, useAppState } from '../lib/store'
 import type { ServiceType } from '../lib/types'
+import { RequireAccount } from '../components/gate'
 
 export const Route = createFileRoute('/bookings/$id')({
   head: ({ params }) => seo({ title: `Booking #${params.id}`, path: `/bookings/${params.id}`, noindex: true }),
-  component: BookingPage,
+  component: () => (
+    <RequireAccount kind="bookings">
+      <BookingPage />
+    </RequireAccount>
+  ),
 })
 
 const PREP: Record<ServiceType, string[]> = {

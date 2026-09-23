@@ -8,10 +8,15 @@ import { EmptyState, PetGlyph, Pill } from '../components/ui'
 import { plural } from '../lib/format'
 import { seo } from '../lib/seo'
 import { useAppState } from '../lib/store'
+import { RequireAccount } from '../components/gate'
 
 export const Route = createFileRoute('/pets/')({
   head: () => seo({ title: 'Your pets', path: '/pets', noindex: true }),
-  component: PetsPage,
+  component: () => (
+    <RequireAccount kind="pets">
+      <PetsPage />
+    </RequireAccount>
+  ),
 })
 
 function PetsPage() {

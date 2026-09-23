@@ -7,10 +7,15 @@ import { timeAgo } from '../lib/format'
 import { seo } from '../lib/seo'
 import { deriveNotices, markNoticeRead, markNoticesRead, useAppState } from '../lib/store'
 import type { NoticeKind } from '../lib/types'
+import { RequireAccount } from '../components/gate'
 
 export const Route = createFileRoute('/notifications')({
   head: () => seo({ title: 'Notifications', path: '/notifications', noindex: true }),
-  component: NotificationsPage,
+  component: () => (
+    <RequireAccount kind="notifications">
+      <NotificationsPage />
+    </RequireAccount>
+  ),
 })
 
 const ICONS: Record<NoticeKind, typeof Syringe> = {

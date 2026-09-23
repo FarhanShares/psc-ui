@@ -22,7 +22,7 @@ import {
 import { CategoryIcon, tileClass } from './ui'
 import { CATEGORIES, FREE_DELIVERY_THRESHOLD } from '../lib/data'
 import { findVariant, lineKey, variantLabel } from '../lib/catalog'
-import { formatCardNumber, formatExpiry, money } from '../lib/format'
+import { money } from '../lib/format'
 import {
   cartCount,
   cartTotals,
@@ -35,7 +35,7 @@ import {
   useToasts,
   useUnreadCount,
 } from '../lib/store'
-import { AddressPicker } from './address-picker'
+import { CheckoutFields, useCheckout } from './checkout'
 
 const NAV_ITEMS = [
   { to: '/', label: 'Home', icon: Home, exact: true },
@@ -70,7 +70,7 @@ function Badge({ n }: { n: number }) {
 }
 
 export function Topbar() {
-  const { cart } = useAppState()
+  const { cart, signedIn } = useAppState()
   const count = cartCount(cart)
   const unread = useUnreadCount()
 
@@ -82,14 +82,20 @@ export function Topbar() {
         <Link to="/search" className="icon-btn icon-btn--bare" aria-label="Search">
           <Search size={19} strokeWidth={1.75} />
         </Link>
-        <Link
-          to="/notifications"
-          className="icon-btn icon-btn--bare"
-          aria-label={`Notifications${unread > 0 ? `, ${unread} unread` : ''}`}
-        >
-          <Bell size={19} strokeWidth={1.75} />
-          <Badge n={unread} />
-        </Link>
+        {signedIn ? (
+          <Link
+            to="/notifications"
+            className="icon-btn icon-btn--bare"
+            aria-label={`Notifications${unread > 0 ? `, ${unread} unread` : ''}`}
+          >
+            <Bell size={19} strokeWidth={1.75} />
+            <Badge n={unread} />
+          </Link>
+        ) : (
+          <Link to="/login" className="btn btn--quiet btn--sm topbar__signin">
+            Sign in
+          </Link>
+        )}
         <Link
           to="/cart"
           className="icon-btn icon-btn--bare"
@@ -110,7 +116,7 @@ export function Topbar() {
 /* ------------------------------------------------- site header (desktop, ecommerce) */
 
 export function SiteHeader({ onOpenCart }: { onOpenCart: () => void }) {
-  const { cart, savedProducts, savedClinics } = useAppState()
+  const { cart, savedProducts, savedClinics, signedIn } = useAppState()
   const count = cartCount(cart)
   const unread = useUnreadCount()
   const saved = savedProducts.length + savedClinics.length
@@ -176,17 +182,25 @@ export function SiteHeader({ onOpenCart }: { onOpenCart: () => void }) {
         <Link to="/saved" className="icon-btn icon-btn--bare" aria-label={`Saved, ${saved} items`}>
           <Heart size={18} strokeWidth={1.75} />
         </Link>
-        <Link
-          to="/notifications"
-          className="icon-btn icon-btn--bare"
-          aria-label={`Notifications${unread > 0 ? `, ${unread} unread` : ''}`}
-        >
-          <Bell size={18} strokeWidth={1.75} />
-          <Badge n={unread} />
-        </Link>
-        <Link to="/profile" className="icon-btn icon-btn--bare" aria-label="Account">
-          <UserRound size={18} strokeWidth={1.75} />
-        </Link>
+        {signedIn ? (
+          <>
+            <Link
+              to="/notifications"
+              className="icon-btn icon-btn--bare"
+              aria-label={`Notifications${unread > 0 ? `, ${unread} unread` : ''}`}
+            >
+              <Bell size={18} strokeWidth={1.75} />
+              <Badge n={unread} />
+            </Link>
+            <Link to="/profile" className="icon-btn icon-btn--bare" aria-label="Account">
+              <UserRound size={18} strokeWidth={1.75} />
+            </Link>
+          </>
+        ) : (
+          <Link to="/login" className="btn btn--ghost btn--sm site-header__signin">
+            <UserRound size={15} strokeWidth={1.75} /> Sign in
+          </Link>
+        )}
         <button
           type="button"
           className="icon-btn site-header__cart"
@@ -207,19 +221,14 @@ export function SiteHeader({ onOpenCart }: { onOpenCart: () => void }) {
 type DrawerMode = 'cart' | 'checkout' | 'placed'
 
 export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { cart, profile } = useAppState()
+  const { cart, signedIn } = useAppState()
   const { subtotal, delivery, total } = cartTotals(cart)
   const ref = useRef<HTMLDialogElement>(null)
 
   const [mode, setMode] = useState<DrawerMode>('cart')
-  const [addressId, setAddressId] = useState('')
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
-  const [card, setCard] = useState('')
-  const [expiry, setExpiry] = useState('')
-  const [cvc, setCvc] = useState('')
+  const co = useCheckout()
+  const navigate = useNavigate()
   const [placing, setPlacing] = useState(false)
-  const [error, setError] = useState('')
   const [placedOrder, setPlacedOrder] = useState<{ id: string; total: number; addressLine: string } | null>(null)
 
   useEffect(() => {
@@ -233,40 +242,26 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
   useEffect(() => {
     if (!open) return
     setMode('cart')
-    setError('')
     setPlacing(false)
     setPlacedOrder(null)
-    setAddressId(profile.addresses.find((a) => a.isDefault)?.id ?? profile.addresses[0]?.id ?? '')
-    setName(profile.name)
-    setPhone(profile.phone)
-    setCard('')
-    setExpiry('')
-    setCvc('')
-  }, [open, profile])
+  }, [open])
 
-  const address = profile.addresses.find((a) => a.id === addressId)
+  function toCheckout() {
+    if (!signedIn) {
+      onClose()
+      navigate({ to: '/login', search: { redirect: '/cart' } })
+      return
+    }
+    co.start()
+    setMode('checkout')
+  }
 
   function placeDrawerOrder() {
-    if (!address) {
-      setError('Choose a delivery address before placing the order.')
-      return
-    }
-    if (card.replace(/\s/g, '').length < 12) {
-      setError('That card number looks too short. Enter all digits, or try another card.')
-      return
-    }
-    if (!/^\d{2} \/ \d{2}$/.test(expiry)) {
-      setError('Add the card’s expiry date as MM / YY.')
-      return
-    }
-    if (cvc.length < 3) {
-      setError('Add the 3- or 4-digit security code from the back of the card.')
-      return
-    }
-    setError('')
+    const details = co.submit()
+    if (!details) return
     setPlacing(true)
     window.setTimeout(() => {
-      const order = placeOrder(address.line)
+      const order = placeOrder(details.addressLine, details.paidWith)
       setPlacedOrder({ id: order.id, total: order.total, addressLine: order.addressLine })
       setPlacing(false)
       setMode('placed')
@@ -382,8 +377,8 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
                   <p className="row__sub">Add {money(FREE_DELIVERY_THRESHOLD - subtotal)} more for free delivery.</p>
                 </div>
               )}
-              <button type="button" className="btn btn--primary btn--block" onClick={() => setMode('checkout')}>
-                Checkout · {money(total)}
+              <button type="button" className="btn btn--primary btn--block" onClick={toCheckout}>
+                {signedIn ? `Checkout · ${money(total)}` : 'Sign in to check out'}
               </button>
               <Link to="/cart" onClick={onClose} className="btn btn--quiet btn--sm" style={{ justifySelf: 'center' }}>
                 Open full cart page
@@ -396,52 +391,13 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
       {mode === 'checkout' && (
         <>
           <div className="drawer__body">
-            <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
-              <legend className="tag" style={{ marginBottom: 'var(--space-2xs)' }}>Delivery address</legend>
-              <AddressPicker addresses={profile.addresses} value={addressId} onChange={setAddressId} />
-            </fieldset>
-
-            <div className="field">
-              <label className="field__label" htmlFor="dr-name">Full name</label>
-              <input id="dr-name" className="input" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
-            </div>
-            <div className="field">
-              <label className="field__label" htmlFor="dr-phone">Phone number</label>
-              <input id="dr-phone" className="input" value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" autoComplete="tel" />
-            </div>
-
-            <fieldset style={{ border: 0, padding: 0, margin: 'var(--space-sm) 0 0' }}>
-              <legend className="tag" style={{ marginBottom: 'var(--space-2xs)' }}>Payment</legend>
-              <div className="field">
-                <label className="field__label" htmlFor="dr-card">Card number</label>
-                <input
-                  id="dr-card"
-                  className="input"
-                  value={card}
-                  onChange={(e) => setCard(formatCardNumber(e.target.value))}
-                  inputMode="numeric"
-                  placeholder="4242 4242 4242 4242"
-                  autoComplete="cc-number"
-                />
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-sm)' }}>
-                <div className="field">
-                  <label className="field__label" htmlFor="dr-exp">Expiry</label>
-                  <input id="dr-exp" className="input" value={expiry} onChange={(e) => setExpiry(formatExpiry(e.target.value))} inputMode="numeric" placeholder="09 / 29" autoComplete="cc-exp" />
-                </div>
-                <div className="field">
-                  <label className="field__label" htmlFor="dr-cvc">CVC</label>
-                  <input id="dr-cvc" className="input" value={cvc} onChange={(e) => setCvc(e.target.value.replace(/\D/g, '').slice(0, 4))} inputMode="numeric" placeholder="123" autoComplete="cc-csc" />
-                </div>
-              </div>
-              <p className="field__help">Demo — no charge is made.</p>
-            </fieldset>
+            <CheckoutFields co={co} prefix="dr" compact />
 
             <div className="summary" style={{ padding: 'var(--space-sm)', marginTop: 'var(--space-sm)' }}>
               <div className="summary__row">
                 <span>
                   {cart.reduce((n, i) => n + i.qty, 0)} item
-                  {cart.reduce((n, i) => n + i.qty, 0) === 1 ? '' : 's'} · {address?.label ?? 'no address'}
+                  {cart.reduce((n, i) => n + i.qty, 0) === 1 ? '' : 's'} · {co.addressLabel ?? 'no address'}
                 </span>
                 <span className="price">{money(total)}</span>
               </div>
@@ -449,9 +405,9 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
           </div>
 
           <div className="drawer__foot">
-            {error && (
+            {co.error && (
               <p className="field__help field__help--error" role="alert">
-                {error}
+                {co.error}
               </p>
             )}
             <button
@@ -618,7 +574,7 @@ export function ToastRegion() {
 
 /* -------------------------------------------------------------- app frame */
 
-const BARE_ROUTES = ['/login', '/signup']
+const BARE_ROUTES = ['/login', '/signup', '/welcome']
 
 export function AppFrame() {
   const [cartOpen, setCartOpen] = useState(false)

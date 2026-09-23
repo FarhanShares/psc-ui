@@ -5,10 +5,15 @@ import { OrderCard } from '../components/cards'
 import { EmptyState } from '../components/ui'
 import { useAppState } from '../lib/store'
 import { seo } from '../lib/seo'
+import { RequireAccount } from '../components/gate'
 
 export const Route = createFileRoute('/orders/')({
   head: () => seo({ title: 'Orders', path: '/orders', noindex: true }),
-  component: OrdersPage,
+  component: () => (
+    <RequireAccount kind="orders">
+      <OrdersPage />
+    </RequireAccount>
+  ),
 })
 
 function OrdersPage() {

@@ -12,10 +12,15 @@ import { variantForPet } from '../lib/catalog'
 import { plural } from '../lib/format'
 import { seo } from '../lib/seo'
 import { removePet, useAppState } from '../lib/store'
+import { RequireAccount } from '../components/gate'
 
 export const Route = createFileRoute('/pets/$id')({
   head: () => seo({ title: 'Pet profile', noindex: true }),
-  component: PetPage,
+  component: () => (
+    <RequireAccount kind="pets">
+      <PetPage />
+    </RequireAccount>
+  ),
 })
 
 function PetPage() {
