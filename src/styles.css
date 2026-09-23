@@ -5485,3 +5485,33 @@ html[data-session="in"] [data-guest-view] {
 .danger-zone {
   border-color: color-mix(in srgb, var(--color-bad) 30%, var(--color-rule));
 }
+
+/* ---------------------------------------------------------- accessibility */
+
+.skip-link {
+  position: fixed;
+  top: var(--space-xs);
+  left: var(--space-xs);
+  z-index: calc(var(--z-toast) + 1);
+  padding: var(--space-xs) var(--space-md);
+  background: var(--color-ink);
+  color: var(--color-paper);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  transform: translateY(calc(-100% - var(--space-md)));
+  transition: transform var(--dur-short) var(--ease-out);
+}
+
+.skip-link:focus {
+  transform: none;
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* programmatic focus targets (route headings, <main>) never show a ring */
+#main:focus,
+#main h1[tabindex="-1"]:focus {
+  outline: none;
+}

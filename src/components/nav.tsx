@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, Outlet, useNavigate, useRouterState } from '@tanstack/react-router'
+import { Link, Outlet, useNavigate, useRouter, useRouterState } from '@tanstack/react-router'
 import {
   ArrowLeft,
   Bell,
@@ -577,6 +577,62 @@ export function ToastRegion() {
 
 const BARE_ROUTES = ['/login', '/signup', '/welcome']
 
+/**
+ * After a client-side navigation, move focus to the new page's heading so
+ * screen readers announce it and keyboard users start at the top of the
+ * content — unless the page already focused something itself (autofocus).
+ */
+function useRouteFocus() {
+  const router = useRouter()
+  // resolvedLocation changes in the same commit that puts the new page in the
+  // DOM; `location` changes earlier, while the old page is still showing
+  const resolved = useRouterState({ select: (s) => s.resolvedLocation?.pathname })
+  const before = useRef<Element | null>(null)
+  const pending = useRef(false)
+
+  useEffect(
+    () =>
+      router.subscribe('onBeforeNavigate', (e) => {
+        // only real client navigations — the initial load has no fromLocation
+        if (!e.fromLocation || !e.pathChanged) return
+        pending.current = true
+        before.current = document.activeElement
+      }),
+    [router],
+  )
+
+  useEffect(() => {
+    if (!pending.current) return
+    pending.current = false
+    let tries = 0
+    let id = 0
+    const run = () => {
+      const active = document.activeElement
+      // the new page focused something itself (e.g. an autofocus input)
+      if (active && active !== document.body && active !== before.current && active.isConnected) return
+      const h1 = document.querySelector<HTMLElement>('#main h1')
+      if (!h1) {
+        // a lazily-loaded route may not have painted its heading yet
+        if (tries++ < 10) id = window.setTimeout(run, 16)
+        return
+      }
+      if (!h1.hasAttribute('tabindex')) h1.setAttribute('tabindex', '-1')
+      h1.focus({ preventScroll: true })
+    }
+    // a task, not a frame: rAF never fires in background tabs
+    id = window.setTimeout(run, 0)
+    return () => window.clearTimeout(id)
+  }, [resolved])
+}
+
+function SkipLink() {
+  return (
+    <a href="#main" className="skip-link">
+      Skip to content
+    </a>
+  )
+}
+
 export function AppFrame() {
   const [cartOpen, setCartOpen] = useState(false)
   const pathname = useRouterState({ select: (s) => s.location.pathname })
@@ -585,11 +641,14 @@ export function AppFrame() {
     hydrateFromStorage()
   }, [])
 
+  useRouteFocus()
+
   // auth screens are focused, full-bleed pages — no shop chrome
   if (BARE_ROUTES.includes(pathname)) {
     return (
       <div className="app app--bare">
-        <main>
+        <SkipLink />
+        <main id="main" tabIndex={-1}>
           <Outlet />
         </main>
         <ToastRegion />
@@ -599,9 +658,10 @@ export function AppFrame() {
 
   return (
     <div className="app">
+      <SkipLink />
       <Topbar />
       <SiteHeader onOpenCart={() => setCartOpen(true)} />
-      <main className="app__main">
+      <main id="main" className="app__main" tabIndex={-1}>
         <Outlet />
       </main>
       <SiteFooter />
