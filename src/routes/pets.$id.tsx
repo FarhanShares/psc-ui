@@ -7,7 +7,8 @@ import { BookingCard, VaccineRow } from '../components/cards'
 import { AddRecordSheet, EditPetSheet, LogWeightSheet, WeightTrend } from '../components/pet-sheets'
 import { ProductRail } from '../components/product-rail'
 import { EmptyState, PetGlyph, Sheet } from '../components/ui'
-import { PRODUCTS } from '../lib/data'
+import { PRODUCTS, getProduct } from '../lib/data'
+import { variantForPet } from '../lib/catalog'
 import { plural } from '../lib/format'
 import { seo } from '../lib/seo'
 import { removePet, useAppState } from '../lib/store'
@@ -212,7 +213,14 @@ function PetPage() {
               All supplies
             </Link>
           </div>
-          <ProductRail ids={picks.slice(0, 8)} />
+          <ProductRail
+            ids={picks.slice(0, 8)}
+            label={`Picked for ${pet.name}`}
+            variantFor={(pid) => {
+              const prod = getProduct(pid)
+              return prod ? variantForPet(prod, pet) : undefined
+            }}
+          />
         </section>
       )}
 

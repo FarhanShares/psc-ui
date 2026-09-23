@@ -28,6 +28,15 @@ const DEFAULT_FILTERS: Filters = {
 
 type SortId = 'recommended' | 'distance' | 'rating'
 
+const SERVICE_INTRO: Record<string, string> = {
+  consultation: 'General and extended consultations for new symptoms, second opinions and ongoing conditions. Compare prices and book a slot today.',
+  vaccination: 'Core and booster vaccinations for dogs and cats. Booking here marks the matching reminder on your Health tab as scheduled.',
+  grooming: 'Baths, trims, nails and de-shedding from vet clinics and mobile groomers — calm handling for nervous pets.',
+  dental: 'Dental checks and scale-and-polish under a vet’s care. Most need fasting from the night before.',
+  surgery: 'Soft-tissue and emergency surgery with pre-op bloodwork. Call the clinic to talk through recovery before you book.',
+  checkup: 'Annual wellness exams and critical-care checks — weight, heart, teeth and a full once-over.',
+}
+
 const CLINIC_SORTS = [
   { id: 'recommended', label: 'Recommended' },
   { id: 'distance', label: 'Nearest' },
@@ -256,8 +265,8 @@ function ClinicsPage() {
             ? `${SERVICE_TYPES.find((t) => t.id === applied.service)?.label ?? ''} clinics`
             : 'Clinics'}
         </h1>
-        <p className="muted" style={{ fontSize: 'var(--text-sm)', marginTop: 2 }}>
-          Consultations, vaccinations and grooming — booked in under a minute.
+        <p className="shop-intro">
+          {SERVICE_INTRO[applied.service] ?? 'Consultations, vaccinations and grooming — booked in under a minute.'}
         </p>
       </header>
 

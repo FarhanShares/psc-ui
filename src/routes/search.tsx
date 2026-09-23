@@ -7,6 +7,7 @@ import { CategoryIcon, EmptyState, ServiceIcon, Stars, tileClass } from '../comp
 import { CATEGORIES, CLINICS, FAQS, PRODUCTS, SERVICE_TYPES } from '../lib/data'
 import { initials, money } from '../lib/format'
 import { seo } from '../lib/seo'
+import { optionKeywords, variantForQuery } from '../lib/catalog'
 import { clearRecentSearches, rememberSearch, useAppState } from '../lib/store'
 import type { ProductCategory, ServiceType } from '../lib/types'
 
@@ -18,7 +19,7 @@ export const Route = createFileRoute('/search')({
   component: SearchPage,
 })
 
-const POPULAR = ['Salmon', 'Flea', 'Kibble', 'Vaccination', 'Grooming', 'Dental']
+const POPULAR = ['Kitten', 'Salmon', 'Wet', 'Flea', 'Dental', 'Vaccination']
 
 function SearchPage() {
   const { q = '' } = Route.useSearch()
@@ -49,7 +50,7 @@ function SearchPage() {
     if (!term) return null
     const has = (s: string) => s.toLowerCase().includes(term)
     return {
-      products: PRODUCTS.filter((p) => has(`${p.name} ${p.brand} ${p.category} ${p.blurb}`)),
+      products: PRODUCTS.filter((p) => has(`${p.name} ${p.brand} ${p.category} ${p.blurb} ${optionKeywords(p)}`)),
       clinics: CLINICS.filter((c) => has(`${c.name} ${c.area} ${c.services.map((s) => `${s.name} ${s.type}`).join(' ')}`)),
       services: SERVICE_TYPES.filter((s) => has(s.label)),
       help: FAQS.filter((f) => has(`${f.q} ${f.a}`)).slice(0, 3),
@@ -178,7 +179,7 @@ function SearchPage() {
               </div>
               <div className="grid-products">
                 {results.products.slice(0, 8).map((p, i) => (
-                  <ProductCard key={p.id} id={p.id} i={i} />
+                  <ProductCard key={p.id} id={p.id} i={i} variantId={variantForQuery(p, q)?.id} />
                 ))}
               </div>
             </section>

@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { Check, ChevronLeft, ShoppingCart, Trash2 } from 'lucide-react'
+import { Check, ChevronLeft, ShoppingCart } from 'lucide-react'
 
-import { CategoryIcon, EmptyState, Stepper, tileClass } from '../components/ui'
+import { EmptyState } from '../components/ui'
 import { FREE_DELIVERY_THRESHOLD, PRODUCTS, getProduct } from '../lib/data'
 import { ProductCard } from '../components/cards'
+import { CartLine } from '../components/cart-line'
+import { lineKey } from '../lib/catalog'
 import { formatCardNumber, formatExpiry, money } from '../lib/format'
-import { cartTotals, placeOrder, removeFromCart, setCartQty, useAppState } from '../lib/store'
+import { cartTotals, placeOrder, useAppState } from '../lib/store'
 import type { Order } from '../lib/types'
 import { seo } from '../lib/seo'
 import { AddressPicker } from '../components/address-picker'
@@ -165,38 +167,9 @@ function CartPage() {
             style={{ '--i': 1, alignItems: 'start' } as React.CSSProperties}
           >
             <div className="grid-list">
-              {cart.map((item) => {
-                const p = getProduct(item.productId)
-                if (!p) return null
-                return (
-                  <div key={item.productId} className="card row">
-                    <span className={`tile ${tileClass(p.category)}`} style={{ width: '2.75rem', height: '2.75rem' }}>
-                      <CategoryIcon category={p.category} size={19} />
-                    </span>
-                    <span className="row__grow" style={{ minWidth: 0 }}>
-                      <span className="row__title">{p.name}</span>
-                      <span className="row__sub">
-                        {p.unit} · {money(p.price)} each
-                      </span>
-                      <Stepper
-                        value={item.qty}
-                        onChange={(v) => setCartQty(p.id, v)}
-                        label={`Quantity of ${p.name}`}
-                      />
-                    </span>
-                    <span style={{ display: 'grid', justifyItems: 'end', gap: 'var(--space-2xs)' }}>
-                      <span className="price price--lg">{money(p.price * item.qty)}</span>
-                      <button
-                        type="button"
-                        className="btn btn--quiet btn--sm"
-                        onClick={() => removeFromCart(p.id)}
-                      >
-                        <Trash2 size={14} strokeWidth={1.75} /> Remove
-                      </button>
-                    </span>
-                  </div>
-                )
-              })}
+              {cart.map((item) => (
+                <CartLine key={lineKey(item.productId, item.variantId)} item={item} />
+              ))}
             </div>
 
             <div className="stack side-col">

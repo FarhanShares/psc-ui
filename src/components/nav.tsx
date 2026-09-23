@@ -20,7 +20,8 @@ import {
 } from 'lucide-react'
 
 import { CategoryIcon, tileClass } from './ui'
-import { CATEGORIES, FREE_DELIVERY_THRESHOLD, getProduct } from '../lib/data'
+import { CATEGORIES, FREE_DELIVERY_THRESHOLD } from '../lib/data'
+import { findVariant, lineKey, variantLabel } from '../lib/catalog'
 import { formatCardNumber, formatExpiry, money } from '../lib/format'
 import {
   cartCount,
@@ -312,10 +313,12 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
           ) : (
             <div className="drawer__items">
               {cart.map((item) => {
-                const p = getProduct(item.productId)
-                if (!p) return null
+                const found = findVariant(item.productId, item.variantId)
+                if (!found) return null
+                const { product: p, variant } = found
+                const label = variantLabel(p, variant)
                 return (
-                  <div key={item.productId} className="drawer__item">
+                  <div key={lineKey(p.id, item.variantId)} className="drawer__item">
                     <span className={`tile ${tileClass(p.category)}`} style={{ width: '2.5rem', height: '2.5rem' }}>
                       <CategoryIcon category={p.category} size={16} />
                     </span>
@@ -323,13 +326,14 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
                       <span className="row__title" style={{ display: 'block', fontSize: 'var(--text-sm)' }}>
                         {p.name}
                       </span>
-                      <span className="row__sub num">{money(p.price)} each</span>
+                      {label && <span className="row__sub drawer__variant">{label}</span>}
+                      <span className="row__sub num">{money(variant.price)} each</span>
                     </span>
                     <span className="stepper" style={{ transform: 'scale(0.88)', transformOrigin: 'right center' }}>
                       <button
                         type="button"
                         className="stepper__btn"
-                        onClick={() => setCartQty(p.id, item.qty - 1)}
+                        onClick={() => setCartQty(p.id, item.qty - 1, variant.id)}
                         aria-label={`Decrease quantity of ${p.name}`}
                       >
                         <Minus size={13} strokeWidth={2} />
@@ -338,7 +342,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
                       <button
                         type="button"
                         className="stepper__btn"
-                        onClick={() => setCartQty(p.id, item.qty + 1)}
+                        onClick={() => setCartQty(p.id, item.qty + 1, variant.id)}
                         aria-label={`Increase quantity of ${p.name}`}
                       >
                         <Plus size={13} strokeWidth={2} />
@@ -347,8 +351,8 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
                     <button
                       type="button"
                       className="btn btn--quiet btn--sm"
-                      onClick={() => removeFromCart(p.id)}
-                      aria-label={`Remove ${p.name}`}
+                      onClick={() => removeFromCart(p.id, variant.id)}
+                      aria-label={`Remove ${p.name}${label ? `, ${label}` : ''}`}
                     >
                       <Trash2 size={13} strokeWidth={1.75} />
                     </button>
@@ -521,6 +525,8 @@ export function SiteFooter() {
                 </Link>
               </li>
             ))}
+            <li><Link to="/shop" search={{ for: 'dog' }}>For dogs</Link></li>
+            <li><Link to="/shop" search={{ for: 'cat' }}>For cats</Link></li>
           </ul>
         </nav>
         <nav aria-label="Care">

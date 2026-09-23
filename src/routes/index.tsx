@@ -22,7 +22,7 @@ const QUICK = [
   { to: '/emergency', label: 'Emergency', icon: Siren },
 ] as const
 
-const PICKS = ['p04', 'p11', 'p06', 'p09', 'p02', 'p12', 'p01', 'p08']
+const PICKS = ['p04', 'p14', 'p11', 'p15', 'p06', 'p09', 'p02', 'p12', 'p01', 'p16']
 
 function HomePage() {
   const { profile, pets, vaccines, bookings, orders, lastSyncLabel } = useAppState()

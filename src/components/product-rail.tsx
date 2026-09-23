@@ -8,7 +8,16 @@ import { ProductCard } from './cards'
  * card on phones, arrow buttons on wide screens. Arrows sit in the page
  * gutter (never over a card) and disappear at either end of the rail.
  */
-export function ProductRail({ ids, label = 'Product picks' }: { ids: string[]; label?: string }) {
+export function ProductRail({
+  ids,
+  label = 'Product picks',
+  variantFor,
+}: {
+  ids: string[]
+  label?: string
+  /** optional per-product option to show and link to (e.g. kitten food for a kitten) */
+  variantFor?: (productId: string) => string | undefined
+}) {
   const ref = useRef<HTMLDivElement>(null)
   const [edges, setEdges] = useState({ start: true, end: false })
 
@@ -48,7 +57,7 @@ export function ProductRail({ ids, label = 'Product picks' }: { ids: string[]; l
       </button>
       <div className="rail" ref={ref} role="list" aria-label={label} tabIndex={0}>
         {ids.map((id, i) => (
-          <ProductCard key={id} id={id} i={i} />
+          <ProductCard key={id} id={id} i={i} variantId={variantFor?.(id)} />
         ))}
       </div>
       <button

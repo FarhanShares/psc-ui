@@ -4,43 +4,64 @@ import { ArrowUpDown, Check, PackageCheck, ShieldCheck, SlidersHorizontal, Truck
 
 import { ProductCard } from '../components/cards'
 import { OptionPicker, ResultRow, SearchControl } from '../components/pickers'
-import { CategoryIcon, EmptyState, Sheet, tileClass } from '../components/ui'
+import { CategoryIcon, EmptyState, PetGlyph, Sheet, tileClass } from '../components/ui'
 import { CATEGORIES, FREE_DELIVERY_THRESHOLD, PRODUCTS } from '../lib/data'
 import { money } from '../lib/format'
-import { absoluteUrl, seo } from '../lib/seo'
-import type { ProductCategory } from '../lib/types'
+import { absoluteUrl, breadcrumbLd, seo } from '../lib/seo'
+import { optionKeywords, variantForQuery, variantLabel } from '../lib/catalog'
+import type { ProductCategory, Species } from '../lib/types'
+import { BRANDS, parseBrands, shopLanding } from '../lib/shop-landing'
+
+type ShopSearch = { q?: string; cat?: string; for?: Species; brand?: string }
 
 export const Route = createFileRoute('/shop/')({
   head: ({ match }) => {
-    const cat = CATEGORIES.find((c) => c.id === (match.search as { cat?: string }).cat && c.id !== 'all')
-    const q = (match.search as { q?: string }).q
-    const title = cat ? `${cat.label} for dogs & cats` : 'Pet supplies — food, treats, grooming & health'
+    const sp = match.search as ShopSearch
+    const land = shopLanding({ cat: sp.cat, pet: sp.for, brands: parseBrands(sp.brand) })
+    const list = PRODUCTS.filter(
+      (p) =>
+        (!sp.cat || p.category === sp.cat) &&
+        (!sp.for || p.suits.includes(sp.for)) &&
+        (!sp.brand || (parseBrands(sp.brand) ?? []).includes(p.brand)),
+    )
     return seo({
-      title,
-      description: cat
-        ? `Shop ${cat.label.toLowerCase()} for your dog or cat — curated brands, honest reviews, free delivery over ${money(FREE_DELIVERY_THRESHOLD)} and 30-day returns.`
-        : `Pet food, treats, grooming, toys and health essentials from trusted brands. Free delivery over ${money(FREE_DELIVERY_THRESHOLD)}, 30-day returns.`,
-      path: cat ? `/shop?cat=${cat.id}` : '/shop',
-      // filtered search result pages shouldn't compete with the catalogue
-      noindex: !!q,
-      jsonLd: {
-        '@type': 'ItemList',
-        name: title,
-        itemListElement: PRODUCTS.filter((p) => !cat || p.category === cat.id).map((p, i) => ({
-          '@type': 'ListItem',
-          position: i + 1,
-          url: absoluteUrl(`/shop/${p.id}`),
-          name: p.name,
-        })),
-      },
+      title: land.title,
+      description: land.description,
+      path: land.canonical,
+      // free-text searches and multi-brand filter mixes shouldn't compete with the landings
+      noindex: !!sp.q || !land.indexable,
+      jsonLd: [
+        {
+          '@type': 'CollectionPage',
+          name: land.h1,
+          url: absoluteUrl(land.canonical),
+          mainEntity: {
+            '@type': 'ItemList',
+            numberOfItems: list.length,
+            itemListElement: list.map((p, i) => ({
+              '@type': 'ListItem',
+              position: i + 1,
+              url: absoluteUrl(`/shop/${p.id}`),
+              name: p.name,
+            })),
+          },
+        },
+        breadcrumbLd(
+          land.canonical === '/shop'
+            ? [['Shop', '/shop']]
+            : [['Shop', '/shop'], [land.h1, land.canonical]],
+        ),
+      ],
     })
   },
-  validateSearch: (search: Record<string, unknown>): { q?: string; cat?: string } => ({
+  validateSearch: (search: Record<string, unknown>): ShopSearch => ({
     q: typeof search.q === 'string' ? search.q : undefined,
     cat:
-      typeof search.cat === 'string' && CATEGORIES.some((c) => c.id === search.cat)
+      typeof search.cat === 'string' && CATEGORIES.some((c) => c.id === search.cat && c.id !== 'all')
         ? search.cat
         : undefined,
+    for: search.for === 'dog' || search.for === 'cat' ? search.for : undefined,
+    brand: parseBrands(search.brand)?.join(','),
   }),
   component: ShopPage,
 })
@@ -69,33 +90,40 @@ const RATINGS = [
   { v: 4.5, l: '4.5+' },
 ]
 
-const BRANDS = [...new Set(PRODUCTS.map((p) => p.brand))].sort()
-
+/** local (non-URL) refinements; category, pet and brand live in the URL */
 interface Filters {
   price: PriceBand
   minRating: number
-  brands: string[]
   inStockOnly: boolean
 }
 
-const NO_FILTERS: Filters = { price: 'any', minRating: 0, brands: [], inStockOnly: false }
+const NO_FILTERS: Filters = { price: 'any', minRating: 0, inStockOnly: false }
+
+const PETS: { id: Species | 'all'; label: string }[] = [
+  { id: 'all', label: 'All pets' },
+  { id: 'dog', label: 'Dogs' },
+  { id: 'cat', label: 'Cats' },
+]
 
 function matchesFilters(
   p: (typeof PRODUCTS)[number],
-  category: ProductCategory | 'all',
+  scope: { category: ProductCategory | 'all'; pet?: Species; brands: string[] },
   f: Filters,
 ) {
-  if (category !== 'all' && p.category !== category) return false
+  if (scope.category !== 'all' && p.category !== scope.category) return false
+  if (scope.pet && !p.suits.includes(scope.pet)) return false
+  if (scope.brands.length > 0 && !scope.brands.includes(p.brand)) return false
   if (!PRICE_BANDS.find((b) => b.id === f.price)!.test(p.price)) return false
   if (f.minRating > 0 && p.rating < f.minRating) return false
-  if (f.brands.length > 0 && !f.brands.includes(p.brand)) return false
   if (f.inStockOnly && p.stock === 0) return false
   return true
 }
 
 function ShopPage() {
   const navigate = useNavigate()
-  const { q: urlQ, cat: urlCat } = Route.useSearch()
+  const { q: urlQ, cat: urlCat, for: pet, brand: urlBrand } = Route.useSearch()
+  const brands = useMemo(() => parseBrands(urlBrand) ?? [], [urlBrand])
+  const land = shopLanding({ cat: urlCat, pet, brands })
   // query + category live in the URL so the global header search and footer
   // category links can drive this page directly
   const query = urlQ ?? ''
@@ -108,6 +136,12 @@ function ShopPage() {
       search: (prev) => ({ ...prev, cat: id === 'all' ? undefined : id }),
       replace: true,
     })
+  const setPet = (id: Species | 'all') =>
+    navigate({ to: '/shop', search: (prev) => ({ ...prev, for: id === 'all' ? undefined : id }), replace: true })
+  const toggleBrand = (brand: string) => {
+    const next = brands.includes(brand) ? brands.filter((b) => b !== brand) : [...brands, brand]
+    navigate({ to: '/shop', search: (prev) => ({ ...prev, brand: next.length ? next.join(',') : undefined }), replace: true })
+  }
 
   const [sort, setSort] = useState<SortId>('popular')
   const [filters, setFilters] = useState<Filters>(NO_FILTERS)
@@ -116,8 +150,14 @@ function ShopPage() {
   const activeCount =
     (filters.price !== 'any' ? 1 : 0) +
     (filters.minRating > 0 ? 1 : 0) +
-    filters.brands.length +
+    brands.length +
+    (pet ? 1 : 0) +
     (filters.inStockOnly ? 1 : 0)
+
+  const clearFilters = () => {
+    setFilters(NO_FILTERS)
+    navigate({ to: '/shop', search: (prev) => ({ ...prev, for: undefined, brand: undefined }), replace: true })
+  }
 
   const counts = useMemo(() => {
     const byCat = new Map<string, number>()
@@ -128,8 +168,8 @@ function ShopPage() {
   const results = useMemo(() => {
     const q = query.trim().toLowerCase()
     let list = PRODUCTS.filter((p) => {
-      if (!matchesFilters(p, category, filters)) return false
-      if (q && !`${p.name} ${p.brand} ${p.category}`.toLowerCase().includes(q)) return false
+      if (!matchesFilters(p, { category, pet, brands }, filters)) return false
+      if (q && !`${p.name} ${p.brand} ${p.category} ${optionKeywords(p)}`.toLowerCase().includes(q)) return false
       return true
     })
     if (sort === 'price-asc') list = [...list].sort((a, b) => a.price - b.price)
@@ -141,12 +181,30 @@ function ShopPage() {
   }, [category, query, sort, filters])
 
   // changing this remounts the grid so cards re-stagger — it signals "new results"
-  const resultKey = `${category}|${query}|${sort}|${JSON.stringify(filters)}`
+  const resultKey = `${category}|${pet}|${brands.join()}|${query}|${sort}|${JSON.stringify(filters)}`
 
-  const activeCategory = category === 'all' ? undefined : CATEGORIES.find((c) => c.id === category)
 
   const filterPanel = (
     <div className="stack shop-filter-panel">
+      <fieldset className="plain-fieldset">
+        <legend className="tag">Pet</legend>
+        <div className="segmented" role="radiogroup" aria-label="Pet">
+          {PETS.map((o) => (
+            <button
+              key={o.id}
+              type="button"
+              role="radio"
+              aria-checked={(pet ?? 'all') === o.id}
+              aria-pressed={(pet ?? 'all') === o.id}
+              onClick={() => setPet(o.id)}
+            >
+              {o.id !== 'all' && <PetGlyph species={o.id} size={14} />}
+              {o.label}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+
       <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
         <legend className="tag" style={{ marginBottom: 'var(--space-2xs)' }}>Category</legend>
         <div role="radiogroup" aria-label="Category">
@@ -211,15 +269,8 @@ function ShopPage() {
               key={brand}
               type="button"
               className="chip"
-              aria-pressed={filters.brands.includes(brand)}
-              onClick={() =>
-                setFilters((f) => ({
-                  ...f,
-                  brands: f.brands.includes(brand)
-                    ? f.brands.filter((b) => b !== brand)
-                    : [...f.brands, brand],
-                }))
-              }
+              aria-pressed={brands.includes(brand)}
+              onClick={() => toggleBrand(brand)}
             >
               {brand}
             </button>
@@ -247,7 +298,7 @@ function ShopPage() {
           type="button"
           className="btn btn--quiet btn--sm"
           style={{ justifySelf: 'start' }}
-          onClick={() => setFilters(NO_FILTERS)}
+          onClick={clearFilters}
         >
           Clear {activeCount} filter{activeCount === 1 ? '' : 's'}
         </button>
@@ -259,12 +310,8 @@ function ShopPage() {
     <div className="page">
       <header className="rise" style={{ '--i': 0 } as React.CSSProperties}>
         <p className="tag">Shop</p>
-        <h1 className="shop-title">{activeCategory ? activeCategory.label : 'Pet supplies'}</h1>
-        <p className="muted" style={{ fontSize: 'var(--text-sm)', marginTop: 2 }}>
-          {activeCategory
-            ? `${counts.get(category) ?? 0} ${activeCategory.label.toLowerCase()} essentials — delivered.`
-            : 'Food, treats and daily care — delivered.'}
-        </p>
+        <h1 className="shop-title">{land.h1}</h1>
+        <p className="shop-intro">{land.intro}</p>
       </header>
 
       <ul className="value-strip rise" style={{ '--i': 1 } as React.CSSProperties} aria-label="Shop policies">
@@ -322,7 +369,16 @@ function ShopPage() {
                         params={{ id: p.id }}
                         onClose={close}
                         title={p.name}
-                        meta={`${p.brand} · ${money(p.price)} · ${p.unit}`}
+                        meta={(() => {
+                          const hit = variantForQuery(p, query)
+                          return hit
+                            ? `${variantLabel(p, hit)} · ${money(hit.price)}`
+                            : `${p.brand} · ${money(p.price)} · ${p.unit}`
+                        })()}
+                        search={(() => {
+                          const hit = variantForQuery(p, query)
+                          return hit ? { v: hit.id } : undefined
+                        })()}
                         tile={
                           <span className={`tile ${tileClass(p.category)}`} style={{ width: '2.5rem', height: '2.5rem' }}>
                             <CategoryIcon category={p.category} size={16} />
@@ -380,7 +436,7 @@ function ShopPage() {
           {results.length > 0 ? (
             <div className="grid-products" key={resultKey}>
               {results.map((p, i) => (
-                <ProductCard key={p.id} id={p.id} i={i} />
+                <ProductCard key={p.id} id={p.id} i={i} variantId={query ? variantForQuery(p, query)?.id : undefined} />
               ))}
             </div>
           ) : (
@@ -389,9 +445,8 @@ function ShopPage() {
               text="Try a shorter word, or clear a filter or two."
               actionLabel="Clear everything"
               onClick={() => {
-                setQuery('')
-                setCategory('all')
                 setFilters(NO_FILTERS)
+                navigate({ to: '/shop', search: {}, replace: true })
               }}
             />
           )}

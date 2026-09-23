@@ -36,7 +36,7 @@ function SavedPage() {
             className="btn btn--ghost btn--sm"
             onClick={() => {
               inStock.forEach((id) => addToCart(id))
-              pushToast(`${inStock.length} saved items added to cart`)
+              pushToast(`${inStock.length} saved items added — default sizes, change them in the cart`)
             }}
           >
             Add all to cart

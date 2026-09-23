@@ -3,6 +3,7 @@ import { Compass, RotateCcw } from 'lucide-react'
 
 import { AppFrame } from '../components/nav'
 import { SITE, absoluteUrl, seo } from '../lib/seo'
+import { SUPPORT } from '../lib/data'
 
 import appCss from '../styles.css?url'
 
@@ -15,7 +16,14 @@ export const Route = createRootRoute({
           '@type': 'Organization',
           name: SITE.name,
           url: SITE.url,
-          logo: absoluteUrl('/favicon.svg'),
+          logo: absoluteUrl('/icon-512.png'),
+          contactPoint: {
+            '@type': 'ContactPoint',
+            contactType: 'customer support',
+            email: SUPPORT.email,
+            telephone: SUPPORT.phone,
+            availableLanguage: 'English',
+          },
         },
         {
           '@type': 'WebSite',

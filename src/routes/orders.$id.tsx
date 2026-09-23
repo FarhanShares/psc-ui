@@ -116,9 +116,10 @@ function OrderPage() {
               if (!p) return null
               return (
                 <Link
-                  key={item.productId}
+                  key={`${item.productId}-${item.variantId ?? ''}`}
                   to="/shop/$id"
                   params={{ id: p.id }}
+                  search={item.variantId ? { v: item.variantId } : {}}
                   className="row line-item"
                 >
                   <span className={`tile ${tileClass(p.category)}`} style={{ width: '2.75rem', height: '2.75rem' }}>
@@ -126,8 +127,9 @@ function OrderPage() {
                   </span>
                   <span className="row__grow">
                     <span className="row__title">{p.name}</span>
+                    {item.variantLabel && <span className="row__sub line-item__variant">{item.variantLabel}</span>}
                     <span className="row__sub num">
-                      {p.unit} · {money(item.priceAtPurchase)} × {item.qty}
+                      {money(item.priceAtPurchase)} × {item.qty}
                     </span>
                   </span>
                   <span className="price">{money(item.priceAtPurchase * item.qty)}</span>
@@ -180,7 +182,7 @@ function OrderPage() {
                 className="btn btn--ghost"
                 onClick={() => {
                   setReturned(false)
-                  setReturnPicks(order.items.map((i) => i.productId))
+                  setReturnPicks(order.items.map((i) => `${i.productId}::${i.variantId ?? ''}`))
                   setReturnOpen(true)
                 }}
               >
@@ -231,18 +233,22 @@ function OrderPage() {
                 {order.items.map((item) => {
                   const p = getProduct(item.productId)
                   if (!p) return null
-                  const on = returnPicks.includes(p.id)
+                  const key = `${p.id}::${item.variantId ?? ''}`
+                  const on = returnPicks.includes(key)
                   return (
-                    <label key={p.id} className={`option-row${on ? ' is-selected' : ''}`}>
+                    <label key={key} className={`option-row${on ? ' is-selected' : ''}`}>
                       <input
                         type="checkbox"
                         className="check"
                         checked={on}
                         onChange={() =>
-                          setReturnPicks((ps) => (on ? ps.filter((x) => x !== p.id) : [...ps, p.id]))
+                          setReturnPicks((ps) => (on ? ps.filter((x) => x !== key) : [...ps, key]))
                         }
                       />
-                      <span className="option-row__label">{p.name}</span>
+                      <span className="option-row__label">
+                        {p.name}
+                        {item.variantLabel && <span className="row__sub" style={{ display: 'block' }}>{item.variantLabel}</span>}
+                      </span>
                       <span className="option-row__hint num">×{item.qty}</span>
                     </label>
                   )

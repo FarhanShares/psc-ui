@@ -10,8 +10,8 @@ import {
   SEED_PROFILE,
   PETS,
   VACCINES,
-  getProduct,
 } from './data'
+import { findVariant, variantLabel } from './catalog'
 import type {
   Address,
   Booking,
@@ -177,31 +177,63 @@ export function pushToast(message: string, opts?: { actionLabel?: string; onActi
 
 /* ----------------------------------------------------------------- cart */
 
-export function addToCart(productId: string, qty = 1) {
-  const existing = state.cart.find((i) => i.productId === productId)
+/**
+ * Cart lines are keyed by product + variant: 2 kg and 12 kg of the same food
+ * are separate lines. Single-SKU products store no variantId. Lines saved
+ * before variants existed resolve to the product's default variant.
+ */
+function normalizeVariant(productId: string, variantId?: string): string | undefined {
+  const found = findVariant(productId, variantId)
+  if (!found || !found.product.variants?.length) return undefined
+  return found.variant.id
+}
+
+const sameLine = (i: CartItem, productId: string, variantId?: string) =>
+  i.productId === productId && normalizeVariant(i.productId, i.variantId) === variantId
+
+export function addToCart(productId: string, qty = 1, variantId?: string) {
+  const vid = normalizeVariant(productId, variantId)
+  const existing = state.cart.find((i) => sameLine(i, productId, vid))
   const cart = existing
-    ? state.cart.map((i) =>
-        i.productId === productId ? { ...i, qty: Math.min(i.qty + qty, 99) } : i,
-      )
-    : [...state.cart, { productId, qty }]
+    ? state.cart.map((i) => (i === existing ? { ...i, variantId: vid, qty: Math.min(i.qty + qty, 99) } : i))
+    : [...state.cart, { productId, variantId: vid, qty }]
   setState({ cart })
 }
 
-export function setCartQty(productId: string, qty: number) {
+export function setCartQty(productId: string, qty: number, variantId?: string) {
+  const vid = normalizeVariant(productId, variantId)
   if (qty <= 0) {
-    removeFromCart(productId)
+    removeFromCart(productId, vid)
     return
   }
   setState({
-    cart: state.cart.map((i) => (i.productId === productId ? { ...i, qty } : i)),
+    cart: state.cart.map((i) => (sameLine(i, productId, vid) ? { ...i, qty: Math.min(qty, 99) } : i)),
   })
 }
 
-export function removeFromCart(productId: string) {
-  const item = state.cart.find((i) => i.productId === productId)
-  const name = item ? getProduct(productId)?.name ?? 'Item' : 'Item'
+/** swap a cart line to another variant (e.g. 2 kg → 6 kg), merging if that line exists */
+export function changeCartVariant(productId: string, fromVariantId: string | undefined, toVariantId: string) {
+  const from = normalizeVariant(productId, fromVariantId)
+  const to = normalizeVariant(productId, toVariantId)
+  if (from === to) return
+  const line = state.cart.find((i) => sameLine(i, productId, from))
+  if (!line) return
+  const rest = state.cart.filter((i) => i !== line)
+  const target = rest.find((i) => sameLine(i, productId, to))
+  setState({
+    cart: target
+      ? rest.map((i) => (i === target ? { ...i, qty: Math.min(i.qty + line.qty, 99) } : i))
+      : state.cart.map((i) => (i === line ? { ...i, variantId: to } : i)),
+  })
+}
+
+export function removeFromCart(productId: string, variantId?: string) {
+  const vid = normalizeVariant(productId, variantId)
+  const found = findVariant(productId, vid)
+  const label = found ? variantLabel(found.product, found.variant) : ''
+  const name = found ? `${found.product.name}${label ? ` (${label})` : ''}` : 'Item'
   const prev = state.cart
-  setState({ cart: state.cart.filter((i) => i.productId !== productId) })
+  setState({ cart: state.cart.filter((i) => !sameLine(i, productId, vid)) })
   pushToast(`${name} removed`, {
     actionLabel: 'Undo',
     onAction: () => {
@@ -215,11 +247,13 @@ export function cartCount(cart: CartItem[]): number {
   return cart.reduce((n, i) => n + i.qty, 0)
 }
 
+/** the price a cart line is charged at — the chosen variant's */
+export function linePrice(item: CartItem): number {
+  return findVariant(item.productId, item.variantId)?.variant.price ?? 0
+}
+
 export function cartTotals(cart: CartItem[]) {
-  const subtotal = cart.reduce((sum, i) => {
-    const p = getProduct(i.productId)
-    return sum + (p ? p.price * i.qty : 0)
-  }, 0)
+  const subtotal = cart.reduce((sum, i) => sum + linePrice(i) * i.qty, 0)
   const delivery =
     subtotal === 0 || subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE
   return { subtotal, delivery, total: subtotal + delivery }
@@ -232,11 +266,17 @@ export function placeOrder(addressLine: string): Order {
   const order: Order = {
     id: `PS-${1043 + state.orders.length}`,
     placedAtDaysAgo: 0,
-    items: state.cart.map((i) => ({
-      productId: i.productId,
-      qty: i.qty,
-      priceAtPurchase: getProduct(i.productId)?.price ?? 0,
-    })),
+    items: state.cart.map((i) => {
+      const found = findVariant(i.productId, i.variantId)
+      const label = found ? variantLabel(found.product, found.variant) : ''
+      return {
+        productId: i.productId,
+        variantId: found?.product.variants?.length ? found.variant.id : undefined,
+        variantLabel: label || undefined,
+        qty: i.qty,
+        priceAtPurchase: found?.variant.price ?? 0,
+      }
+    }),
     subtotal,
     delivery,
     total,
@@ -253,9 +293,9 @@ export function reorder(orderId: string): number {
   if (!order) return 0
   let added = 0
   for (const item of order.items) {
-    const p = getProduct(item.productId)
-    if (!p || p.stock === 0) continue
-    addToCart(item.productId, item.qty)
+    const found = findVariant(item.productId, item.variantId)
+    if (!found || found.variant.stock === 0) continue
+    addToCart(item.productId, item.qty, found.variant.id)
     added++
   }
   return added

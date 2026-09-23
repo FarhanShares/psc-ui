@@ -206,16 +206,18 @@ export function ResultRow({
   title,
   meta,
   onClose,
+  search,
 }: {
   to: '/shop/$id' | '/clinics/$id'
   params: { id: string }
+  search?: Record<string, string>
   tile: React.ReactNode
   title: string
   meta: string
   onClose: () => void
 }) {
   return (
-    <Link to={to} params={params} onClick={onClose} className="card card--press row">
+    <Link to={to} params={params} search={search as never} onClick={onClose} className="card card--press row">
       {tile}
       <span className="row__grow" style={{ minWidth: 0 }}>
         <span className="row__title">{title}</span>

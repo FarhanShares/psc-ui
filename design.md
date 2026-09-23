@@ -147,3 +147,30 @@ Auth screens render without shop chrome (`BARE_ROUTES` in `nav.tsx`).
   icon toolbar; phones keep the one-row icon toolbar.
 - Product page: media left, title/price/buy right, above the fold. The phone buy
   bar appears only after the inline buy row scrolls away.
+
+## Product variants
+- Model: `Product.axes` (size / flavour / lifeStage / petWeight) + `Product.variants`
+  (one row per combination that exists, each with price, stock, unit, optional
+  `compareAt` and `netQty`). Summary fields on the product (`price` = lowest,
+  `stock` = total) keep lists, filters and sorting working. Helpers live in
+  `src/lib/catalog.ts` — never branch on "has variants" in UI code.
+- Cart and order lines carry `variantId`; orders freeze `variantLabel` and the
+  variant price at purchase. Old lines without an id resolve to the default.
+- Product page: the chosen variant is in the URL (`?v=`) — server-rendered,
+  shareable, back-button safe. Canonical stays `/shop/$id`.
+- Picker: one wrapping row of option buttons per axis; size-like axes show each
+  option's price; sold-out options are dashed + struck but selectable (with
+  "Notify me"); options missing from the current combination are muted but still
+  jump to the nearest real combination — never a dead end.
+- Show per-kg / per-L price and was-price (with "Save $x") where data allows.
+- Cards: "from $x" + option summary; the button reads "Choose" and opens a quick
+  add dialog. Search matches option labels (kitten, chicken, XL) and deep-links
+  to the matching variant. Pet pages pick the option that fits the pet.
+- JSON-LD: ProductGroup + hasVariant (each with Offer, shipping, returns).
+
+## Shop landings (SEO)
+- `cat`, `for` (dog|cat) and `brand` are URL params; `src/lib/shop-landing.ts`
+  builds h1, title, description, intro and canonical from them ("Cat food",
+  "Tideline cat supplies"). Single-brand landings are indexable; multi-brand
+  mixes and free-text `q` are noindex. The sitemap lists category × pet only
+  where products exist (no thin pages).

@@ -1,4 +1,7 @@
 import type {
+  AxisId,
+  ProductVariant,
+  VariantAxis,
   Booking,
   Faq,
   Review,
@@ -28,7 +31,7 @@ export const SERVICE_TYPES = [
   { id: 'checkup', label: 'Checkup' },
 ] as const
 
-export const PRODUCTS: Product[] = [
+const BASE_PRODUCTS: Product[] = [
   {
     id: 'p01',
     name: 'Harvest Bowl Adult Dog Food',
@@ -211,7 +214,221 @@ export const PRODUCTS: Product[] = [
       'Seaweed-derived powder sprinkled on food to reduce plaque over time. Odourless, tasteless, vet-formulated.',
     suits: ['dog', 'cat'],
   },
+  {
+    id: 'p14',
+    name: 'Purrfect Pâté Wet Cat Food',
+    brand: 'Tideline',
+    category: 'food',
+    price: 7.2,
+    unit: '6 × 85 g',
+    rating: 4.7,
+    reviews: 188,
+    stock: 60,
+    blurb:
+      'Smooth pâté with real fish or poultry first and added water for hydration. Grain-free, no carrageenan, easy-peel trays.',
+    suits: ['cat'],
+  },
+  {
+    id: 'p15',
+    name: 'Chicken Crunch Dental Sticks',
+    brand: 'Barkery',
+    category: 'treats',
+    price: 6.5,
+    unit: '7 sticks',
+    rating: 4.6,
+    reviews: 142,
+    stock: 40,
+    blurb:
+      'Ridged daily dental chews that scrub as they bend. Pick the size by your dog’s weight so the stick is chewed, not gulped.',
+    suits: ['dog'],
+  },
+  {
+    id: 'p16',
+    name: 'Catnip Kicker Fish',
+    brand: 'Tideline',
+    category: 'toys',
+    price: 6.95,
+    unit: '28 cm',
+    rating: 4.5,
+    reviews: 96,
+    stock: 34,
+    blurb:
+      'A long canvas fish stuffed with organic catnip, sized for hugging and bunny-kicking. Zip pocket lets you refresh the nip.',
+    suits: ['cat'],
+  },
 ]
+
+/* ------------------------------------------------------------ variants */
+
+type Row = [options: Partial<Record<AxisId, string>>, price: number, stock: number, unit: string, extra?: Partial<ProductVariant>]
+
+const kg = (amount: number) => ({ netQty: { amount, per: 'kg' as const } })
+const L = (amount: number) => ({ netQty: { amount, per: 'L' as const } })
+
+function variantSet(pid: string, axes: VariantAxis[], rows: Row[]) {
+  return {
+    axes,
+    variants: rows.map(([options, price, stock, unit, extra]) => ({
+      id: `${pid}-${axes.map((a) => options[a.id]).join('-')}`,
+      options,
+      price,
+      stock,
+      unit,
+      ...extra,
+    })),
+  }
+}
+
+const SIZE = (...o: [string, string][]): VariantAxis => ({ id: 'size', label: 'Size', options: o.map(([id, label]) => ({ id, label })) })
+const FLAVOUR = (...o: [string, string][]): VariantAxis => ({ id: 'flavour', label: 'Flavour', options: o.map(([id, label]) => ({ id, label })) })
+
+/**
+ * Option matrices per product. Every other product is a single SKU. Rows list
+ * the combinations that exist — a missing combination is simply unavailable.
+ */
+const VARIANTS: Record<string, ReturnType<typeof variantSet>> = {
+  p01: variantSet(
+    'p01',
+    [FLAVOUR(['chicken', 'Chicken & rice'], ['lamb', 'Lamb & rice']), SIZE(['2kg', '2 kg'], ['6kg', '6 kg'], ['12kg', '12 kg'])],
+    [
+      [{ flavour: 'chicken', size: '2kg' }, 14.5, 30, '2 kg bag', kg(2)],
+      [{ flavour: 'chicken', size: '6kg' }, 32.0, 22, '6 kg bag', kg(6)],
+      [{ flavour: 'chicken', size: '12kg' }, 54.0, 18, '12 kg bag', { ...kg(12), compareAt: 59.0 }],
+      [{ flavour: 'lamb', size: '2kg' }, 16.0, 12, '2 kg bag', kg(2)],
+      [{ flavour: 'lamb', size: '6kg' }, 35.5, 4, '6 kg bag', kg(6)],
+      [{ flavour: 'lamb', size: '12kg' }, 59.5, 0, '12 kg bag', kg(12)],
+    ],
+  ),
+  p02: variantSet(
+    'p02',
+    [
+      { id: 'lifeStage', label: 'Life stage', options: [{ id: 'kitten', label: 'Kitten' }, { id: 'adult', label: 'Adult' }, { id: 'senior', label: 'Senior 7+' }] },
+      SIZE(['1kg', '1 kg'], ['3kg', '3 kg']),
+    ],
+    [
+      [{ lifeStage: 'kitten', size: '1kg' }, 10.5, 26, '1 kg bag', kg(1)],
+      [{ lifeStage: 'kitten', size: '3kg' }, 25.9, 14, '3 kg bag', kg(3)],
+      [{ lifeStage: 'adult', size: '1kg' }, 9.25, 40, '1 kg bag', kg(1)],
+      [{ lifeStage: 'adult', size: '3kg' }, 23.5, 32, '3 kg bag', kg(3)],
+      [{ lifeStage: 'senior', size: '1kg' }, 10.25, 3, '1 kg bag', kg(1)],
+      [{ lifeStage: 'senior', size: '3kg' }, 24.9, 0, '3 kg bag', kg(3)],
+    ],
+  ),
+  p03: variantSet(
+    'p03',
+    [SIZE(['2kg', '2 kg'], ['5kg', '5 kg'])],
+    [
+      [{ size: '2kg' }, 18.75, 25, '2 kg bag', kg(2)],
+      [{ size: '5kg' }, 39.0, 11, '5 kg bag', kg(5)],
+    ],
+  ),
+  p04: variantSet(
+    'p04',
+    [FLAVOUR(['salmon', 'Salmon'], ['chicken', 'Chicken'], ['duck', 'Duck']), SIZE(['120g', '120 g'], ['300g', '300 g'])],
+    [
+      [{ flavour: 'salmon', size: '120g' }, 8.25, 54, '120 g pouch'],
+      [{ flavour: 'salmon', size: '300g' }, 17.5, 20, '300 g pouch'],
+      [{ flavour: 'chicken', size: '120g' }, 7.75, 36, '120 g pouch'],
+      [{ flavour: 'chicken', size: '300g' }, 16.5, 18, '300 g pouch'],
+      [{ flavour: 'duck', size: '120g' }, 8.75, 0, '120 g pouch'],
+    ],
+  ),
+  p06: variantSet(
+    'p06',
+    [SIZE(['250ml', '250 ml'], ['500ml', '500 ml'], ['1l', '1 L'])],
+    [
+      [{ size: '250ml' }, 7.4, 30, '250 ml', L(0.25)],
+      [{ size: '500ml' }, 12.4, 22, '500 ml', L(0.5)],
+      [{ size: '1l' }, 21.0, 9, '1 L', L(1)],
+    ],
+  ),
+  p07: variantSet(
+    'p07',
+    [SIZE(['s', 'S'], ['m', 'M'], ['l', 'L'], ['xl', 'XL'])],
+    [
+      [{ size: 's' }, 9.8, 12, 'Small · palm under 8 cm'],
+      [{ size: 'm' }, 9.8, 15, 'Medium · palm 8–9 cm'],
+      [{ size: 'l' }, 9.8, 10, 'Large · palm 9–10 cm'],
+      [{ size: 'xl' }, 10.8, 2, 'Extra large · palm over 10 cm'],
+    ],
+  ),
+  p10: variantSet(
+    'p10',
+    [SIZE(['m', 'M'], ['l', 'L'], ['xl', 'XL'])],
+    [
+      [{ size: 'm' }, 6.4, 0, '14 cm'],
+      [{ size: 'l' }, 7.9, 0, '18 cm'],
+      [{ size: 'xl' }, 9.4, 0, '23 cm'],
+    ],
+  ),
+  p11: variantSet(
+    'p11',
+    [
+      { id: 'petWeight', label: 'Dog weight', options: [{ id: '10-20', label: '10–20 kg' }, { id: '20-40', label: '20–40 kg' }, { id: '40plus', label: '40+ kg' }] },
+      SIZE(['1m', '1 month'], ['3m', '3 months']),
+    ],
+    [
+      [{ petWeight: '10-20', size: '1m' }, 8.5, 20, '1 pipette'],
+      [{ petWeight: '10-20', size: '3m' }, 21.0, 16, '3 pipettes', { compareAt: 25.5 }],
+      [{ petWeight: '20-40', size: '1m' }, 9.5, 18, '1 pipette'],
+      [{ petWeight: '20-40', size: '3m' }, 24.0, 12, '3 pipettes', { compareAt: 28.5 }],
+      [{ petWeight: '40plus', size: '1m' }, 10.5, 6, '1 pipette'],
+      [{ petWeight: '40plus', size: '3m' }, 27.0, 0, '3 pipettes'],
+    ],
+  ),
+  p14: variantSet(
+    'p14',
+    [FLAVOUR(['tuna', 'Tuna & pumpkin'], ['chicken', 'Chicken'], ['turkey', 'Turkey & rabbit']), SIZE(['6', '6 × 85 g'], ['12', '12 × 85 g'], ['24', '24 × 85 g'])],
+    [
+      [{ flavour: 'tuna', size: '6' }, 7.2, 30, '6 × 85 g trays', kg(0.51)],
+      [{ flavour: 'tuna', size: '12' }, 13.5, 22, '12 × 85 g trays', kg(1.02)],
+      [{ flavour: 'tuna', size: '24' }, 25.0, 10, '24 × 85 g trays', { ...kg(2.04), compareAt: 28.8 }],
+      [{ flavour: 'chicken', size: '6' }, 6.9, 28, '6 × 85 g trays', kg(0.51)],
+      [{ flavour: 'chicken', size: '12' }, 12.9, 18, '12 × 85 g trays', kg(1.02)],
+      [{ flavour: 'chicken', size: '24' }, 23.9, 0, '24 × 85 g trays', kg(2.04)],
+      [{ flavour: 'turkey', size: '6' }, 7.6, 12, '6 × 85 g trays', kg(0.51)],
+      [{ flavour: 'turkey', size: '12' }, 14.2, 6, '12 × 85 g trays', kg(1.02)],
+    ],
+  ),
+  p15: variantSet(
+    'p15',
+    [SIZE(['xs', 'XS'], ['s', 'S'], ['m', 'M'], ['l', 'L'], ['xl', 'XL'])],
+    [
+      [{ size: 'xs' }, 5.5, 14, '7 sticks · dogs 2–5 kg'],
+      [{ size: 's' }, 6.5, 20, '7 sticks · dogs 5–10 kg'],
+      [{ size: 'm' }, 7.5, 25, '7 sticks · dogs 10–25 kg'],
+      [{ size: 'l' }, 8.5, 12, '7 sticks · dogs 25–40 kg'],
+      [{ size: 'xl' }, 9.5, 4, '7 sticks · dogs over 40 kg'],
+    ],
+  ),
+  p12: variantSet(
+    'p12',
+    [SIZE(['90', '90 chews'], ['180', '180 chews'])],
+    [
+      [{ size: '90' }, 17.6, 20, '90 chews'],
+      [{ size: '180' }, 31.5, 8, '180 chews', { compareAt: 35.2 }],
+    ],
+  ),
+}
+
+/**
+ * Products with variants carry summary fields so lists, filters and sorting
+ * keep working: `price` = lowest price, `stock` = total, `unit` = default's.
+ */
+export const PRODUCTS: Product[] = BASE_PRODUCTS.map((p) => {
+  const v = VARIANTS[p.id]
+  if (!v) return p
+  const inStock = v.variants.filter((x) => x.stock > 0)
+  const def = inStock[0] ?? v.variants[0]
+  return {
+    ...p,
+    axes: v.axes,
+    variants: v.variants,
+    price: Math.min(...v.variants.map((x) => x.price)),
+    stock: v.variants.reduce((n, x) => n + x.stock, 0),
+    unit: def.unit,
+  }
+})
 
 export const CLINICS: Clinic[] = [
   {
@@ -445,9 +662,9 @@ export const SEED_ORDERS: Order[] = [
     id: 'PS-1042',
     placedAtDaysAgo: 2,
     items: [
-      { productId: 'p04', qty: 2, priceAtPurchase: 8.25 },
-      { productId: 'p11', qty: 1, priceAtPurchase: 21.0 },
-      { productId: 'p06', qty: 1, priceAtPurchase: 12.4 },
+      { productId: 'p04', variantId: 'p04-salmon-120g', variantLabel: 'Salmon · 120 g', qty: 2, priceAtPurchase: 8.25 },
+      { productId: 'p11', variantId: 'p11-10-20-3m', variantLabel: '10–20 kg · 3 months', qty: 1, priceAtPurchase: 21.0 },
+      { productId: 'p06', variantId: 'p06-500ml', variantLabel: '500 ml', qty: 1, priceAtPurchase: 12.4 },
     ],
     subtotal: 49.9,
     delivery: 0,
@@ -459,7 +676,7 @@ export const SEED_ORDERS: Order[] = [
     id: 'PS-0997',
     placedAtDaysAgo: 16,
     items: [
-      { productId: 'p01', qty: 1, priceAtPurchase: 54.0 },
+      { productId: 'p01', variantId: 'p01-chicken-12kg', variantLabel: 'Chicken & rice · 12 kg', qty: 1, priceAtPurchase: 54.0 },
       { productId: 'p09', qty: 1, priceAtPurchase: 5.95 },
     ],
     subtotal: 59.95,

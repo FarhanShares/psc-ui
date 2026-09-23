@@ -15,6 +15,31 @@ export interface Product {
   blurb: string
   /** which species the product suits — drives per-pet recommendations */
   suits: Species[]
+  /** option axes (size, flavour, life stage…) — absent for single-SKU products */
+  axes?: VariantAxis[]
+  /** purchasable combinations of the axes; `price`/`stock`/`unit` above summarise them */
+  variants?: ProductVariant[]
+}
+
+export type AxisId = 'size' | 'flavour' | 'lifeStage' | 'petWeight'
+
+export interface VariantAxis {
+  id: AxisId
+  label: string
+  options: { id: string; label: string }[]
+}
+
+export interface ProductVariant {
+  id: string
+  /** axis id → option id */
+  options: Partial<Record<AxisId, string>>
+  price: number
+  /** was-price, shown struck through when higher than `price` */
+  compareAt?: number
+  stock: number
+  unit: string
+  /** net weight in kg or volume in litres — enables a per-kg / per-L price */
+  netQty?: { amount: number; per: 'kg' | 'L' }
 }
 
 export type ServiceType =
@@ -80,6 +105,8 @@ export interface VaccineRecord {
 
 export interface CartItem {
   productId: string
+  /** absent on single-SKU products (and on carts saved before variants existed) */
+  variantId?: string
   qty: number
 }
 
@@ -87,6 +114,9 @@ export type OrderStatus = 'placed' | 'transit' | 'delivered'
 
 export interface OrderItem {
   productId: string
+  variantId?: string
+  /** human label frozen at purchase, e.g. "Chicken & rice · 6 kg" */
+  variantLabel?: string
   qty: number
   priceAtPurchase: number
 }

@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { CATEGORIES, CLINICS, PRODUCTS } from '../lib/data'
+import { CATEGORIES, CLINICS, PRODUCTS, SERVICE_TYPES } from '../lib/data'
+import { BRANDS } from '../lib/shop-landing'
 import { absoluteUrl } from '../lib/seo'
 
 /** public, indexable URLs only — account pages are noindex and left out */
@@ -15,7 +16,18 @@ function urls(): Array<{ loc: string; priority: string; changefreq: string }> {
     { loc: '/privacy', priority: '0.2', changefreq: 'yearly' },
     { loc: '/terms', priority: '0.2', changefreq: 'yearly' },
   ]
-  for (const c of CATEGORIES) if (c.id !== 'all') out.push({ loc: `/shop?cat=${c.id}`, priority: '0.8', changefreq: 'weekly' })
+  const cats = CATEGORIES.filter((c) => c.id !== 'all')
+  for (const c of cats) out.push({ loc: `/shop?cat=${c.id}`, priority: '0.8', changefreq: 'weekly' })
+  // pet landings, and category × pet only where products exist (no thin pages)
+  for (const pet of ['dog', 'cat'] as const) {
+    out.push({ loc: `/shop?for=${pet}`, priority: '0.8', changefreq: 'weekly' })
+    for (const c of cats) {
+      if (PRODUCTS.some((p) => p.category === c.id && p.suits.includes(pet)))
+        out.push({ loc: `/shop?cat=${c.id}&for=${pet}`, priority: '0.7', changefreq: 'weekly' })
+    }
+  }
+  for (const b of BRANDS) out.push({ loc: `/shop?brand=${encodeURIComponent(b)}`, priority: '0.6', changefreq: 'weekly' })
+  for (const s of SERVICE_TYPES) out.push({ loc: `/clinics?service=${s.id}`, priority: '0.7', changefreq: 'weekly' })
   for (const p of PRODUCTS) out.push({ loc: `/shop/${p.id}`, priority: '0.7', changefreq: 'weekly' })
   for (const c of CLINICS) out.push({ loc: `/clinics/${c.id}`, priority: '0.7', changefreq: 'weekly' })
   return out

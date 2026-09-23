@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { BadgeCheck, Check, ChevronRight, Clock, MapPin, Syringe, Truck } from 'lucide-react'
 
@@ -6,14 +7,23 @@ import { getProduct, getService, getClinic } from '../lib/data'
 import { addToCart, useAppState } from '../lib/store'
 import type { Booking, Order, VaccineRecord } from '../lib/types'
 import { SaveButton } from './blocks'
+import { QuickAddSheet } from './variant-picker'
+import { defaultVariant, hasOptions, optionSummary, priceRange, variantLabel, variantsOf } from '../lib/catalog'
 import { CategoryIcon, OrderStatusLabel, PetGlyph, Pill, Price, ServiceIcon, Stars, tileClass, useCopiedLabel } from './ui'
 
 /* ------------------------------------------------------------ product card */
 
-export function ProductCard({ id, i = 0 }: { id: string; i?: number }) {
+export function ProductCard({ id, i = 0, variantId }: { id: string; i?: number; /** a matched option (e.g. from search) to show and link to */ variantId?: string }) {
   const product = getProduct(id)
   const [added, markAdded] = useCopiedLabel(1400)
+  const [chooseOpen, setChooseOpen] = useState(false)
   if (!product) return null
+
+  const options = hasOptions(product)
+  const { min, max } = priceRange(product)
+  const def = defaultVariant(product)
+  const matched = variantId ? variantsOf(product).find((v) => v.id === variantId) : undefined
+  const onSale = variantsOf(product).some((v) => v.compareAt && v.compareAt > v.price)
 
   return (
     <article
@@ -23,21 +33,29 @@ export function ProductCard({ id, i = 0 }: { id: string; i?: number }) {
       <Link
         to="/shop/$id"
         params={{ id: product.id }}
+        search={matched ? { v: matched.id } : {}}
         className="product-card__link"
-        aria-label={`${product.name}, ${money(product.price)}`}
+        aria-label={`${product.name}, ${min !== max ? 'from ' : ''}${money(min)}`}
       >
         <span className={`tile tile--card ${tileClass(product.category)}`}>
           <CategoryIcon category={product.category} size={34} />
-          {product.stock === 0 && <span className="product-card__flag">Out of stock</span>}
+          {product.stock === 0 ? (
+            <span className="product-card__flag">Out of stock</span>
+          ) : onSale ? (
+            <span className="product-card__flag product-card__flag--sale">Offer</span>
+          ) : null}
         </span>
         <span className="product-card__body">
           <span className="tag">{product.brand}</span>
           <span className="product-card__name">{product.name}</span>
           <span className="row__sub num" style={{ marginTop: 'calc(-1 * var(--space-3xs))' }}>
-            {product.unit}
+            {matched ? variantLabel(product, matched) : options ? optionSummary(product) : product.unit}
           </span>
           <span className="product-card__foot">
-            <Price value={product.price} />
+            <span className="product-card__price">
+              {!matched && min !== max && <span className="product-card__from">from</span>}
+              <Price value={matched ? matched.price : min} />
+            </span>
             <Stars rating={product.rating} />
           </span>
         </span>
@@ -48,20 +66,28 @@ export function ProductCard({ id, i = 0 }: { id: string; i?: number }) {
         className="btn btn--ghost btn--sm product-card__add"
         onClick={() => {
           if (product.stock === 0) return
-          addToCart(product.id)
+          if (options) {
+            setChooseOpen(true)
+            return
+          }
+          addToCart(product.id, 1, def.id)
           markAdded()
         }}
         disabled={product.stock === 0}
-        aria-label={`Add ${product.name} to cart`}
+        aria-label={options ? `Choose options for ${product.name}` : `Add ${product.name} to cart`}
+        aria-haspopup={options ? 'dialog' : undefined}
       >
         {added ? (
           <>
             <Check size={14} strokeWidth={2.25} /> Added
           </>
+        ) : options ? (
+          'Choose'
         ) : (
           'Add'
         )}
       </button>
+      {chooseOpen && <QuickAddSheet product={product} open onClose={() => setChooseOpen(false)} />}
     </article>
   )
 }
@@ -142,7 +168,7 @@ export function OrderCard({ order }: { order: Order }) {
           const p = getProduct(item.productId)
           if (!p) return null
           return (
-            <span key={item.productId} className={`tile ${tileClass(p.category)}`}>
+            <span key={`${item.productId}-${item.variantId ?? ""}`} className={`tile ${tileClass(p.category)}`}>
               <CategoryIcon category={p.category} size={16} />
             </span>
           )
