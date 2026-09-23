@@ -116,7 +116,8 @@ Public, indexable: `/`, `/shop` (+ `?cat=`), `/shop/$id`, `/clinics` (+ `?servic
 `/about`, `/privacy`, `/terms`, `/login`, `/signup`. Unknown product/clinic/guide ids
 throw `notFound()` in `beforeLoad` → real 404 status, never a soft 200.
 Account, `noindex`: `/cart`, `/orders`, `/orders/$id`, `/bookings`, `/bookings/$id`,
-`/pets`, `/pets/$id`, `/health`, `/profile`, `/saved`, `/notifications`, `/search`.
+`/pets`, `/pets/$id`, `/health`, `/profile`, `/settings`, `/saved`, `/notifications`,
+`/search`, `/welcome`.
 Auth screens and `/welcome` onboarding render without shop chrome (`BARE_ROUTES` in `nav.tsx`).
 
 ## Signed-out doctrine

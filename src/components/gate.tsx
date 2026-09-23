@@ -1,9 +1,9 @@
 import { Link, useRouterState } from '@tanstack/react-router'
-import { Bell, CalendarDays, HeartPulse, LogIn, Package, PawPrint } from 'lucide-react'
+import { Bell, CalendarDays, HeartPulse, LogIn, Package, PawPrint, Settings } from 'lucide-react'
 
 import { useAppState } from '../lib/store'
 
-export type GateKind = 'health' | 'pets' | 'orders' | 'bookings' | 'notifications'
+export type GateKind = 'health' | 'pets' | 'orders' | 'bookings' | 'notifications' | 'settings'
 
 const COPY: Record<GateKind, { title: string; text: string; points: string[]; icon: typeof Bell }> = {
   health: {
@@ -35,6 +35,12 @@ const COPY: Record<GateKind, { title: string; text: string; points: string[]; ic
     text: 'Sign in to get vaccine reminders, delivery updates and visit reminders in one place.',
     points: ['Only what matters for your pets', 'Choose what you hear about', 'No marketing unless you ask'],
     icon: Bell,
+  },
+  settings: {
+    title: 'Settings',
+    text: 'Sign in to manage your password, saved cards and account data.',
+    points: ['Change your password', 'Save cards for faster checkout', 'Download or delete your data'],
+    icon: Settings,
   },
 }
 

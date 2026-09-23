@@ -8,5 +8,7 @@ Disallow: /pets
 Disallow: /saved
 Disallow: /notifications
 Disallow: /search
+Disallow: /settings
+Disallow: /welcome
 
 Sitemap: https://petsafecare.app/sitemap.xml

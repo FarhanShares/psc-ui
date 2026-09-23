@@ -16,6 +16,7 @@ import {
   PawPrint,
   Pencil,
   Plus,
+  Settings,
   Shield,
   Trash2,
 } from 'lucide-react'
@@ -44,7 +45,7 @@ export const Route = createFileRoute('/profile')({
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function ProfilePage() {
-  const { profile, pets, orders, bookings, savedProducts, savedClinics, signedIn } = useAppState()
+  const { profile, pets, orders, bookings, savedProducts, savedClinics, signedIn, cards } = useAppState()
   const unread = useUnreadCount()
   const navigate = useNavigate()
 
@@ -180,6 +181,12 @@ function ProfilePage() {
                 sub={plural(savedProducts.length + savedClinics.length, 'item')}
               />
               <MenuRow to="/notifications" icon={<Bell size={16} strokeWidth={1.75} />} title="Notifications" badge={unread} />
+              <MenuRow
+                to="/settings"
+                icon={<Settings size={16} strokeWidth={1.75} />}
+                title="Account settings"
+                sub={`Password, ${cards.length ? plural(cards.length, 'saved card') : 'payment methods'}, your data`}
+              />
             </div>
           </section>
         </div>
