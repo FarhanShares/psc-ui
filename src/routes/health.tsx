@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { RefreshCw } from 'lucide-react'
 
+import { AddPetSheet } from '../components/add-pet'
 import { VaccineRow } from '../components/cards'
 import { PetGlyph } from '../components/ui'
 import { pushToast, syncClinicRecords, useAppState } from '../lib/store'
@@ -15,6 +16,7 @@ function HealthPage() {
   const { pets, vaccines, lastSyncLabel } = useAppState()
   const [petId, setPetId] = useState(pets[0]?.id ?? '')
   const [syncing, setSyncing] = useState(false)
+  const [addPetOpen, setAddPetOpen] = useState(false)
 
   const pet = pets.find((p) => p.id === petId) ?? pets[0]
   const petVaccines = vaccines
@@ -36,10 +38,14 @@ function HealthPage() {
     return (
       <div className="page">
         <h1 className="page-title">Health</h1>
-        <p className="muted">Add a pet in your profile to start tracking vaccinations.</p>
-        <Link to="/profile" className="btn btn--primary" style={{ width: 'fit-content' }}>
-          Go to profile
-        </Link>
+        <p className="muted">Add a pet to start tracking vaccinations and clinic visits.</p>
+        <div style={{ display: 'flex', gap: 'var(--space-2xs)', flexWrap: 'wrap' }}>
+          <button type="button" className="btn btn--primary" onClick={() => setAddPetOpen(true)}>
+            Add a pet
+          </button>
+          <Link to="/shop" className="btn btn--ghost">Browse shop</Link>
+        </div>
+        <AddPetSheet open={addPetOpen} onClose={() => setAddPetOpen(false)} />
       </div>
     )
   }

@@ -47,6 +47,22 @@ Six primitives, all transform/opacity only, all reduced-motion safe:
 
 Easings and durations unchanged from tokens. Reduced-motion: opacity-only ≤150ms.
 
+## Empty states (doctrine)
+- Zero pets is a designed onboarding moment, never a hole: Home shows an
+  "Add your first pet" card (primary CTA opens the shared AddPetSheet in
+  place; secondary escapes to the shop); Health offers the same sheet.
+- Derived counts (vaccine records, "needs attention") only count records
+  whose pet still exists.
+- List rows cap at 2 + a composed action tile ("Manage pets" / "+N more").
+
+## Rails (doctrine)
+- Product rails ARE allowed to scroll — but only with honest affordances:
+  snap-scroll + peeking card on phones, arrow buttons ≥64rem, hidden
+  scrollbars, `overscroll-behavior-x: contain`. Chip rows still wrap —
+  never scroll. Any scroll container must sit inside a `minmax(0, 1fr)`
+  track (`.page` grid) or it gets clipped by the root overflow-x, not
+  scrolled.
+
 ## Shop allowances
 - A policy trust strip under the shop header (delivery threshold, returns, curation) —
   inline list with icons, never a 3-tile card row. Claims must match app data/policy.

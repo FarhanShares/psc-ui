@@ -1512,29 +1512,69 @@ img, svg {
 
 /* ------------------------------------------------------------------- rails */
 
-/* product rails are wrapping grids — a rail you can't scroll is a wall */
+/* honestly scrollable product rail — snap rows with visible affordances */
+.rail-wrap {
+  position: relative;
+  min-width: 0;
+}
+
 .rail {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(9.75rem, 11.5rem);
   gap: var(--space-sm);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-block: var(--space-3xs);
+}
+
+.rail::-webkit-scrollbar {
+  display: none;
+}
+
+.rail > * {
+  scroll-snap-align: start;
 }
 
 @media (min-width: 40rem) {
   .rail {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 48rem) {
-  .rail {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-auto-columns: minmax(11rem, 13rem);
   }
 }
 
 @media (min-width: 64rem) {
   .rail {
-    grid-template-columns: repeat(auto-fill, minmax(10.75rem, 1fr));
+    grid-auto-columns: minmax(12rem, 15rem);
     gap: var(--space-md);
+    scroll-padding-inline: 0.5rem;
+  }
+}
+
+/* arrows ride the rail edges on wide screens */
+.rail-arrow {
+  display: none;
+}
+
+@media (min-width: 64rem) {
+  .rail-arrow {
+    display: inline-flex;
+    position: absolute;
+    top: 50%;
+    translate: 0 -50%;
+    z-index: 5;
+    background: var(--color-card);
+    box-shadow: var(--shadow-whisper);
+  }
+
+  .rail-arrow--prev {
+    left: calc(var(--space-3xs) * -1);
+  }
+
+  .rail-arrow--next {
+    right: calc(var(--space-3xs) * -1);
   }
 }
 
@@ -2339,6 +2379,9 @@ img, svg {
 
 .page {
   display: grid;
+  /* explicit zero-min track: without it an implicit auto column grows to
+     content width and overflowing children (rails) get clipped, not scrolled */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-lg);
   padding-top: var(--space-2xs);
 }

@@ -169,7 +169,7 @@ function ProductPage() {
               All supplies <ChevronLeft size={13} strokeWidth={2} style={{ rotate: '180deg' }} />
             </Link>
           </div>
-          <div className="rail">
+          <div className="grid-products">
             {related.map((p, i) => (
               <ProductCard key={p.id} id={p.id} i={i} />
             ))}

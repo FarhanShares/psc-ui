@@ -1,17 +1,26 @@
+import { useState } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { ChevronRight, PawPrint, RefreshCw, Syringe } from 'lucide-react'
+import { ChevronRight, PawPrint, Plus, RefreshCw, Syringe } from 'lucide-react'
 
-import { BookingCard, ProductCard } from '../components/cards'
+import { AddPetSheet } from '../components/add-pet'
+import { BookingCard } from '../components/cards'
+import { ProductRail } from '../components/product-rail'
 import { PetGlyph } from '../components/ui'
 import { greeting, longDate, dateFromOffset } from '../lib/format'
 import { useAppState } from '../lib/store'
 
 export const Route = createFileRoute('/')({ component: HomePage })
 
+const PICKS = ['p04', 'p11', 'p06', 'p09', 'p02', 'p12', 'p01', 'p08']
+
 function HomePage() {
   const { profile, pets, vaccines, bookings, orders, lastSyncLabel } = useAppState()
+  const [addPetOpen, setAddPetOpen] = useState(false)
 
-  const needsAttention = [...vaccines]
+  // records only count when their pet still exists
+  const liveVaccines = vaccines.filter((v) => pets.some((p) => p.id === v.petId))
+
+  const needsAttention = [...liveVaccines]
     .filter((v) => v.status === 'overdue' || v.status === 'due')
     .sort((a, b) => a.dueInDays - b.dueInDays)[0]
   const needsPet = pets.find((p) => p.id === needsAttention?.petId)
@@ -82,32 +91,57 @@ function HomePage() {
         )}
       </section>
 
-      <section className="pet-strip rise span-7" style={{ '--i': 3 } as React.CSSProperties} aria-label="Your pets">
-        {pets.slice(0, 2).map((pet) => (
-          <Link key={pet.id} to="/health" className="card card--press pet-card">
-            <span className={`pet-card__ava pet-card__ava--${pet.species}`}>
-              <PetGlyph species={pet.species} size={17} />
+      {pets.length === 0 ? (
+        <section className="card card--pad span-8 rise" style={{ '--i': 2 } as React.CSSProperties} aria-label="Add your first pet">
+          <div className="split" style={{ flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', minWidth: 0 }}>
+              <span className="band__icon" aria-hidden>
+                <PawPrint size={18} strokeWidth={1.75} />
+              </span>
+              <div style={{ minWidth: 0 }}>
+                <h2 className="section-head__title">Add your first pet</h2>
+                <p className="row__sub">
+                  Vaccination reminders, clinic bookings and the right food for the right
+                  animal — it all starts here.
+                </p>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 'var(--space-2xs)', flexWrap: 'wrap' }}>
+              <button type="button" className="btn btn--primary" onClick={() => setAddPetOpen(true)}>
+                <Plus size={15} strokeWidth={2} /> Add a pet
+              </button>
+              <Link to="/shop" className="btn btn--ghost">Browse shop</Link>
+            </div>
+          </div>
+        </section>
+      ) : (
+        <section className="pet-strip rise span-7" style={{ '--i': 3 } as React.CSSProperties} aria-label="Your pets">
+          {pets.slice(0, 2).map((pet) => (
+            <Link key={pet.id} to="/health" className="card card--press pet-card">
+              <span className={`pet-card__ava pet-card__ava--${pet.species}`}>
+                <PetGlyph species={pet.species} size={17} />
+              </span>
+              <span style={{ minWidth: 0 }}>
+                <span className="pet-card__name">{pet.name}</span>
+                <span className="row__sub" style={{ display: 'block' }}>
+                  {pet.breed}
+                </span>
+              </span>
+            </Link>
+          ))}
+          <Link to="/profile" className="card card--press pet-card pet-card--more" aria-label="Manage pets">
+            <span className="pet-card__ava" aria-hidden>
+              {pets.length > 2 ? <span className="pet-card__plus num">+{pets.length - 2}</span> : <PawPrint size={16} strokeWidth={1.75} />}
             </span>
             <span style={{ minWidth: 0 }}>
-              <span className="pet-card__name">{pet.name}</span>
+              <span className="pet-card__name">{pets.length > 2 ? 'More pets' : 'Manage pets'}</span>
               <span className="row__sub" style={{ display: 'block' }}>
-                {pet.breed}
+                {pets.length > 2 ? `${pets.length} in total` : 'Add or edit'}
               </span>
             </span>
           </Link>
-        ))}
-        <Link to="/profile" className="card card--press pet-card pet-card--more" aria-label="Manage pets">
-          <span className="pet-card__ava" aria-hidden>
-            {pets.length > 2 ? <span className="pet-card__plus num">+{pets.length - 2}</span> : <PawPrint size={16} strokeWidth={1.75} />}
-          </span>
-          <span style={{ minWidth: 0 }}>
-            <span className="pet-card__name">{pets.length > 2 ? 'More pets' : 'Manage pets'}</span>
-            <span className="row__sub" style={{ display: 'block' }}>
-              {pets.length > 2 ? `${pets.length} in total` : 'Add or edit'}
-            </span>
-          </span>
-        </Link>
-      </section>
+        </section>
+      )}
 
       <section className="stack rise span-5" style={{ '--i': 4, gap: 'var(--space-sm)' } as React.CSSProperties} aria-label="Records">
         <Link to="/orders" className="card card--press row">
@@ -144,7 +178,7 @@ function HomePage() {
             Green Valley Veterinary
           </p>
           <p className="row__sub">
-            Records last synced {lastSyncLabel} · {vaccines.length} vaccination records
+            Records last synced {lastSyncLabel} · {liveVaccines.length} vaccination records
           </p>
         </Link>
       </section>
@@ -156,12 +190,10 @@ function HomePage() {
             All supplies <ChevronRight size={13} strokeWidth={2} />
           </Link>
         </div>
-        <div className="rail">
-          {['p04', 'p11', 'p06', 'p09', 'p02'].map((id) => (
-            <ProductCard key={id} id={id} />
-          ))}
-        </div>
+        <ProductRail ids={PICKS} />
       </section>
+
+      <AddPetSheet open={addPetOpen} onClose={() => setAddPetOpen(false)} />
     </div>
   )
 }

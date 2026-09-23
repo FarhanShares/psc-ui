@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { Check, ChevronRight, Pencil, Plus, Trash2 } from 'lucide-react'
 
+import { AddPetSheet } from '../components/add-pet'
 import { PetGlyph, Sheet } from '../components/ui'
 import {
-  addPet,
   pushToast,
   removeAddress,
   saveAddress,
@@ -30,7 +30,6 @@ function ProfilePage() {
   const [editPet, setEditPet] = useState<Pet | null>(null)
   const [petDraft, setPetDraft] = useState({ name: '', breed: '', weightKg: 0, ageYears: 0 })
   const [addPetOpen, setAddPetOpen] = useState(false)
-  const [newPet, setNewPet] = useState({ name: '', species: 'dog' as 'dog' | 'cat', breed: '' })
 
   const [addrOpen, setAddrOpen] = useState(false)
   const [addrDraft, setAddrDraft] = useState({ label: '', line: '' })
@@ -84,7 +83,7 @@ function ProfilePage() {
           <section>
             <div className="section-head">
               <h2 className="section-head__title">Pets</h2>
-              <button type="button" className="section-head__link" style={{ background: 'none', border: 0, cursor: 'pointer', color: 'var(--color-accent-deep)', fontWeight: 600 }} onClick={() => { setNewPet({ name: '', species: 'dog', breed: '' }); setAddPetOpen(true) }}>
+              <button type="button" className="section-head__link" style={{ background: 'none', border: 0, cursor: 'pointer', color: 'var(--color-accent-deep)', fontWeight: 600 }} onClick={() => setAddPetOpen(true)}>
                 <Plus size={14} strokeWidth={2} /> Add pet
               </button>
             </div>
@@ -288,48 +287,7 @@ function ProfilePage() {
         )}
       </Sheet>
 
-      {/* add pet */}
-      <Sheet
-        open={addPetOpen}
-        onClose={() => setAddPetOpen(false)}
-        title="Add a pet"
-        footer={
-          <button
-            type="button"
-            className="btn btn--primary btn--block"
-            disabled={!newPet.name.trim()}
-            onClick={() => {
-              addPet({ name: newPet.name.trim(), species: newPet.species, breed: newPet.breed.trim() || (newPet.species === 'cat' ? 'Domestic cat' : 'Mixed breed') })
-              setAddPetOpen(false)
-              pushToast(`${newPet.name.trim()} joined the family`)
-            }}
-          >
-            Add pet
-          </button>
-        }
-      >
-        <div className="stack">
-          <div className="field">
-            <label className="field__label" htmlFor="np-name">Name</label>
-            <input id="np-name" className="input" value={newPet.name} onChange={(e) => setNewPet((p) => ({ ...p, name: e.target.value }))} placeholder="Mochi" />
-          </div>
-          <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
-            <legend className="tag" style={{ marginBottom: 'var(--space-2xs)' }}>Species</legend>
-            <div className="chips">
-              {(['dog', 'cat'] as const).map((s) => (
-                <button key={s} type="button" className="chip" aria-pressed={newPet.species === s} onClick={() => setNewPet((p) => ({ ...p, species: s }))}>
-                  <PetGlyph species={s} size={14} />
-                  {s === 'dog' ? 'Dog' : 'Cat'}
-                </button>
-              ))}
-            </div>
-          </fieldset>
-          <div className="field">
-            <label className="field__label" htmlFor="np-breed">Breed</label>
-            <input id="np-breed" className="input" value={newPet.breed} onChange={(e) => setNewPet((p) => ({ ...p, breed: e.target.value }))} placeholder="Leave blank if unsure" />
-          </div>
-        </div>
-      </Sheet>
+      <AddPetSheet open={addPetOpen} onClose={() => setAddPetOpen(false)} />
 
       {/* add address */}
       <Sheet
