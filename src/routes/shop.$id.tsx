@@ -342,6 +342,9 @@ function ProductPage() {
           <div style={{ marginTop: 'var(--space-md)' }}>
             <ReviewList reviews={reviews} />
           </div>
+          <Link to="/shop/$id/reviews" params={{ id: product.id }} className="btn btn--ghost btn--block" style={{ marginTop: 'var(--space-sm)' }}>
+            See all {product.reviews} reviews
+          </Link>
         </section>
       </div>
 

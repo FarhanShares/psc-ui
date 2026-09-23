@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { Check, ChevronLeft, ChevronRight, Heart } from 'lucide-react'
+import { Check, ChevronLeft, ChevronRight, Heart, ThumbsUp } from 'lucide-react'
 
 import { daysAgoLabel } from '../lib/format'
 import { toggleSavedClinic, toggleSavedProduct, useAppState } from '../lib/store'
@@ -93,10 +93,15 @@ export function RatingSummary({
   rating,
   total,
   breakdown,
+  selected,
+  onPick,
 }: {
   rating: number
   total: number
   breakdown: number[]
+  /** when given, each bar becomes a filter button */
+  selected?: number
+  onPick?: (stars: number) => void
 }) {
   const max = Math.max(...breakdown, 1)
   return (
@@ -106,43 +111,93 @@ export function RatingSummary({
         <span className="row__sub num">out of 5 · {total} reviews</span>
       </div>
       <ul className="rating-bars" aria-label="Rating breakdown">
-        {breakdown.map((n, i) => (
-          <li key={i}>
-            <span className="num">{5 - i}</span>
-            <span className="rating-bars__track" aria-hidden>
-              <span className="rating-bars__fill" style={{ width: `${(n / max) * 100}%` }} />
-            </span>
-            <span className="num muted">{n}</span>
-          </li>
-        ))}
+        {breakdown.map((n, i) => {
+          const stars = 5 - i
+          const inner = (
+            <>
+              <span className="num">{stars}</span>
+              <span className="rating-bars__track" aria-hidden>
+                <span className="rating-bars__fill" style={{ width: `${(n / max) * 100}%` }} />
+              </span>
+              <span className="num muted">{n}</span>
+            </>
+          )
+          return (
+            <li key={i}>
+              {onPick ? (
+                <button
+                  type="button"
+                  className="rating-bars__btn"
+                  aria-pressed={selected === stars}
+                  aria-label={`Show ${stars}-star reviews (${n})`}
+                  onClick={() => onPick(stars)}
+                >
+                  {inner}
+                </button>
+              ) : (
+                inner
+              )}
+            </li>
+          )
+        })}
       </ul>
     </div>
   )
 }
 
-export function ReviewList({ reviews }: { reviews: Review[] }) {
+export function ReviewList({
+  reviews,
+  kind = 'product',
+  votes,
+  onHelpful,
+}: {
+  reviews: Review[]
+  kind?: 'product' | 'clinic'
+  /** ids this device marked helpful — enables the Helpful button */
+  votes?: string[]
+  onHelpful?: (id: string) => void
+}) {
   return (
     <ul className="review-list">
-      {reviews.map((r) => (
-        <li key={r.id} className="review">
-          <div className="split">
-            <span className="review__who">
-              <span className="review__ava" aria-hidden>
-                {r.author.charAt(0)}
-              </span>
-              <span>
-                <span className="row__title" style={{ display: 'block' }}>{r.author}</span>
-                <span className="row__sub">
-                  {r.pet ? `${r.pet} · ` : ''}
-                  {daysAgoLabel(r.daysAgo)}
+      {reviews.map((r) => {
+        const voted = votes?.includes(r.id) ?? false
+        return (
+          <li key={r.id} className="review">
+            <div className="split">
+              <span className="review__who">
+                <span className="review__ava" aria-hidden>
+                  {r.author.charAt(0)}
+                </span>
+                <span>
+                  <span className="row__title" style={{ display: 'block' }}>{r.author}</span>
+                  <span className="row__sub">
+                    {r.pet ? `${r.pet} · ` : ''}
+                    {daysAgoLabel(r.daysAgo)}
+                  </span>
                 </span>
               </span>
-            </span>
-            <Stars rating={r.rating} />
-          </div>
-          <p className="review__text">{r.text}</p>
-        </li>
-      ))}
+              <Stars rating={r.rating} />
+            </div>
+            {(r.verified || r.topic) && (
+              <p className="review__meta">
+                {r.verified && (
+                  <span className="review__verified">
+                    <Check size={11} strokeWidth={3} aria-hidden /> {kind === 'clinic' ? 'Verified visit' : 'Verified purchase'}
+                  </span>
+                )}
+                {r.topic && <span className="muted">{r.topic}</span>}
+              </p>
+            )}
+            <p className="review__text">{r.text}</p>
+            {onHelpful && (
+              <button type="button" className="review__helpful" aria-pressed={voted} onClick={() => onHelpful(r.id)}>
+                <ThumbsUp size={13} strokeWidth={1.75} fill={voted ? 'currentColor' : 'none'} aria-hidden />
+                Helpful{(r.helpful ?? 0) + (voted ? 1 : 0) > 0 ? ` · ${(r.helpful ?? 0) + (voted ? 1 : 0)}` : ''}
+              </button>
+            )}
+          </li>
+        )
+      })}
     </ul>
   )
 }

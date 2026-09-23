@@ -29,8 +29,14 @@ function urls(): Array<{ loc: string; priority: string; changefreq: string }> {
   }
   for (const b of BRANDS) out.push({ loc: `/shop?brand=${encodeURIComponent(b)}`, priority: '0.6', changefreq: 'weekly' })
   for (const s of SERVICE_TYPES) out.push({ loc: `/clinics?service=${s.id}`, priority: '0.7', changefreq: 'weekly' })
-  for (const p of PRODUCTS) out.push({ loc: `/shop/${p.id}`, priority: '0.7', changefreq: 'weekly' })
-  for (const c of CLINICS) out.push({ loc: `/clinics/${c.id}`, priority: '0.7', changefreq: 'weekly' })
+  for (const p of PRODUCTS) {
+    out.push({ loc: `/shop/${p.id}`, priority: '0.7', changefreq: 'weekly' })
+    out.push({ loc: `/shop/${p.id}/reviews`, priority: '0.5', changefreq: 'weekly' })
+  }
+  for (const c of CLINICS) {
+    out.push({ loc: `/clinics/${c.id}`, priority: '0.7', changefreq: 'weekly' })
+    out.push({ loc: `/clinics/${c.id}/reviews`, priority: '0.5', changefreq: 'weekly' })
+  }
   out.push({ loc: '/guides', priority: '0.8', changefreq: 'weekly' })
   for (const t of GUIDE_TOPICS) {
     if (GUIDES.filter((g) => g.topic === t.id).length >= 2) out.push({ loc: `/guides?topic=${t.id}`, priority: '0.6', changefreq: 'monthly' })

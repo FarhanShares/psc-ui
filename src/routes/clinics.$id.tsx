@@ -230,8 +230,11 @@ function ClinicPage() {
             <h2 className="section-head__title section-head">What pet parents say</h2>
             <RatingSummary rating={clinic.rating} total={clinic.reviews} breakdown={ratingBreakdown(clinic.rating, clinic.reviews)} />
             <div style={{ marginTop: 'var(--space-md)' }}>
-              <ReviewList reviews={clinicReviews(clinic.id)} />
+              <ReviewList reviews={clinicReviews(clinic.id)} kind="clinic" />
             </div>
+            <Link to="/clinics/$id/reviews" params={{ id: clinic.id }} className="btn btn--ghost btn--block" style={{ marginTop: 'var(--space-sm)' }}>
+              See all {clinic.reviews} reviews
+            </Link>
           </section>
         </div>
       </div>

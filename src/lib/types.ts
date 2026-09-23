@@ -186,6 +186,18 @@ export interface Review {
   daysAgo: number
   text: string
   pet?: string
+  /** "Verified purchase" / "Verified visit" */
+  verified?: boolean
+  helpful?: number
+  /** clinic reviews: which service the visit was for */
+  topic?: string
+}
+
+export type ReviewKind = 'product' | 'clinic'
+
+export interface UserReview extends Review {
+  kind: ReviewKind
+  targetId: string
 }
 
 export type NoticeKind = 'vaccine' | 'order' | 'booking' | 'offer' | 'sync'

@@ -2,6 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { AlertTriangle, Clock, MapPin, Navigation, Phone } from 'lucide-react'
 
 import { Crumbs } from '../components/blocks'
+import { TriageWizard } from '../components/triage'
 import { CLINICS, EMERGENCY_SIGNS } from '../lib/data'
 import { breadcrumbLd, seo } from '../lib/seo'
 
@@ -41,6 +42,10 @@ function EmergencyPage() {
           It is always OK to ring a vet and ask. They would rather see a false alarm than a late arrival.
         </p>
       </header>
+
+      <div className="rise" style={{ '--i': 1 } as React.CSSProperties}>
+        <TriageWizard />
+      </div>
 
       {primary && (
         <section className="sos-card rise" style={{ '--i': 1 } as React.CSSProperties} aria-label="Nearest 24-hour clinic">

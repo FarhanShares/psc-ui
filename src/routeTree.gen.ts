@@ -38,6 +38,8 @@ import { Route as PetsIndexRouteImport } from './routes/pets.index'
 import { Route as PetsIdRouteImport } from './routes/pets.$id'
 import { Route as ShopIndexRouteImport } from './routes/shop.index'
 import { Route as ShopIdRouteImport } from './routes/shop.$id'
+import { Route as ClinicsIdReviewsRouteImport } from './routes/clinics.$id_.reviews'
+import { Route as ShopIdReviewsRouteImport } from './routes/shop.$id_.reviews'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -184,6 +186,16 @@ const ShopIdRoute = ShopIdRouteImport.update({
   path: '/shop/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClinicsIdReviewsRoute = ClinicsIdReviewsRouteImport.update({
+  id: '/clinics/$id_/reviews',
+  path: '/clinics/$id/reviews',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShopIdReviewsRoute = ShopIdReviewsRouteImport.update({
+  id: '/shop/$id_/reviews',
+  path: '/shop/$id/reviews',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -215,6 +227,8 @@ export interface FileRoutesByFullPath {
   '/orders/': typeof OrdersIndexRoute
   '/pets/': typeof PetsIndexRoute
   '/shop/': typeof ShopIndexRoute
+  '/clinics/$id/reviews': typeof ClinicsIdReviewsRoute
+  '/shop/$id/reviews': typeof ShopIdReviewsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -246,6 +260,8 @@ export interface FileRoutesByTo {
   '/orders': typeof OrdersIndexRoute
   '/pets': typeof PetsIndexRoute
   '/shop': typeof ShopIndexRoute
+  '/clinics/$id/reviews': typeof ClinicsIdReviewsRoute
+  '/shop/$id/reviews': typeof ShopIdReviewsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -278,6 +294,8 @@ export interface FileRoutesById {
   '/orders/': typeof OrdersIndexRoute
   '/pets/': typeof PetsIndexRoute
   '/shop/': typeof ShopIndexRoute
+  '/clinics/$id_/reviews': typeof ClinicsIdReviewsRoute
+  '/shop/$id_/reviews': typeof ShopIdReviewsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -311,6 +329,8 @@ export interface FileRouteTypes {
     | '/orders/'
     | '/pets/'
     | '/shop/'
+    | '/clinics/$id/reviews'
+    | '/shop/$id/reviews'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -342,6 +362,8 @@ export interface FileRouteTypes {
     | '/orders'
     | '/pets'
     | '/shop'
+    | '/clinics/$id/reviews'
+    | '/shop/$id/reviews'
   id:
     | '__root__'
     | '/'
@@ -373,6 +395,8 @@ export interface FileRouteTypes {
     | '/orders/'
     | '/pets/'
     | '/shop/'
+    | '/clinics/$id_/reviews'
+    | '/shop/$id_/reviews'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -405,6 +429,8 @@ export interface RootRouteChildren {
   OrdersIndexRoute: typeof OrdersIndexRoute
   PetsIndexRoute: typeof PetsIndexRoute
   ShopIndexRoute: typeof ShopIndexRoute
+  ClinicsIdReviewsRoute: typeof ClinicsIdReviewsRoute
+  ShopIdReviewsRoute: typeof ShopIdReviewsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -612,6 +638,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/clinics/$id_/reviews': {
+      id: '/clinics/$id_/reviews'
+      path: '/clinics/$id/reviews'
+      fullPath: '/clinics/$id/reviews'
+      preLoaderRoute: typeof ClinicsIdReviewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shop/$id_/reviews': {
+      id: '/shop/$id_/reviews'
+      path: '/shop/$id/reviews'
+      fullPath: '/shop/$id/reviews'
+      preLoaderRoute: typeof ShopIdReviewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -645,6 +685,8 @@ const rootRouteChildren: RootRouteChildren = {
   OrdersIndexRoute: OrdersIndexRoute,
   PetsIndexRoute: PetsIndexRoute,
   ShopIndexRoute: ShopIndexRoute,
+  ClinicsIdReviewsRoute: ClinicsIdReviewsRoute,
+  ShopIdReviewsRoute: ShopIdReviewsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

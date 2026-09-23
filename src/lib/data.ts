@@ -813,41 +813,80 @@ const CLINIC_REVIEW_POOL = [
   'Straightforward advice without upselling. Will be back for the booster.',
 ]
 
-function pick<T>(pool: T[], seed: number, n: number): T[] {
-  const out: T[] = []
-  for (let i = 0; out.length < Math.min(n, pool.length); i++) {
-    const item = pool[(seed + i * 7) % pool.length]
-    if (!out.includes(item)) out.push(item)
-  }
-  return out
+
+const EXTRA_PRODUCT_LINES = [
+  'Arrived well packed and on time. Exactly as described.',
+  'Second time ordering — consistent quality both times.',
+  'Does the job. Not the cheapest, but I trust what’s in it.',
+  'Took a few days to win my pet over, now it’s a favourite.',
+  'Fine, though I wish it came in a bigger size.',
+  'Would recommend to anyone with a fussy one at home.',
+  'Honest product, sensible price, fast delivery.',
+  'Not for us — ours lost interest after a week. Returns were easy though.',
+]
+
+const EXTRA_CLINIC_LINES = [
+  'Friendly front desk and the vet remembered us from last time.',
+  'Parking is tight but the care is worth it.',
+  'Clear estimate before any treatment — no surprises on the bill.',
+  'Waited about twenty minutes past our slot, otherwise great.',
+  'Our dog is terrified of vets and they made it genuinely calm.',
+  'Good advice on diet, sent a written summary by email afterwards.',
+  'Reasonable prices for the area. Booking online was painless.',
+  'Felt a bit rushed this time, though the treatment worked.',
+]
+
+/**
+ * Deterministic review set for a product or clinic — stable across SSR and
+ * client. Ratings follow `ratingBreakdown`, so the list agrees with the bars.
+ * The detail pages show the first three; /…/reviews shows them all.
+ */
+export function allReviews(kind: 'product' | 'clinic', id: string): Review[] {
+  const item = kind === 'product' ? getProduct(id) : getClinic(id)
+  if (!item) return []
+  const seed = hashSeed(`${kind}:${id}`)
+  const pool =
+    kind === 'product'
+      ? [...PRODUCT_REVIEW_POOL[(item as Product).category], ...EXTRA_PRODUCT_LINES]
+      : [...CLINIC_REVIEW_POOL, ...EXTRA_CLINIC_LINES]
+  const n = Math.min(24, Math.max(8, Math.round(item.reviews / 12)))
+  // spread the star counts in the same proportions as the breakdown bars
+  const bars = ratingBreakdown(item.rating, item.reviews)
+  const stars: number[] = []
+  bars.forEach((count, i) => {
+    const k = Math.round((count / item.reviews) * n)
+    for (let j = 0; j < k; j++) stars.push(5 - i)
+  })
+  while (stars.length < n) stars.push(5)
+  const services = kind === 'clinic' ? (item as Clinic).services.map((sv) => sv.name) : []
+  const suits = kind === 'product' ? (item as Product).suits : []
+
+  return Array.from({ length: n }, (_, i) => {
+    const r = hashSeed(`${seed}-${i}`)
+    const rating = stars[(r >>> 3) % stars.length]
+    // low ratings get the lukewarm lines (last in each pool)
+    const text = rating <= 3 ? pool[pool.length - 1 - (r % 2)] : pool[(seed + i * 7) % (pool.length - 2)]
+    return {
+      id: `${id}-r${i}`,
+      author: REVIEW_AUTHORS[(seed + i * 5) % REVIEW_AUTHORS.length],
+      rating,
+      daysAgo: 2 + ((r >>> 5) % 360),
+      text,
+      pet: kind === 'product' ? (suits[i % suits.length] === 'cat' ? 'Cat parent' : 'Dog parent') : undefined,
+      verified: r % 5 !== 0,
+      helpful: (r >>> 7) % 23,
+      topic: kind === 'clinic' ? services[(r >>> 4) % services.length] : undefined,
+    }
+  }).sort((a, b) => a.daysAgo - b.daysAgo)
 }
 
-/** deterministic sample reviews — stable across SSR and client */
+/** the three shown on a detail page — highest rated recent ones first */
 export function productReviews(id: string): Review[] {
-  const p = getProduct(id)
-  if (!p) return []
-  const seed = hashSeed(id)
-  return pick(PRODUCT_REVIEW_POOL[p.category], seed, 3).map((text, i) => ({
-    id: `${id}-r${i}`,
-    author: REVIEW_AUTHORS[(seed + i * 5) % REVIEW_AUTHORS.length],
-    rating: Math.max(3, Math.min(5, Math.round(p.rating + (i === 2 ? -1 : 0)))),
-    daysAgo: 3 + ((seed >> (i + 2)) % 60),
-    text,
-    pet: p.suits[i % p.suits.length] === 'cat' ? 'Cat parent' : 'Dog parent',
-  }))
+  return [...allReviews('product', id)].sort((a, b) => b.rating - a.rating || a.daysAgo - b.daysAgo).slice(0, 3)
 }
 
 export function clinicReviews(id: string): Review[] {
-  const c = getClinic(id)
-  if (!c) return []
-  const seed = hashSeed(id)
-  return pick(CLINIC_REVIEW_POOL, seed, 3).map((text, i) => ({
-    id: `${id}-r${i}`,
-    author: REVIEW_AUTHORS[(seed + i * 3) % REVIEW_AUTHORS.length],
-    rating: Math.max(3, Math.min(5, Math.round(c.rating + (i === 2 ? -0.6 : 0)))),
-    daysAgo: 2 + ((seed >> (i + 1)) % 90),
-    text,
-  }))
+  return [...allReviews('clinic', id)].sort((a, b) => b.rating - a.rating || a.daysAgo - b.daysAgo).slice(0, 3)
 }
 
 /** 5→1 star distribution that sums to `total` and averages near `rating` */

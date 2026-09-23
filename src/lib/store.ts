@@ -21,6 +21,7 @@ import type {
   PaymentCard,
   Pet,
   Profile,
+  UserReview,
   VaccineRecord,
 } from './types'
 
@@ -54,6 +55,9 @@ export interface AppState {
   recentSearches: string[]
   /** device-level, not per account — product ids, newest first */
   recentlyViewed: string[]
+  /** reviews written on this device (demo — no server to send them to) */
+  userReviews: UserReview[]
+  helpfulVotes: string[]
   signedIn: boolean
   /** which account the top-level data belongs to (email, or `social:<provider>`) */
   sessionKey: string | null
@@ -144,6 +148,8 @@ function seedState(): AppState {
     ...emptyAccount(),
     recentSearches: [],
     recentlyViewed: [],
+    userReviews: [],
+    helpfulVotes: [],
     signedIn: false,
     sessionKey: null,
     users: [{ name: 'Farhan', email: DEMO_EMAIL, password: 'demo1234' }],
@@ -180,6 +186,8 @@ function persist() {
         ...pickAccount(state),
         recentSearches: state.recentSearches,
         recentlyViewed: state.recentlyViewed,
+        userReviews: state.userReviews,
+        helpfulVotes: state.helpfulVotes,
         signedIn: state.signedIn,
         sessionKey: state.sessionKey,
         users: state.users,
@@ -933,3 +941,25 @@ export function useUnreadCount(): number {
 }
 
 export const CATALOG_SIZE = PRODUCTS.length
+
+/* -------------------------------------------------------------- reviews */
+
+export function addUserReview(input: { kind: UserReview['kind']; targetId: string; rating: number; text: string; topic?: string }) {
+  const review: UserReview = {
+    ...input,
+    id: `u-${Date.now().toString(36)}`,
+    author: state.profile.name ? `${state.profile.name.split(' ')[0]} (you)` : 'You',
+    daysAgo: 0,
+    verified: input.kind === 'product'
+      ? state.orders.some((o) => o.items.some((it) => it.productId === input.targetId))
+      : state.bookings.some((b) => b.clinicId === input.targetId && b.status === 'completed'),
+    helpful: 0,
+  }
+  setState({ userReviews: [review, ...state.userReviews] })
+  return review
+}
+
+export function toggleHelpful(reviewId: string) {
+  const on = state.helpfulVotes.includes(reviewId)
+  setState({ helpfulVotes: on ? state.helpfulVotes.filter((x) => x !== reviewId) : [...state.helpfulVotes, reviewId] })
+}
