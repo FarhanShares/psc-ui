@@ -3,7 +3,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 
 import { AuthShell, PasswordInput, SocialButtons } from '../components/auth'
 import { seo } from '../lib/seo'
-import { pushToast, signIn } from '../lib/store'
+import { pushToast, signInGuest, signUpAccount } from '../lib/store'
 
 export const Route = createFileRoute('/signup')({
   validateSearch: (s: Record<string, unknown>): { redirect?: string } => ({
@@ -39,11 +39,10 @@ function SignupPage() {
   const [busy, setBusy] = useState(false)
   const st = strength(password)
 
-  function finish(first?: string) {
+  function socialSignIn() {
     setBusy(true)
     window.setTimeout(() => {
-      signIn(first ? { name: first, email: email.trim() } : undefined)
-      pushToast(`Welcome${first ? `, ${first}` : ''} — add your pets to get reminders`)
+      signInGuest()
       navigate({ to: redirect ?? '/pets' })
     }, 800)
   }
@@ -56,7 +55,19 @@ function SignupPage() {
     if (password.length < 8) next.password = 'Use at least 8 characters.'
     if (!agree) next.agree = 'Please accept the terms to continue.'
     setErrors(next)
-    if (Object.keys(next).length === 0) finish(name.trim().split(' ')[0])
+    if (Object.keys(next).length !== 0) return
+
+    setBusy(true)
+    window.setTimeout(() => {
+      const err = signUpAccount(name, email, password)
+      if (err) {
+        setBusy(false)
+        setErrors({ form: err })
+        return
+      }
+      pushToast(`Welcome, ${name.trim().split(' ')[0]} — add your pets to get reminders`)
+      navigate({ to: redirect ?? '/pets' })
+    }, 800)
   }
 
   const help = (id: string, text = '') => (
@@ -75,7 +86,7 @@ function SignupPage() {
         </>
       }
     >
-      <SocialButtons onPick={() => finish()} />
+      <SocialButtons onPick={socialSignIn} />
       <form className="stack" onSubmit={submit} noValidate>
         <div className="field">
           <label className="field__label" htmlFor="name">Your name</label>
@@ -105,6 +116,11 @@ function SignupPage() {
           </span>
         </label>
         {help('agree')}
+        {errors.form && (
+          <p className="field__help field__help--error" role="alert">
+            {errors.form}
+          </p>
+        )}
         <button type="submit" className="btn btn--primary btn--block" data-loading={busy || undefined} disabled={busy}>
           Create account
         </button>

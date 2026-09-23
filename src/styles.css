@@ -385,11 +385,18 @@ img, svg {
 
 /* phones get a compact link footer too — the links matter for crawlers and
    for people who scroll to the end looking for help */
+/* footer is desktop-only — NEVER shown on mobile (user rule, recorded in AGENTS.md) */
 .site-footer {
+  display: none;
   margin-top: var(--space-md);
   border-top: 1px solid var(--color-rule);
   background: var(--color-card);
-  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 64rem) {
+  .site-footer {
+    display: block;
+  }
 }
 
 .site-footer__inner {
@@ -4366,4 +4373,17 @@ button.action-tile {
   .home-grid > .pet-strip {
     align-self: start;
   }
+}
+
+/* demo credential hint on auth screens */
+.auth__hint {
+  margin: 0;
+  padding: var(--space-2xs) var(--space-sm);
+  background: var(--color-paper-2);
+  border: 1px dashed var(--color-rule-2);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-muted);
+  text-align: center;
 }

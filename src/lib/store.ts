@@ -30,6 +30,12 @@ export interface Toast {
   onAction?: () => void
 }
 
+export interface RegisteredUser {
+  name: string
+  email: string
+  password: string // demo only — plain text in localStorage, no real security
+}
+
 export interface AppState {
   cart: CartItem[]
   orders: Order[]
@@ -43,6 +49,7 @@ export interface AppState {
   readNotices: string[]
   recentSearches: string[]
   signedIn: boolean
+  users: RegisteredUser[]
 }
 
 function seedState(): AppState {
@@ -59,6 +66,8 @@ function seedState(): AppState {
     readNotices: [],
     recentSearches: [],
     signedIn: true,
+    // demo account so sign-out -> sign-in round-trips with real credential checks
+    users: [{ name: 'Farhan', email: 'farhan@example.com', password: 'demo1234' }],
   }
 }
 
@@ -93,6 +102,7 @@ function persist() {
         readNotices: state.readNotices,
         recentSearches: state.recentSearches,
         signedIn: state.signedIn,
+        users: state.users,
       }),
     )
   } catch {
@@ -461,8 +471,50 @@ export function clearRecentSearches() {
 
 /* ------------------------------------------------------------- session */
 
-export function signIn(patch?: Partial<Profile>) {
+const normEmail = (email: string) => email.trim().toLowerCase()
+
+/** credential sign-in — returns an error string, or null on success */
+export function signIn(email: string, password: string): string | null {
+  const account = state.users.find((u) => u.email === normEmail(email))
+  if (!account || account.password !== password) {
+    return 'That email and password don’t match an account. Try again, or reset your password.'
+  }
+  setState({
+    signedIn: true,
+    profile: { ...state.profile, name: account.name, email: account.email },
+  })
+  return null
+}
+
+/** social / one-tap path — session without a stored credential (demo) */
+export function signInGuest(patch?: Partial<Profile>) {
   setState({ signedIn: true, profile: patch ? { ...state.profile, ...patch } : state.profile })
+}
+
+/** register a real account — returns an error string, or null on success */
+export function signUpAccount(name: string, email: string, password: string): string | null {
+  const em = normEmail(email)
+  if (state.users.some((u) => u.email === em)) {
+    return 'An account with that email already exists. Sign in instead, or use a different email.'
+  }
+  setState({
+    users: [...state.users, { name: name.trim(), email: em, password }],
+    signedIn: true,
+    profile: { ...state.profile, name: name.trim(), email: em },
+  })
+  return null
+}
+
+/** complete the forgot-password loop — returns an error string, or null */
+export function resetPassword(email: string, newPassword: string): string | null {
+  const em = normEmail(email)
+  if (!state.users.some((u) => u.email === em)) {
+    return 'We couldn’t find an account for that email. Check the address, or create a new account.'
+  }
+  setState({
+    users: state.users.map((u) => (u.email === em ? { ...u, password: newPassword } : u)),
+  })
+  return null
 }
 
 export function signOut() {

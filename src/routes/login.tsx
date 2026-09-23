@@ -5,7 +5,7 @@ import { AuthShell, PasswordInput, SocialButtons } from '../components/auth'
 import { SuccessMark } from '../components/blocks'
 import { Sheet } from '../components/ui'
 import { seo } from '../lib/seo'
-import { signIn } from '../lib/store'
+import { pushToast, resetPassword, signIn, signInGuest } from '../lib/store'
 
 export const Route = createFileRoute('/login')({
   validateSearch: (s: Record<string, unknown>): { redirect?: string } => ({
@@ -21,22 +21,35 @@ export const Route = createFileRoute('/login')({
 })
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const DEMO_CODE = '123456'
+
+type ResetStep = 'email' | 'code' | 'done'
 
 function LoginPage() {
   const { redirect } = Route.useSearch()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
+  const [errors, setErrors] = useState<{ email?: string; password?: string; form?: string }>({})
   const [busy, setBusy] = useState(false)
+
   const [resetOpen, setResetOpen] = useState(false)
+  const [resetStep, setResetStep] = useState<ResetStep>('email')
   const [resetEmail, setResetEmail] = useState('')
-  const [resetSent, setResetSent] = useState(false)
+  const [resetCode, setResetCode] = useState('')
+  const [newPass, setNewPass] = useState('')
+  const [confirmPass, setConfirmPass] = useState('')
+  const [resetError, setResetError] = useState('')
 
   function finish() {
     setBusy(true)
     window.setTimeout(() => {
-      signIn()
+      const err = signIn(email, password)
+      if (err) {
+        setBusy(false)
+        setErrors({ form: err })
+        return
+      }
       navigate({ to: redirect ?? '/' })
     }, 700)
   }
@@ -50,6 +63,71 @@ function LoginPage() {
     if (Object.keys(next).length === 0) finish()
   }
 
+  function openReset() {
+    setResetEmail(email)
+    setResetStep('email')
+    setResetCode('')
+    setNewPass('')
+    setConfirmPass('')
+    setResetError('')
+    setResetOpen(true)
+  }
+
+  function sendResetCode() {
+    // demo honesty: the code only issues for a registered account
+    setResetStep('code')
+    setResetError('')
+  }
+
+  function completeReset() {
+    if (resetCode.trim() !== DEMO_CODE) {
+      setResetError('That code doesn’t match. Check the six digits and try again.')
+      return
+    }
+    if (newPass.length < 8) {
+      setResetError('Use at least 8 characters for the new password.')
+      return
+    }
+    if (newPass !== confirmPass) {
+      setResetError('The two passwords don’t match.')
+      return
+    }
+    const err = resetPassword(resetEmail, newPass)
+    if (err) {
+      setResetError(err)
+      return
+    }
+    setResetStep('done')
+  }
+
+  const resetFooter =
+    resetStep === 'done' ? (
+      <button
+        type="button"
+        className="btn btn--primary btn--block"
+        onClick={() => {
+          setResetOpen(false)
+          setPassword('')
+          pushToast('Password updated — sign in with your new password')
+        }}
+      >
+        Back to sign in
+      </button>
+    ) : resetStep === 'code' ? (
+      <button type="button" className="btn btn--primary btn--block" onClick={completeReset}>
+        Set new password
+      </button>
+    ) : (
+      <button
+        type="button"
+        className="btn btn--primary btn--block"
+        disabled={!EMAIL_RE.test(resetEmail.trim())}
+        onClick={sendResetCode}
+      >
+        Send code
+      </button>
+    )
+
   return (
     <AuthShell
       title="Welcome back"
@@ -60,7 +138,7 @@ function LoginPage() {
         </>
       }
     >
-      <SocialButtons onPick={finish} />
+      <SocialButtons onPick={() => { setBusy(true); window.setTimeout(() => { signInGuest(); navigate({ to: redirect ?? '/' }) }, 700) }} />
       <form className="stack" onSubmit={submit} noValidate>
         <div className="field">
           <label className="field__label" htmlFor="li-email">Email</label>
@@ -83,15 +161,7 @@ function LoginPage() {
         <div className="field">
           <div className="split">
             <label className="field__label" htmlFor="li-pass">Password</label>
-            <button
-              type="button"
-              className="link-btn"
-              onClick={() => {
-                setResetEmail(email)
-                setResetSent(false)
-                setResetOpen(true)
-              }}
-            >
+            <button type="button" className="link-btn" onClick={openReset}>
               Forgot?
             </button>
           </div>
@@ -100,38 +170,64 @@ function LoginPage() {
             {errors.password ?? ''}
           </p>
         </div>
+        {errors.form && (
+          <p className="field__help field__help--error" role="alert">
+            {errors.form}
+          </p>
+        )}
         <button type="submit" className="btn btn--primary btn--block" data-loading={busy || undefined} disabled={busy}>
           Sign in
         </button>
       </form>
+      <p className="auth__hint">Demo account — farhan@example.com · demo1234</p>
 
       <Sheet
         open={resetOpen}
         onClose={() => setResetOpen(false)}
-        title={resetSent ? 'Check your inbox' : 'Reset your password'}
-        footer={
-          resetSent ? (
-            <button type="button" className="btn btn--primary btn--block" onClick={() => setResetOpen(false)}>
-              Back to sign in
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="btn btn--primary btn--block"
-              disabled={!EMAIL_RE.test(resetEmail.trim())}
-              onClick={() => setResetSent(true)}
-            >
-              Send reset link
-            </button>
-          )
-        }
+        title={resetStep === 'done' ? 'Password updated' : resetStep === 'code' ? 'Choose a new password' : 'Reset your password'}
+        footer={resetFooter}
       >
-        {resetSent ? (
+        {resetStep === 'done' ? (
           <div style={{ textAlign: 'center', paddingBlock: 'var(--space-md)' }}>
             <SuccessMark />
             <p className="row__sub">
-              If {resetEmail.trim()} has an account, a reset link is on its way. It expires in an hour.
+              The password for {resetEmail.trim()} is updated. Use it to sign in — your old
+              password no longer works.
             </p>
+          </div>
+        ) : resetStep === 'code' ? (
+          <div className="stack">
+            <p className="row__sub">
+              We sent a six-digit code to <strong>{resetEmail.trim()}</strong>. It expires in an
+              hour.
+            </p>
+            <p className="auth__hint">Demo — the code is 123456</p>
+            <div className="field">
+              <label className="field__label" htmlFor="rs-code">Code</label>
+              <input
+                id="rs-code"
+                className="input"
+                inputMode="numeric"
+                value={resetCode}
+                onChange={(e) => setResetCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="123456"
+                autoComplete="one-time-code"
+              />
+            </div>
+            <div className="field">
+              <label className="field__label" htmlFor="rs-new">New password</label>
+              <PasswordInput id="rs-new" value={newPass} onChange={setNewPass} autoComplete="new-password" invalid={!!resetError && newPass.length < 8} />
+              <p className="field__help">At least 8 characters.</p>
+            </div>
+            <div className="field">
+              <label className="field__label" htmlFor="rs-confirm">Repeat new password</label>
+              <PasswordInput id="rs-confirm" value={confirmPass} onChange={setConfirmPass} autoComplete="new-password" />
+            </div>
+            {resetError && (
+              <p className="field__help field__help--error" role="alert">
+                {resetError}
+              </p>
+            )}
           </div>
         ) : (
           <div className="field">
@@ -145,7 +241,7 @@ function LoginPage() {
               value={resetEmail}
               onChange={(e) => setResetEmail(e.target.value)}
             />
-            <p className="field__help">We’ll email a link to choose a new password.</p>
+            <p className="field__help">We’ll email a six-digit code to choose a new password.</p>
           </div>
         )}
       </Sheet>
