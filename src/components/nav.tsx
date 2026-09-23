@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, Outlet, useNavigate } from '@tanstack/react-router'
+import { Link, Outlet, useNavigate, useRouterState } from '@tanstack/react-router'
 import {
   ArrowLeft,
+  Bell,
   Check,
+  Heart,
   HeartPulse,
   Home,
   MapPin,
@@ -31,6 +33,7 @@ import {
   setCartQty,
   useAppState,
   useToasts,
+  useUnreadCount,
 } from '../lib/store'
 
 const NAV_ITEMS = [
@@ -56,18 +59,39 @@ function BrandMark() {
 
 /* ---------------------------------------------------------------- topbar (phone) */
 
+function Badge({ n }: { n: number }) {
+  if (n <= 0) return null
+  return (
+    <span key={n} className="icon-btn__badge">
+      {n > 9 ? '9+' : n}
+    </span>
+  )
+}
+
 export function Topbar() {
   const { cart } = useAppState()
   const count = cartCount(cart)
+  const unread = useUnreadCount()
 
   return (
     <header className="topbar">
       <div className="topbar__inner">
         <BrandMark />
         <span className="topbar__spacer" />
+        <Link to="/search" className="icon-btn icon-btn--bare" aria-label="Search">
+          <Search size={19} strokeWidth={1.75} />
+        </Link>
+        <Link
+          to="/notifications"
+          className="icon-btn icon-btn--bare"
+          aria-label={`Notifications${unread > 0 ? `, ${unread} unread` : ''}`}
+        >
+          <Bell size={19} strokeWidth={1.75} />
+          <Badge n={unread} />
+        </Link>
         <Link
           to="/cart"
-          className="icon-btn"
+          className="icon-btn icon-btn--bare"
           aria-label={`Cart, ${count} item${count === 1 ? '' : 's'}`}
         >
           <ShoppingCart size={18} strokeWidth={1.75} />
@@ -85,41 +109,83 @@ export function Topbar() {
 /* ------------------------------------------------- site header (desktop, ecommerce) */
 
 export function SiteHeader({ onOpenCart }: { onOpenCart: () => void }) {
-  const { cart } = useAppState()
+  const { cart, savedProducts, savedClinics } = useAppState()
   const count = cartCount(cart)
+  const unread = useUnreadCount()
+  const saved = savedProducts.length + savedClinics.length
   const navigate = useNavigate()
   const [q, setQ] = useState('')
 
+  const pathname = useRouterState({ select: (st) => st.location.pathname })
+  const onShop = pathname === '/shop' || pathname === '/shop/'
+
+  // on the shop the header box filters the grid live; elsewhere Enter opens full search
+  const urlQ = useRouterState({
+    select: (st) => ((st.location.search as { q?: string }).q ?? ''),
+  })
+
+  // mirror the shop's own query into the box so both inputs agree
   useEffect(() => {
+    if (onShop) setQ(urlQ)
+  }, [onShop, urlQ])
+
+  useEffect(() => {
+    if (!onShop) return
     const term = q.trim()
-    if (!term) return
+    if (term === urlQ.trim()) return
     const t = window.setTimeout(() => {
-      navigate({ to: '/shop', search: (prev) => ({ ...prev, q: term }), replace: true })
+      navigate({ to: '/shop', search: (prev) => ({ ...prev, q: term || undefined }), replace: true })
     }, 350)
     return () => window.clearTimeout(t)
-  }, [q, navigate])
+  }, [q, navigate, onShop, urlQ])
 
   return (
     <header className="site-header">
       <div className="site-header__inner">
         <BrandMark />
-        <div className="site-search">
+        <form
+          className="site-search"
+          role="search"
+          onSubmit={(e) => {
+            e.preventDefault()
+            const term = q.trim()
+            if (!onShop) navigate({ to: '/search', search: { q: term || undefined } })
+          }}
+        >
           <Search size={16} strokeWidth={1.75} aria-hidden />
           <input
             type="search"
-            placeholder="Search supplies"
+            placeholder={onShop ? 'Filter supplies' : 'Search supplies, clinics, help'}
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            aria-label="Search supplies"
+            aria-label={onShop ? 'Filter supplies' : 'Search supplies, clinics and help'}
           />
-        </div>
+        </form>
         <nav className="site-nav" aria-label="Primary">
-          {NAV_ITEMS.filter((i) => !i.exact).map((item) => (
+          {NAV_ITEMS.filter((i) => !i.exact && i.to !== '/profile').map((item) => (
             <Link key={item.to} to={item.to} className="site-nav__link">
               {item.label}
             </Link>
           ))}
+          <Link to="/emergency" className="site-nav__link site-nav__link--sos">
+            Emergency
+          </Link>
         </nav>
+        <div className="site-header__icons">
+        <Link to="/saved" className="icon-btn icon-btn--bare" aria-label={`Saved, ${saved} items`}>
+          <Heart size={18} strokeWidth={1.75} />
+        </Link>
+        <Link
+          to="/notifications"
+          className="icon-btn icon-btn--bare"
+          aria-label={`Notifications${unread > 0 ? `, ${unread} unread` : ''}`}
+        >
+          <Bell size={18} strokeWidth={1.75} />
+          <Badge n={unread} />
+        </Link>
+        <Link to="/profile" className="icon-btn icon-btn--bare" aria-label="Account">
+          <UserRound size={18} strokeWidth={1.75} />
+        </Link>
         <button
           type="button"
           className="icon-btn site-header__cart"
@@ -127,12 +193,9 @@ export function SiteHeader({ onOpenCart }: { onOpenCart: () => void }) {
           aria-label={`Open cart, ${count} item${count === 1 ? '' : 's'}`}
         >
           <ShoppingCart size={18} strokeWidth={1.75} />
-          {count > 0 && (
-            <span key={count} className="icon-btn__badge">
-              {count > 9 ? '9+' : count}
-            </span>
-          )}
+          <Badge n={count} />
         </button>
+        </div>
       </div>
     </header>
   )
@@ -438,7 +501,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
   )
 }
 
-/* ------------------------------------------------------------- footer (desktop) */
+/* -------------------------------------------------------------------- footer */
 
 export function SiteFooter() {
   return (
@@ -452,7 +515,7 @@ export function SiteFooter() {
           </p>
         </div>
         <nav aria-label="Shop categories">
-          <h3 className="tag">Shop</h3>
+          <h2 className="tag">Shop</h2>
           <ul>
             {CATEGORIES.filter((c) => c.id !== 'all').map((c) => (
               <li key={c.id}>
@@ -464,24 +527,36 @@ export function SiteFooter() {
           </ul>
         </nav>
         <nav aria-label="Care">
-          <h3 className="tag">Care</h3>
+          <h2 className="tag">Care</h2>
           <ul>
             <li><Link to="/clinics">Find a clinic</Link></li>
-            <li><Link to="/health">Vaccinations</Link></li>
-            <li><Link to="/bookings">My bookings</Link></li>
+            <li><Link to="/clinics" search={{ service: 'vaccination' }}>Vaccinations</Link></li>
+            <li><Link to="/clinics" search={{ service: 'grooming' }}>Grooming</Link></li>
+            <li><Link to="/emergency">Emergency</Link></li>
           </ul>
         </nav>
         <nav aria-label="Account">
-          <h3 className="tag">Account</h3>
+          <h2 className="tag">Account</h2>
           <ul>
             <li><Link to="/profile">Profile</Link></li>
+            <li><Link to="/pets">Pets</Link></li>
             <li><Link to="/orders">Orders</Link></li>
-            <li><Link to="/cart">Cart</Link></li>
+            <li><Link to="/bookings">Bookings</Link></li>
+            <li><Link to="/saved">Saved</Link></li>
+          </ul>
+        </nav>
+        <nav aria-label="Company">
+          <h2 className="tag">Company</h2>
+          <ul>
+            <li><Link to="/help">Help centre</Link></li>
+            <li><Link to="/about">About</Link></li>
+            <li><Link to="/privacy">Privacy</Link></li>
+            <li><Link to="/terms">Terms</Link></li>
           </ul>
         </nav>
       </div>
       <div className="site-footer__baseline">
-        <span className="mono-label">PetSafeCare — demo shop &amp; clinic booking</span>
+        <span className="mono-label">© 2026 PetSafeCare</span>
         <span className="mono-label">Free delivery over {money(FREE_DELIVERY_THRESHOLD)} · 30-day returns</span>
       </div>
     </footer>
@@ -540,12 +615,27 @@ export function ToastRegion() {
 
 /* -------------------------------------------------------------- app frame */
 
+const BARE_ROUTES = ['/login', '/signup']
+
 export function AppFrame() {
   const [cartOpen, setCartOpen] = useState(false)
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
 
   useEffect(() => {
     hydrateFromStorage()
   }, [])
+
+  // auth screens are focused, full-bleed pages — no shop chrome
+  if (BARE_ROUTES.includes(pathname)) {
+    return (
+      <div className="app app--bare">
+        <main>
+          <Outlet />
+        </main>
+        <ToastRegion />
+      </div>
+    )
+  }
 
   return (
     <div className="app">

@@ -1,5 +1,7 @@
 import type {
   Booking,
+  Faq,
+  Review,
   Clinic,
   Order,
   Pet,
@@ -39,6 +41,7 @@ export const PRODUCTS: Product[] = [
     stock: 18,
     blurb:
       'Slow-cooked chicken and brown rice recipe with omega-3s for coat health. Complete nutrition for adult dogs of all breeds.',
+    suits: ['dog'],
   },
   {
     id: 'p02',
@@ -52,6 +55,7 @@ export const PRODUCTS: Product[] = [
     stock: 32,
     blurb:
       'Wild-caught salmon first ingredient, grain-free, with taurine for heart health and a hydration-friendly kibble shape.',
+    suits: ['cat'],
   },
   {
     id: 'p03',
@@ -65,6 +69,7 @@ export const PRODUCTS: Product[] = [
     stock: 25,
     blurb:
       'Small-breed kibble with DHA for brain development and added calcium for growing joints. For pups up to 12 months.',
+    suits: ['dog'],
   },
   {
     id: 'p04',
@@ -78,6 +83,7 @@ export const PRODUCTS: Product[] = [
     stock: 54,
     blurb:
       'Single-ingredient salmon treats, air-dried and soft enough for training rewards. No fillers, no added sugar.',
+    suits: ['dog', 'cat'],
   },
   {
     id: 'p05',
@@ -91,6 +97,7 @@ export const PRODUCTS: Product[] = [
     stock: 41,
     blurb:
       'Oven-baked whole-wheat biscuits with unsweetened peanut butter. Crunchy texture helps scrape plaque while they chew.',
+    suits: ['dog'],
   },
   {
     id: 'p06',
@@ -104,6 +111,7 @@ export const PRODUCTS: Product[] = [
     stock: 22,
     blurb:
       'Colloidal oatmeal and aloe formula for sensitive skin. pH-balanced for dogs and cats, gentle enough for weekly baths.',
+    suits: ['dog', 'cat'],
   },
   {
     id: 'p07',
@@ -117,6 +125,7 @@ export const PRODUCTS: Product[] = [
     stock: 37,
     blurb:
       'Silicone-tipped glove that lifts loose fur while petting. Works wet or dry, and rinses clean under a tap.',
+    suits: ['dog', 'cat'],
   },
   {
     id: 'p08',
@@ -130,6 +139,7 @@ export const PRODUCTS: Product[] = [
     stock: 29,
     blurb:
       'Braided cotton ropes in two lengths for tug and fetch. Flossy fibres help clean teeth during play.',
+    suits: ['dog'],
   },
   {
     id: 'p09',
@@ -143,6 +153,7 @@ export const PRODUCTS: Product[] = [
     stock: 48,
     blurb:
       'Natural feathers on a flexible wand with a bell. Replacement feathers included — indoor cats burn real energy chasing it.',
+    suits: ['cat'],
   },
   {
     id: 'p10',
@@ -156,6 +167,7 @@ export const PRODUCTS: Product[] = [
     stock: 0,
     blurb:
       'Natural rubber bone with a low-toned squeaker that survives heavy chewers. Dishwasher-safe, floats in water.',
+    suits: ['dog'],
   },
   {
     id: 'p11',
@@ -169,6 +181,7 @@ export const PRODUCTS: Product[] = [
     stock: 16,
     blurb:
       'Veterinary-strength fipronil spot-on for dogs over 10 kg. One application protects for four weeks.',
+    suits: ['dog'],
   },
   {
     id: 'p12',
@@ -182,6 +195,7 @@ export const PRODUCTS: Product[] = [
     stock: 20,
     blurb:
       'Glucosamine and green-lipped mussel chews for hips and joints. Duck-flavoured, for senior and active dogs alike.',
+    suits: ['dog'],
   },
   {
     id: 'p13',
@@ -195,6 +209,7 @@ export const PRODUCTS: Product[] = [
     stock: 26,
     blurb:
       'Seaweed-derived powder sprinkled on food to reduce plaque over time. Odourless, tasteless, vet-formulated.',
+    suits: ['dog', 'cat'],
   },
 ]
 
@@ -321,8 +336,41 @@ export const CLINICS: Clinic[] = [
 ]
 
 export const PETS: Pet[] = [
-  { id: 'pet1', name: 'Miso', species: 'cat', breed: 'British Shorthair', ageYears: 3, weightKg: 4.2 },
-  { id: 'pet2', name: 'Bolt', species: 'dog', breed: 'Border Collie', ageYears: 5, weightKg: 18.4 },
+  {
+    id: 'pet1',
+    name: 'Miso',
+    species: 'cat',
+    breed: 'British Shorthair',
+    ageYears: 3,
+    weightKg: 4.2,
+    sex: 'female',
+    neutered: true,
+    microchip: '985 112 004 318 207',
+    weightLog: [
+      { daysAgo: 300, kg: 3.8 },
+      { daysAgo: 200, kg: 4.0 },
+      { daysAgo: 110, kg: 4.1 },
+      { daysAgo: 21, kg: 4.2 },
+    ],
+  },
+  {
+    id: 'pet2',
+    name: 'Bolt',
+    species: 'dog',
+    breed: 'Border Collie',
+    ageYears: 5,
+    weightKg: 18.4,
+    sex: 'male',
+    neutered: true,
+    microchip: '985 112 007 991 540',
+    allergies: 'Chicken — mild skin reaction',
+    weightLog: [
+      { daysAgo: 360, kg: 19.1 },
+      { daysAgo: 240, kg: 18.9 },
+      { daysAgo: 120, kg: 18.6 },
+      { daysAgo: 35, kg: 18.4 },
+    ],
+  },
 ]
 
 export const VACCINES: VaccineRecord[] = [
@@ -497,4 +545,171 @@ export function slotAvailable(clinicId: string, dayIso: string, slot: string): b
 export const BOOKING_SLOTS = [
   '09:00', '09:45', '10:30', '11:15', '12:00',
   '13:30', '14:15', '15:00', '15:45', '16:30', '17:15',
+]
+
+/* ------------------------------------------------------------ reviews */
+
+const REVIEW_AUTHORS = [
+  'Priya S.', 'Marcus L.', 'Hana K.', 'Diego R.', 'Aisha M.', 'Tom W.',
+  'Lena F.', 'Omar B.', 'Grace C.', 'Yuki T.', 'Sam O.', 'Nadia P.',
+]
+
+const PRODUCT_REVIEW_POOL: Record<string, string[]> = {
+  food: [
+    'Switched over a week like the bag says — no tummy trouble and the coat is noticeably shinier.',
+    'Picky eater finishes the bowl every time now. Resealable bag actually reseals.',
+    'Good ingredient list for the price. Delivery came a day early.',
+    'Kibble size is right for a medium mouth. Would buy again.',
+  ],
+  treats: [
+    'Small enough to break up for training. Gets instant attention.',
+    'No weird smell and no crumbs everywhere. The pouch lasts a while.',
+    'My vet approved the ingredient list. Both of mine go wild for these.',
+    'Soft enough for an older dog with a couple of missing teeth.',
+  ],
+  grooming: [
+    'Gentle on sensitive skin — the itching settled after two baths.',
+    'Rinses out easily, no lingering perfume smell.',
+    'Pulled out a surprising amount of undercoat in five minutes.',
+    'Works well between professional grooms.',
+  ],
+  toys: [
+    'Survived a month with a heavy chewer, which is a record in this house.',
+    'Endless entertainment in the evenings. Replacement parts are a nice touch.',
+    'Good size, washes well. Squeaker is quieter than most — thank you.',
+    'Keeps them busy while I work from home.',
+  ],
+  health: [
+    'Easy to apply and no reaction. Clear instructions on the pack.',
+    'Noticeably easier on the stairs after a few weeks.',
+    'Palatable — no need to hide it in food.',
+    'Vet recommended this brand and the price here is fair.',
+  ],
+}
+
+const CLINIC_REVIEW_POOL = [
+  'Took the time to explain everything and never rushed us. Reception texted a reminder the day before.',
+  'Clean, calm waiting room and they were on time to the minute.',
+  'Handled a very anxious cat with real patience. Fair pricing, itemised bill.',
+  'Booked through the app the same morning and were seen by lunch.',
+  'Follow-up call two days later to check on recovery — rare these days.',
+  'Straightforward advice without upselling. Will be back for the booster.',
+]
+
+function pick<T>(pool: T[], seed: number, n: number): T[] {
+  const out: T[] = []
+  for (let i = 0; out.length < Math.min(n, pool.length); i++) {
+    const item = pool[(seed + i * 7) % pool.length]
+    if (!out.includes(item)) out.push(item)
+  }
+  return out
+}
+
+/** deterministic sample reviews — stable across SSR and client */
+export function productReviews(id: string): Review[] {
+  const p = getProduct(id)
+  if (!p) return []
+  const seed = hashSeed(id)
+  return pick(PRODUCT_REVIEW_POOL[p.category], seed, 3).map((text, i) => ({
+    id: `${id}-r${i}`,
+    author: REVIEW_AUTHORS[(seed + i * 5) % REVIEW_AUTHORS.length],
+    rating: Math.max(3, Math.min(5, Math.round(p.rating + (i === 2 ? -1 : 0)))),
+    daysAgo: 3 + ((seed >> (i + 2)) % 60),
+    text,
+    pet: p.suits[i % p.suits.length] === 'cat' ? 'Cat parent' : 'Dog parent',
+  }))
+}
+
+export function clinicReviews(id: string): Review[] {
+  const c = getClinic(id)
+  if (!c) return []
+  const seed = hashSeed(id)
+  return pick(CLINIC_REVIEW_POOL, seed, 3).map((text, i) => ({
+    id: `${id}-r${i}`,
+    author: REVIEW_AUTHORS[(seed + i * 3) % REVIEW_AUTHORS.length],
+    rating: Math.max(3, Math.min(5, Math.round(c.rating + (i === 2 ? -0.6 : 0)))),
+    daysAgo: 2 + ((seed >> (i + 1)) % 90),
+    text,
+  }))
+}
+
+/** 5→1 star distribution that sums to `total` and averages near `rating` */
+export function ratingBreakdown(rating: number, total: number): number[] {
+  const five = Math.round(total * Math.min(0.92, Math.max(0.3, (rating - 3.4) / 1.7)))
+  const four = Math.round((total - five) * 0.62)
+  const three = Math.round((total - five - four) * 0.55)
+  const two = Math.round((total - five - four - three) * 0.5)
+  const one = Math.max(0, total - five - four - three - two)
+  return [five, four, three, two, one]
+}
+
+/* ---------------------------------------------------------------- help */
+
+export const FAQS: Faq[] = [
+  {
+    topic: 'orders',
+    q: 'How long does delivery take?',
+    a: `Most orders arrive in 2–4 days. Delivery is free on orders over $${FREE_DELIVERY_THRESHOLD}; below that it is a flat $${DELIVERY_FEE.toFixed(2)}.`,
+  },
+  {
+    topic: 'orders',
+    q: 'Can I return something my pet will not eat?',
+    a: 'Yes. Unopened items can be returned within 30 days, and opened food within 14 days if your pet refuses it. Start a return from the order page.',
+  },
+  {
+    topic: 'orders',
+    q: 'Can I change my delivery address after ordering?',
+    a: 'While an order is still “Placed” you can contact support to change the address. Once it is in transit the courier holds the original address.',
+  },
+  {
+    topic: 'bookings',
+    q: 'How do I reschedule or cancel a clinic visit?',
+    a: 'Open the booking from Bookings and choose Reschedule or Cancel. Cancelling more than 24 hours ahead is always free.',
+  },
+  {
+    topic: 'bookings',
+    q: 'What does “Verified” mean on a clinic?',
+    a: 'We have checked the clinic’s veterinary licence and registration, and confirmed its address and opening hours in person or by video call.',
+  },
+  {
+    topic: 'bookings',
+    q: 'Do I pay for a visit in the app?',
+    a: 'No — you pay the clinic directly after your visit. Prices shown are the clinic’s list prices and may change if extra treatment is needed.',
+  },
+  {
+    topic: 'health',
+    q: 'Where do vaccination records come from?',
+    a: 'Linked clinics sync records into your Health tab. You can also add a record yourself from a certificate or your pet’s passport.',
+  },
+  {
+    topic: 'health',
+    q: 'When will I be reminded about a vaccine?',
+    a: 'With vaccine reminders on, we notify you two weeks before a due date and again on the day if nothing is booked.',
+  },
+  {
+    topic: 'account',
+    q: 'Can more than one person manage the same pets?',
+    a: 'Household sharing is coming soon. For now, one account holds each pet’s records.',
+  },
+  {
+    topic: 'account',
+    q: 'How do I delete my account?',
+    a: 'Email support from the Help page and we will remove your account and records within 30 days.',
+  },
+]
+
+export const SUPPORT = {
+  email: 'help@petsafecare.app',
+  phone: '(555) 010-7387',
+  hours: 'Daily · 8:00–20:00',
+}
+
+export const EMERGENCY_SIGNS = [
+  'Trouble breathing, choking, or blue-tinged gums',
+  'Collapse, seizures, or unable to stand',
+  'Heavy bleeding that does not stop within five minutes',
+  'Swallowed something toxic — chocolate, grapes, lilies, medicines, antifreeze',
+  'Swollen, hard belly with retching but nothing coming up',
+  'Straining to urinate with little or no urine (especially male cats)',
+  'Suspected broken bone or a road accident, even if they seem fine',
 ]

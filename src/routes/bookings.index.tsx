@@ -4,9 +4,9 @@ import { CalendarDays } from 'lucide-react'
 
 import { BookingCard } from '../components/cards'
 import { EmptyState } from '../components/ui'
-import { cancelBooking, useAppState } from '../lib/store'
+import { useAppState } from '../lib/store'
 
-export const Route = createFileRoute('/bookings')({
+export const Route = createFileRoute('/bookings/')({
   head: () => ({ meta: [{ title: 'Bookings · PetSafeCare' }] }),
   component: BookingsPage,
 })
@@ -64,16 +64,7 @@ function BookingsPage() {
       {list.length > 0 ? (
         <div className="history-grid rise" style={{ '--i': 2 } as React.CSSProperties}>
           {list.map((b) => (
-            <div key={b.id}>
-              <BookingCard booking={b} />
-              {b.status === 'upcoming' && (
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'var(--space-2xs)' }}>
-                  <button type="button" className="btn btn--quiet btn--sm" onClick={() => cancelBooking(b.id)}>
-                    Cancel booking
-                  </button>
-                </div>
-              )}
-            </div>
+            <BookingCard key={b.id} booking={b} />
           ))}
         </div>
       ) : (

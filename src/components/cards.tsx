@@ -1,10 +1,11 @@
 import { Link } from '@tanstack/react-router'
-import { BadgeCheck, Check, ChevronDown, ChevronRight, Clock, MapPin, Syringe, Truck } from 'lucide-react'
+import { BadgeCheck, Check, ChevronRight, Clock, MapPin, Syringe, Truck } from 'lucide-react'
 
 import { money, relativeDue, shortDate, dateFromOffset } from '../lib/format'
 import { getProduct, getService, getClinic } from '../lib/data'
 import { addToCart, useAppState } from '../lib/store'
 import type { Booking, Order, VaccineRecord } from '../lib/types'
+import { SaveButton } from './blocks'
 import { CategoryIcon, OrderStatusLabel, PetGlyph, Pill, Price, ServiceIcon, Stars, tileClass, useCopiedLabel } from './ui'
 
 /* ------------------------------------------------------------ product card */
@@ -41,6 +42,7 @@ export function ProductCard({ id, i = 0 }: { id: string; i?: number }) {
           </span>
         </span>
       </Link>
+      <SaveButton kind="product" id={product.id} name={product.name} variant="overlay" />
       <button
         type="button"
         className="btn btn--ghost btn--sm product-card__add"
@@ -114,9 +116,12 @@ export function ClinicCard({ id }: { id: string }) {
         <span className="mono-label">
           {clinic.services.length} services · from {money(Math.min(...clinic.services.map((s) => s.price)))}
         </span>
-        <Link to="/clinics/$id" params={{ id: clinic.id }} className="btn btn--primary btn--sm">
-          Book
-        </Link>
+        <span style={{ display: 'inline-flex', gap: 'var(--space-2xs)', alignItems: 'center' }}>
+          <SaveButton kind="clinic" id={clinic.id} name={clinic.name} />
+          <Link to="/clinics/$id" params={{ id: clinic.id }} className="btn btn--primary btn--sm">
+            Book
+          </Link>
+        </span>
       </div>
     </article>
   )
@@ -125,60 +130,38 @@ export function ClinicCard({ id }: { id: string }) {
 /* -------------------------------------------------------------- order card */
 
 export function OrderCard({ order }: { order: Order }) {
+  const count = order.items.reduce((n, i) => n + i.qty, 0)
   return (
-    <details className="card">
-      <summary className="row order-summary" style={{ cursor: 'pointer', listStyle: 'none' }}>
-        <span className="row__grow" style={{ minWidth: 0 }}>
-          <span className="split" style={{ marginBottom: 2 }}>
-            <span className="mono-label">#{order.id}</span>
-            <OrderStatusLabel status={order.status} />
-          </span>
-          <span className="row__sub num">
-            {shortDate(dateFromOffset(-order.placedAtDaysAgo))} · {order.items.reduce((n, i) => n + i.qty, 0)}{' '}
-            item{order.items.reduce((n, i) => n + i.qty, 0) === 1 ? '' : 's'}
-          </span>
-        </span>
-        <span className="order-summary__side">
-          <ChevronDown size={14} strokeWidth={1.75} className="order-chev" aria-hidden />
-          <span className="price price--lg">{money(order.total)}</span>
-        </span>
-      </summary>
-      <div style={{ padding: '0 var(--space-sm) var(--space-sm)' }}>
-        <hr className="hr" style={{ marginBottom: 'var(--space-2xs)' }} />
-        {order.items.map((item) => {
+    <Link to="/orders/$id" params={{ id: order.id }} className="card card--press card--pad order-card">
+      <span className="split">
+        <span className="mono-label">#{order.id}</span>
+        <OrderStatusLabel status={order.status} />
+      </span>
+      <span className="order-card__tiles" aria-hidden>
+        {order.items.slice(0, 4).map((item) => {
           const p = getProduct(item.productId)
           if (!p) return null
           return (
-            <div key={item.productId} className="row" style={{ padding: 'var(--space-2xs) 0', gap: 'var(--space-xs)' }}>
-              <span className={`tile ${tileClass(p.category)}`} style={{ width: '2rem', height: '2rem' }}>
-                <CategoryIcon category={p.category} size={15} />
-              </span>
-              <span className="row__grow" style={{ minWidth: 0 }}>
-                <span className="row__title" style={{ fontSize: 'var(--text-sm)' }}>{p.name}</span>
-              </span>
-              <span className="row__sub num">×{item.qty}</span>
-              <span className="price">{money(item.priceAtPurchase * item.qty)}</span>
-            </div>
+            <span key={item.productId} className={`tile ${tileClass(p.category)}`}>
+              <CategoryIcon category={p.category} size={16} />
+            </span>
           )
         })}
-        {order.delivery > 0 && (
-          <p className="row__sub" style={{ textAlign: 'right' }}>
-            incl. {money(order.delivery)} delivery
-          </p>
-        )}
-        <p className="row__sub num" style={{ paddingTop: 'var(--space-2xs)' }}>
-          Deliver to {order.addressLine}
-        </p>
-        {order.status !== 'delivered' && (
-          <p className="row__sub" style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 'var(--space-2xs)' }}>
-            <Truck size={14} strokeWidth={1.75} />
-            {order.status === 'transit'
-              ? 'Courier expects delivery tomorrow before 8 pm.'
-              : 'Packing now — we email when it ships.'}
-          </p>
-        )}
-      </div>
-    </details>
+        {order.items.length > 4 && <span className="tile num">+{order.items.length - 4}</span>}
+      </span>
+      <span className="split">
+        <span className="row__sub num">
+          {shortDate(dateFromOffset(-order.placedAtDaysAgo))} · {count} item{count === 1 ? '' : 's'}
+        </span>
+        <span className="price price--lg">{money(order.total)}</span>
+      </span>
+      {order.status !== 'delivered' && (
+        <span className="row__sub icon-line" style={{ marginTop: 'var(--space-2xs)' }}>
+          <Truck size={14} strokeWidth={1.75} aria-hidden />
+          {order.status === 'transit' ? 'Arriving tomorrow before 8 pm' : 'Packing now'}
+        </span>
+      )}
+    </Link>
   )
 }
 
@@ -192,15 +175,16 @@ export function BookingCard({ booking }: { booking: Booking }) {
   if (!clinic || !service) return null
 
   return (
-    <article className="card card--pad">
+    <Link to="/bookings/$id" params={{ id: booking.id }} className="card card--pad card--press booking-card">
       <div className="split" style={{ marginBottom: 'var(--space-2xs)' }}>
         <span className="tile" style={{ width: '2.25rem', height: '2.25rem' }}>
           <ServiceIcon type={service.type} size={16} />
         </span>
         <span className="row__grow" style={{ minWidth: 0, marginInline: 'var(--space-xs) 0' }}>
-          <h3 className="row__title">{service.name}</h3>
+          <span className="row__title">{service.name}</span>
           <span className="row__sub">
-            {clinic.name} · {pet?.name}
+            {clinic.name}
+            {pet ? ` · ${pet.name}` : ''}
           </span>
         </span>
         <span className="price price--lg">{money(service.price)}</span>
@@ -213,14 +197,15 @@ export function BookingCard({ booking }: { booking: Booking }) {
         {booking.status === 'completed' && <Pill tone="ok">Completed</Pill>}
         {booking.status === 'cancelled' && <Pill tone="bad">Cancelled</Pill>}
       </div>
-    </article>
+    </Link>
   )
 }
 
 /* ------------------------------------------------------------- vaccine row */
 
-export function VaccineRow({ vax }: { vax: VaccineRecord }) {
-  const petName = useAppState().pets.find((p) => p.id === vax.petId)?.name
+export function VaccineRow({ vax, showPet = true }: { vax: VaccineRecord; showPet?: boolean }) {
+  const found = useAppState().pets.find((p) => p.id === vax.petId)?.name
+  const petName = showPet ? found : undefined
   const tone =
     vax.status === 'overdue' ? 'bad' : vax.status === 'due' ? 'warn' : vax.status === 'scheduled' ? 'info' : 'ok'
   const label =

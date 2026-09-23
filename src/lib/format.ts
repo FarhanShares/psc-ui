@@ -47,3 +47,40 @@ export function greeting(d: Date = new Date()): string {
   if (h < 17) return 'Good afternoon'
   return 'Good evening'
 }
+
+export function timeAgo(minutes: number): string {
+  if (minutes < 2) return 'just now'
+  if (minutes < 60) return `${minutes} min ago`
+  const hours = Math.round(minutes / 60)
+  if (hours < 24) return `${hours} h ago`
+  const days = Math.round(hours / 24)
+  if (days < 7) return days === 1 ? 'yesterday' : `${days} days ago`
+  const weeks = Math.round(days / 7)
+  if (weeks < 5) return `${weeks} wk ago`
+  const months = Math.round(days / 30)
+  return `${months} mo ago`
+}
+
+export function daysAgoLabel(days: number): string {
+  return timeAgo(days * 60 * 24)
+}
+
+export function relativeDay(offset: number): string {
+  if (offset === 0) return 'Today'
+  if (offset === 1) return 'Tomorrow'
+  if (offset === -1) return 'Yesterday'
+  return longDate(dateFromOffset(offset))
+}
+
+export function plural(n: number, one: string, many = `${one}s`): string {
+  return `${n} ${n === 1 ? one : many}`
+}
+
+export function initials(name: string): string {
+  return name
+    .split(' ')
+    .filter((w) => /^[A-Z]/.test(w))
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join('')
+}

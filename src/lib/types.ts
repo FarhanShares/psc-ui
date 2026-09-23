@@ -13,6 +13,8 @@ export interface Product {
   reviews: number
   stock: number
   blurb: string
+  /** which species the product suits — drives per-pet recommendations */
+  suits: Species[]
 }
 
 export type ServiceType =
@@ -55,6 +57,12 @@ export interface Pet {
   breed: string
   ageYears: number
   weightKg: number
+  sex?: 'male' | 'female'
+  neutered?: boolean
+  microchip?: string
+  allergies?: string
+  /** weight history, oldest first — `daysAgo` relative to today */
+  weightLog?: { daysAgo: number; kg: number }[]
 }
 
 export type VaxStatus = 'ok' | 'due' | 'overdue' | 'scheduled'
@@ -127,4 +135,34 @@ export interface ClinicLink {
   clinicId: string
   syncedAgoLabel: string
   records: number
+}
+
+export interface Review {
+  id: string
+  author: string
+  rating: number
+  daysAgo: number
+  text: string
+  pet?: string
+}
+
+export type NoticeKind = 'vaccine' | 'order' | 'booking' | 'offer' | 'sync'
+
+export interface Notice {
+  id: string
+  kind: NoticeKind
+  title: string
+  body: string
+  /** smaller = more recent; used for sorting and the relative time label */
+  minutesAgo: number
+  to: string
+  params?: Record<string, string>
+  search?: Record<string, string>
+  urgent?: boolean
+}
+
+export interface Faq {
+  q: string
+  a: string
+  topic: 'orders' | 'bookings' | 'health' | 'account'
 }

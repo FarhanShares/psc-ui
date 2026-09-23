@@ -5,7 +5,7 @@ import { OrderCard } from '../components/cards'
 import { EmptyState } from '../components/ui'
 import { useAppState } from '../lib/store'
 
-export const Route = createFileRoute('/orders')({
+export const Route = createFileRoute('/orders/')({
   head: () => ({ meta: [{ title: 'Orders · PetSafeCare' }] }),
   component: OrdersPage,
 })
