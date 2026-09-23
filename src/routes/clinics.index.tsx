@@ -29,7 +29,7 @@ type SortId = 'recommended' | 'distance' | 'rating'
 
 
 export const Route = createFileRoute('/clinics/')({
-  head: () => ({ title: 'Clinics · PetSafeCare' }),
+  head: () => ({ meta: [{ title: 'Clinics · PetSafeCare' }] }),
   validateSearch: (search: Record<string, unknown>): { service?: string } => ({
     service: typeof search.service === 'string' ? search.service : undefined,
   }),

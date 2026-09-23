@@ -9,7 +9,7 @@ import { bookService, pushToast, useAppState } from '../lib/store'
 import type { ClinicService } from '../lib/types'
 
 export const Route = createFileRoute('/clinics/$id')({
-  head: ({ params }) => ({ title: `${getClinic(params.id)?.name ?? 'Clinic'} · PetSafeCare` }),
+  head: ({ params }) => ({ meta: [{ title: `${getClinic(params.id)?.name ?? 'Clinic'} · PetSafeCare` }] }),
   component: ClinicPage,
 })
 

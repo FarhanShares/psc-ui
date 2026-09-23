@@ -7,7 +7,7 @@ import { PetGlyph } from '../components/ui'
 import { pushToast, syncClinicRecords, useAppState } from '../lib/store'
 
 export const Route = createFileRoute('/health')({
-  head: () => ({ title: 'Health · PetSafeCare' }),
+  head: () => ({ meta: [{ title: 'Health · PetSafeCare' }] }),
   component: HealthPage,
 })
 

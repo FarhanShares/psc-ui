@@ -7,7 +7,7 @@ import { EmptyState } from '../components/ui'
 import { cancelBooking, useAppState } from '../lib/store'
 
 export const Route = createFileRoute('/bookings')({
-  head: () => ({ title: 'Bookings · PetSafeCare' }),
+  head: () => ({ meta: [{ title: 'Bookings · PetSafeCare' }] }),
   component: BookingsPage,
 })
 

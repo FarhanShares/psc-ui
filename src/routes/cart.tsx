@@ -9,7 +9,7 @@ import { cartTotals, placeOrder, removeFromCart, setCartQty, useAppState } from 
 import type { Order } from '../lib/types'
 
 export const Route = createFileRoute('/cart')({
-  head: () => ({ title: 'Cart · PetSafeCare' }),
+  head: () => ({ meta: [{ title: 'Cart · PetSafeCare' }] }),
   component: CartPage,
 })
 

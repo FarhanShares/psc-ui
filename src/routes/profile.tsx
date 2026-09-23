@@ -15,7 +15,7 @@ import {
 import type { Pet } from '../lib/types'
 
 export const Route = createFileRoute('/profile')({
-  head: () => ({ title: 'Profile · PetSafeCare' }),
+  head: () => ({ meta: [{ title: 'Profile · PetSafeCare' }] }),
   component: ProfilePage,
 })
 

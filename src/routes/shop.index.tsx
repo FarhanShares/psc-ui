@@ -10,7 +10,7 @@ import { money } from '../lib/format'
 import type { ProductCategory } from '../lib/types'
 
 export const Route = createFileRoute('/shop/')({
-  head: () => ({ title: 'Shop · PetSafeCare' }),
+  head: () => ({ meta: [{ title: 'Shop · PetSafeCare' }] }),
   validateSearch: (search: Record<string, unknown>): { q?: string; cat?: string } => ({
     q: typeof search.q === 'string' ? search.q : undefined,
     cat:

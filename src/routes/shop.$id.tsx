@@ -17,7 +17,7 @@ const CATEGORY_NOTES: Record<string, string> = {
 }
 
 export const Route = createFileRoute('/shop/$id')({
-  head: ({ params }) => ({ title: `${getProduct(params.id)?.name ?? 'Product'} · PetSafeCare` }),
+  head: ({ params }) => ({ meta: [{ title: `${getProduct(params.id)?.name ?? 'Product'} · PetSafeCare` }] }),
   component: ProductPage,
 })
 

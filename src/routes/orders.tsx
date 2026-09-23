@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { Package } from 'lucide-react'
 
 import { OrderCard } from '../components/cards'
@@ -6,7 +6,7 @@ import { EmptyState } from '../components/ui'
 import { useAppState } from '../lib/store'
 
 export const Route = createFileRoute('/orders')({
-  head: () => ({ title: 'Orders · PetSafeCare' }),
+  head: () => ({ meta: [{ title: 'Orders · PetSafeCare' }] }),
   component: OrdersPage,
 })
 
