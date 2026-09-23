@@ -109,3 +109,28 @@ Layout grids within the shell family (bento vs catalogue vs two-column).
 ## Per-page allowances
 App pages: no enrichment — function carries the page. Tinted category tiles are
 the only ornament, and they encode data (category), never decorate.
+
+## Screen inventory (2026-09-23)
+Public, indexable: `/`, `/shop` (+ `?cat=`), `/shop/$id`, `/clinics` (+ `?service=`),
+`/clinics/$id`, `/emergency`, `/help`, `/about`, `/privacy`, `/terms`, `/login`, `/signup`.
+Account, `noindex`: `/cart`, `/orders`, `/orders/$id`, `/bookings`, `/bookings/$id`,
+`/pets`, `/pets/$id`, `/health`, `/profile`, `/saved`, `/notifications`, `/search`.
+Auth screens render without shop chrome (`BARE_ROUTES` in `nav.tsx`).
+
+## SEO contract
+- Every route builds its head through `seo()` in `src/lib/seo.ts` — title,
+  description, canonical, Open Graph/Twitter, optional JSON-LD. Never hand-roll meta.
+- JSON-LD by page: Organization + WebSite/SearchAction (root), Product + Offer +
+  BreadcrumbList (product), VeterinaryCare (clinic), ItemList (listings), FAQPage (help).
+- Filtered/search result pages (`/shop?q=`, `/search`) are `noindex, follow`.
+- `sitemap.xml` is generated from data; `public/robots.txt` disallows account pages.
+- Set `VITE_SITE_URL` in production so canonicals point at the real domain.
+
+## Detail-page doctrine
+- Breadcrumbs (`<Crumbs>`): full trail ≥48rem, a single "‹ Parent" back link on phones.
+- Primary action first on phones: clinic services before reviews; product gets a
+  sticky buy bar above the tab bar (<48rem only).
+- Destructive actions (cancel booking, remove pet, sign out) confirm in a sheet;
+  removals still get an undo toast.
+- Day pickers are a 7-column grid, never a scrolling strip.
+- Notifications are derived from live state (`deriveNotices`) — only read-state is stored.
