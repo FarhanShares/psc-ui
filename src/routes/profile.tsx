@@ -19,6 +19,8 @@ import {
   Settings,
   Shield,
   Trash2,
+  Truck,
+  Undo2,
 } from 'lucide-react'
 
 import { AddPetSheet } from '../components/add-pet'
@@ -245,6 +247,14 @@ function ProfilePage() {
               <MenuRow to="/help" icon={<LifeBuoy size={16} strokeWidth={1.75} />} title="Help centre" sub="FAQs and contact" />
               <MenuRow to="/guides" icon={<BookOpen size={16} strokeWidth={1.75} />} title="Care guides" sub="Vaccines, food, fleas and more" />
               <MenuRow to="/about" icon={<Info size={16} strokeWidth={1.75} />} title="About PetSafeCare" />
+            </div>
+          </section>
+
+          <section>
+            <h2 className="section-head__title section-head">Policies</h2>
+            <div className="menu">
+              <MenuRow to="/delivery" icon={<Truck size={16} strokeWidth={1.75} />} title="Delivery policy" sub="Timing, costs, missed parcels" />
+              <MenuRow to="/refund" icon={<Undo2 size={16} strokeWidth={1.75} />} title="Refund policy" sub="30-day returns and refunds" />
               <MenuRow to="/privacy" icon={<Shield size={16} strokeWidth={1.75} />} title="Privacy policy" />
               <MenuRow to="/terms" icon={<FileText size={16} strokeWidth={1.75} />} title="Terms of service" />
             </div>

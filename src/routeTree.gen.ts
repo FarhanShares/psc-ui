@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as CartRouteImport } from './routes/cart'
+import { Route as DeliveryRouteImport } from './routes/delivery'
 import { Route as EmergencyRouteImport } from './routes/emergency'
 import { Route as HealthRouteImport } from './routes/health'
 import { Route as HelpRouteImport } from './routes/help'
@@ -19,6 +20,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as RefundRouteImport } from './routes/refund'
 import { Route as SavedRouteImport } from './routes/saved'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SettingsRouteImport } from './routes/settings'
@@ -56,6 +58,11 @@ const CartRoute = CartRouteImport.update({
   path: '/cart',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DeliveryRoute = DeliveryRouteImport.update({
+  id: '/delivery',
+  path: '/delivery',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EmergencyRoute = EmergencyRouteImport.update({
   id: '/emergency',
   path: '/emergency',
@@ -89,6 +96,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RefundRoute = RefundRouteImport.update({
+  id: '/refund',
+  path: '/refund',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SavedRoute = SavedRouteImport.update({
@@ -201,6 +213,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/cart': typeof CartRoute
+  '/delivery': typeof DeliveryRoute
   '/emergency': typeof EmergencyRoute
   '/health': typeof HealthRoute
   '/help': typeof HelpRoute
@@ -208,6 +221,7 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof NotificationsRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
+  '/refund': typeof RefundRoute
   '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
@@ -234,6 +248,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/cart': typeof CartRoute
+  '/delivery': typeof DeliveryRoute
   '/emergency': typeof EmergencyRoute
   '/health': typeof HealthRoute
   '/help': typeof HelpRoute
@@ -241,6 +256,7 @@ export interface FileRoutesByTo {
   '/notifications': typeof NotificationsRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
+  '/refund': typeof RefundRoute
   '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
@@ -268,6 +284,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/cart': typeof CartRoute
+  '/delivery': typeof DeliveryRoute
   '/emergency': typeof EmergencyRoute
   '/health': typeof HealthRoute
   '/help': typeof HelpRoute
@@ -275,6 +292,7 @@ export interface FileRoutesById {
   '/notifications': typeof NotificationsRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
+  '/refund': typeof RefundRoute
   '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
@@ -303,6 +321,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/cart'
+    | '/delivery'
     | '/emergency'
     | '/health'
     | '/help'
@@ -310,6 +329,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/privacy'
     | '/profile'
+    | '/refund'
     | '/saved'
     | '/search'
     | '/settings'
@@ -336,6 +356,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/cart'
+    | '/delivery'
     | '/emergency'
     | '/health'
     | '/help'
@@ -343,6 +364,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/privacy'
     | '/profile'
+    | '/refund'
     | '/saved'
     | '/search'
     | '/settings'
@@ -369,6 +391,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/cart'
+    | '/delivery'
     | '/emergency'
     | '/health'
     | '/help'
@@ -376,6 +399,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/privacy'
     | '/profile'
+    | '/refund'
     | '/saved'
     | '/search'
     | '/settings'
@@ -403,6 +427,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   CartRoute: typeof CartRoute
+  DeliveryRoute: typeof DeliveryRoute
   EmergencyRoute: typeof EmergencyRoute
   HealthRoute: typeof HealthRoute
   HelpRoute: typeof HelpRoute
@@ -410,6 +435,7 @@ export interface RootRouteChildren {
   NotificationsRoute: typeof NotificationsRoute
   PrivacyRoute: typeof PrivacyRoute
   ProfileRoute: typeof ProfileRoute
+  RefundRoute: typeof RefundRoute
   SavedRoute: typeof SavedRoute
   SearchRoute: typeof SearchRoute
   SettingsRoute: typeof SettingsRoute
@@ -454,6 +480,13 @@ declare module '@tanstack/react-router' {
       path: '/cart'
       fullPath: '/cart'
       preLoaderRoute: typeof CartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/delivery': {
+      id: '/delivery'
+      path: '/delivery'
+      fullPath: '/delivery'
+      preLoaderRoute: typeof DeliveryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/emergency': {
@@ -503,6 +536,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/refund': {
+      id: '/refund'
+      path: '/refund'
+      fullPath: '/refund'
+      preLoaderRoute: typeof RefundRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/saved': {
@@ -659,6 +699,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   CartRoute: CartRoute,
+  DeliveryRoute: DeliveryRoute,
   EmergencyRoute: EmergencyRoute,
   HealthRoute: HealthRoute,
   HelpRoute: HelpRoute,
@@ -666,6 +707,7 @@ const rootRouteChildren: RootRouteChildren = {
   NotificationsRoute: NotificationsRoute,
   PrivacyRoute: PrivacyRoute,
   ProfileRoute: ProfileRoute,
+  RefundRoute: RefundRoute,
   SavedRoute: SavedRoute,
   SearchRoute: SearchRoute,
   SettingsRoute: SettingsRoute,

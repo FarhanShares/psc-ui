@@ -510,6 +510,13 @@ export function SiteFooter() {
           <ul>
             <li><Link to="/help">Help centre</Link></li>
             <li><Link to="/about">About</Link></li>
+          </ul>
+        </nav>
+        <nav aria-label="Policies">
+          <h2 className="tag">Policies</h2>
+          <ul>
+            <li><Link to="/delivery">Delivery</Link></li>
+            <li><Link to="/refund">Refunds &amp; returns</Link></li>
             <li><Link to="/privacy">Privacy</Link></li>
             <li><Link to="/terms">Terms</Link></li>
           </ul>
