@@ -119,7 +119,7 @@ export function SiteHeader({ onOpenCart }: { onOpenCart: () => void }) {
   const pathname = useRouterState({ select: (st) => st.location.pathname })
   const onShop = pathname === '/shop' || pathname === '/shop/'
 
-  // on the shop the header box filters the grid live; elsewhere Enter opens full search
+  // global search drives /shop?q= (AGENTS.md): live while on the shop, Enter from anywhere else
   const urlQ = useRouterState({
     select: (st) => ((st.location.search as { q?: string }).q ?? ''),
   })
@@ -149,16 +149,16 @@ export function SiteHeader({ onOpenCart }: { onOpenCart: () => void }) {
           onSubmit={(e) => {
             e.preventDefault()
             const term = q.trim()
-            if (!onShop) navigate({ to: '/search', search: { q: term || undefined } })
+            navigate({ to: '/shop', search: (prev) => ({ ...prev, q: term || undefined }) })
           }}
         >
           <Search size={16} strokeWidth={1.75} aria-hidden />
           <input
             type="search"
-            placeholder={onShop ? 'Filter supplies' : 'Search supplies, clinics, help'}
+            placeholder="Search supplies"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            aria-label={onShop ? 'Filter supplies' : 'Search supplies, clinics and help'}
+            aria-label="Search supplies"
           />
         </form>
         <nav className="site-nav" aria-label="Primary">
@@ -291,9 +291,16 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
       {mode === 'cart' && (
         <>
           {cart.length === 0 ? (
-            <p className="row__sub" style={{ padding: 'var(--space-lg) 0' }}>
-              Nothing here yet — add something from the shop.
-            </p>
+            <div className="drawer__empty">
+              <span className="empty__icon" aria-hidden>
+                <ShoppingCart size={20} strokeWidth={1.75} />
+              </span>
+              <p className="empty__title">Your cart is empty</p>
+              <p className="empty__text">Food, treats, grooming — the everyday things pets run out of.</p>
+              <Link to="/shop" onClick={onClose} className="btn btn--primary btn--sm">
+                Browse the shop
+              </Link>
+            </div>
           ) : (
             <div className="drawer__items">
               {cart.map((item) => {

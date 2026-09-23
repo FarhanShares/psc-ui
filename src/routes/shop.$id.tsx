@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { Check, ChevronLeft, MessageCircleQuestion, PackageCheck, Truck } from 'lucide-react'
+import { Check, ChevronRight, MessageCircleQuestion, PackageCheck, Truck } from 'lucide-react'
 
 import { Crumbs, RatingSummary, ReviewList, SaveButton } from '../components/blocks'
 import { ProductCard } from '../components/cards'
@@ -103,21 +103,23 @@ function ProductPage() {
         ]}
       />
 
-      <div className="detail-grid rise" style={{ '--i': 1 } as React.CSSProperties}>
-        <div className="card" style={{ position: 'relative' }}>
-          <span className={`tile tile--card ${tileClass(product.category)}`}>
-            <CategoryIcon category={product.category} size={72} />
+      <div className="pdp rise" style={{ '--i': 1 } as React.CSSProperties}>
+        <div className="pdp__media">
+          <span className={`tile pdp__tile ${tileClass(product.category)}`}>
+            <CategoryIcon category={product.category} size={88} />
+            {product.stock === 0 && <span className="product-card__flag">Out of stock</span>}
           </span>
           <SaveButton kind="product" id={product.id} name={product.name} variant="overlay" />
-          <div style={{ padding: 'var(--space-md)' }}>
+        </div>
+
+        <div className="pdp__info">
+          <div>
             <p className="tag">{product.brand}</p>
-            <h1 className="page-title" style={{ fontSize: 'var(--text-xl)', marginBlock: 'var(--space-3xs) var(--space-2xs)' }}>
-              {product.name}
-            </h1>
-            <div className="split" style={{ marginBlock: 'var(--space-2xs) var(--space-xs)', justifyContent: 'flex-start' }}>
+            <h1 className="pdp__title">{product.name}</h1>
+            <div className="pdp__meta">
               <Stars rating={product.rating} />
               <a href="#reviews" className="row__sub num">{product.reviews} reviews</a>
-              <span className="suits">
+              <span className="pdp__suits">
                 {product.suits.map((sp) => (
                   <span key={sp} className="chip chip--static">
                     <PetGlyph species={sp} size={13} /> {sp === 'dog' ? 'Dogs' : 'Cats'}
@@ -125,29 +127,21 @@ function ProductPage() {
                 ))}
               </span>
             </div>
-            <p style={{ fontSize: 'var(--text-body)', color: 'var(--color-ink-2)' }}>{product.blurb}</p>
-            <div className="split" style={{ marginTop: 'var(--space-sm)' }}>
-              <Pill tone={stockTone}>{stockLabel}</Pill>
-              <span className="row__sub num">{product.unit}</span>
-            </div>
           </div>
-        </div>
 
-        <div className="stack">
-          <div className="card card--pad split" style={{ flexWrap: 'wrap' }}>
-            <div>
-              <Price value={product.price * qty} className="price--lg" />
-              <p className="row__sub" style={{ marginTop: 2 }}>
-                {money(product.price)} each · {product.unit}
-              </p>
-            </div>
+          <div className="pdp__price">
+            <Price value={product.price} className="pdp__amount" />
+            <span className="row__sub num">{product.unit}</span>
+            <Pill tone={stockTone}>{stockLabel}</Pill>
+          </div>
+
+          <p className="pdp__blurb">{product.blurb}</p>
+
+          <div className="pdp__buy">
             <Stepper value={qty} onChange={setQty} label={`Quantity of ${product.name}`} />
-          </div>
-
-          <div className="buy-row">
             <button
               type="button"
-              className="btn btn--primary btn--block"
+              className="btn btn--primary pdp__add"
               disabled={product.stock === 0}
               onClick={add}
             >
@@ -157,11 +151,13 @@ function ProductPage() {
                 </>
               ) : product.stock === 0 ? (
                 'Out of stock'
+              ) : qty > 1 ? (
+                `Add ${qty} · ${money(product.price * qty)}`
               ) : (
                 'Add to cart'
               )}
             </button>
-            <SaveButton kind="product" id={product.id} name={product.name} variant="labeled" />
+            <SaveButton kind="product" id={product.id} name={product.name} variant="icon" />
           </div>
           {inCart > 0 && (
             <p className="row__sub">
@@ -169,72 +165,75 @@ function ProductPage() {
             </p>
           )}
 
-          <section className="card card--pad stack" style={{ gap: 'var(--space-2xs)' }}>
-            <div className="row__sub" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Truck size={14} strokeWidth={1.75} />
+          <ul className="pdp__trust">
+            <li>
+              <Truck size={15} strokeWidth={1.75} aria-hidden />
               Free delivery over {money(FREE_DELIVERY_THRESHOLD)} — arrives in 2–4 days
-            </div>
-            <div className="row__sub" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <PackageCheck size={14} strokeWidth={1.75} />
+            </li>
+            <li>
+              <PackageCheck size={15} strokeWidth={1.75} aria-hidden />
               30-day returns, no questions asked
-            </div>
-            <div className="row__sub" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <MessageCircleQuestion size={14} strokeWidth={1.75} />
+            </li>
+            <li>
+              <MessageCircleQuestion size={15} strokeWidth={1.75} aria-hidden />
               Not sure it fits? Ask at your next clinic visit
-            </div>
-          </section>
-
-          <section className="card card--pad">
-            <span className="tag">How to use</span>
-            <p className="row__sub" style={{ marginTop: 'var(--space-2xs)' }}>
-              {CATEGORY_NOTES[product.category]}
-            </p>
-          </section>
+            </li>
+          </ul>
         </div>
       </div>
 
-      <section className="card card--pad rise" style={{ '--i': 2 } as React.CSSProperties}>
-        <span className="tag">At a glance</span>
-        <dl className="spec-list">
-          <div className="spec-list__row">
-            <dt>Brand</dt>
-            <dd>{product.brand}</dd>
-          </div>
-          <div className="spec-list__row">
-            <dt>Category</dt>
-            <dd className="num" style={{ textTransform: 'capitalize' }}>{product.category}</dd>
-          </div>
-          <div className="spec-list__row">
-            <dt>Size</dt>
-            <dd className="num">{product.unit}</dd>
-          </div>
-          <div className="spec-list__row">
-            <dt>Rated</dt>
-            <dd className="num">{product.rating.toFixed(1)} from {product.reviews} reviews</dd>
-          </div>
-          <div className="spec-list__row">
-            <dt>SKU</dt>
-            <dd className="num">PSC-{product.id.toUpperCase()}</dd>
-          </div>
-        </dl>
-      </section>
-
-      <section id="reviews" className="card card--pad rise" style={{ '--i': 3, scrollMarginTop: '5rem' } as React.CSSProperties}>
-        <h2 className="section-head__title section-head">Reviews</h2>
-        <RatingSummary rating={product.rating} total={product.reviews} breakdown={ratingBreakdown(product.rating, product.reviews)} />
-        <div style={{ marginTop: 'var(--space-md)' }}>
-          <ReviewList reviews={reviews} />
+      <div className="pdp__details rise" style={{ '--i': 2 } as React.CSSProperties}>
+        <div className="stack">
+          <section className="card card--pad">
+            <h2 className="section-head__title">How to use</h2>
+            <p className="pdp__blurb" style={{ marginTop: 'var(--space-2xs)' }}>
+              {CATEGORY_NOTES[product.category]}
+            </p>
+          </section>
+          <section className="card card--pad">
+            <h2 className="section-head__title">At a glance</h2>
+            <dl className="spec-list">
+              <div className="spec-list__row">
+                <dt>Brand</dt>
+                <dd>{product.brand}</dd>
+              </div>
+              <div className="spec-list__row">
+                <dt>Category</dt>
+                <dd>{catLabel}</dd>
+              </div>
+              <div className="spec-list__row">
+                <dt>Suits</dt>
+                <dd>{product.suits.map((sp) => (sp === 'dog' ? 'Dogs' : 'Cats')).join(' & ')}</dd>
+              </div>
+              <div className="spec-list__row">
+                <dt>Size</dt>
+                <dd className="num">{product.unit}</dd>
+              </div>
+              <div className="spec-list__row">
+                <dt>SKU</dt>
+                <dd className="num">PSC-{product.id.toUpperCase()}</dd>
+              </div>
+            </dl>
+          </section>
         </div>
-      </section>
+
+        <section id="reviews" className="card card--pad" style={{ scrollMarginTop: '5rem' }}>
+          <h2 className="section-head__title section-head">Reviews</h2>
+          <RatingSummary rating={product.rating} total={product.reviews} breakdown={ratingBreakdown(product.rating, product.reviews)} />
+          <div style={{ marginTop: 'var(--space-md)' }}>
+            <ReviewList reviews={reviews} />
+          </div>
+        </section>
+      </div>
 
       {related.length > 0 && (
         <section className="rise" style={{ '--i': 3 } as React.CSSProperties}>
           <div className="section-head">
             <h2 className="section-head__title">
-              {inCategory.length > 1 ? `More ${product.category} picks` : 'You might also need'}
+              {inCategory.length > 1 ? `More ${catLabel.toLowerCase()}` : 'You might also need'}
             </h2>
             <Link to="/shop" className="section-head__link">
-              All supplies <ChevronLeft size={13} strokeWidth={2} style={{ rotate: '180deg' }} />
+              All supplies <ChevronRight size={13} strokeWidth={2} />
             </Link>
           </div>
           <div className="grid-products">

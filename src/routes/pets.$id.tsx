@@ -118,7 +118,25 @@ function PetPage() {
               </button>
             </div>
             {records.length > 0 ? (
-              records.map((v) => <VaccineRow key={v.id} vax={v} showPet={false} />)
+              records.map((v) => (
+                <VaccineRow
+                  key={v.id}
+                  vax={v}
+                  showPet={false}
+                  action={
+                    (v.status === 'overdue' || v.status === 'due') && (
+                      <Link
+                        to="/clinics"
+                        search={{ service: 'vaccination' }}
+                        className="btn btn--primary btn--sm"
+                        aria-label={`Book ${v.name} for ${pet.name}`}
+                      >
+                        Book
+                      </Link>
+                    )
+                  }
+                />
+              ))
             ) : (
               <p className="row__sub" style={{ paddingBlock: 'var(--space-sm)' }}>
                 No records yet. Add one from a certificate, or link a clinic to sync them.

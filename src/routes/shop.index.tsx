@@ -309,7 +309,7 @@ function ShopPage() {
         </aside>
 
         <div className="shop-content">
-          <div className="toolbar">
+          <div className="toolbar toolbar--shop">
             <SearchControl placeholder="Search supplies" value={query} onChange={setQuery}>
               {(close) =>
                 query.trim() ? (
@@ -337,13 +337,15 @@ function ShopPage() {
                 )
               }
             </SearchControl>
-            <OptionPicker
-              icon={ArrowUpDown}
-              title="Sort by"
-              value={sort}
-              options={SORTS.map((s) => ({ id: s.id, label: s.label }))}
-              onChange={(id) => setSort(id as SortId)}
-            />
+            <span className="toolbar__sort">
+              <OptionPicker
+                icon={ArrowUpDown}
+                title="Sort by"
+                value={sort}
+                options={SORTS.map((s) => ({ id: s.id, label: s.label }))}
+                onChange={(id) => setSort(id as SortId)}
+              />
+            </span>
         <button
           type="button"
           className="picker-btn filter-btn"
@@ -355,10 +357,24 @@ function ShopPage() {
             </button>
           </div>
 
-          <p className="mono-label" aria-live="polite">
-            {results.length} item{results.length === 1 ? '' : 's'}
-            {activeCount > 0 && ` · ${activeCount} filter${activeCount === 1 ? '' : 's'} on`}
-          </p>
+          <div className="results-bar">
+            <p className="mono-label" aria-live="polite">
+              {results.length} item{results.length === 1 ? '' : 's'}
+              {query.trim() && ` for “${query.trim()}”`}
+              {activeCount > 0 && ` · ${activeCount} filter${activeCount === 1 ? '' : 's'} on`}
+            </p>
+            <span className="results-bar__sort">
+              <OptionPicker
+                icon={ArrowUpDown}
+                title="Sort by"
+                variant="labeled"
+                prefix="Sort"
+                value={sort}
+                options={SORTS.map((s) => ({ id: s.id, label: s.label }))}
+                onChange={(id) => setSort(id as SortId)}
+              />
+            </span>
+          </div>
 
           {results.length > 0 ? (
             <div className="grid-products" key={resultKey}>

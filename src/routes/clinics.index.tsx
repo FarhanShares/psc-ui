@@ -28,6 +28,12 @@ const DEFAULT_FILTERS: Filters = {
 
 type SortId = 'recommended' | 'distance' | 'rating'
 
+const CLINIC_SORTS = [
+  { id: 'recommended', label: 'Recommended' },
+  { id: 'distance', label: 'Nearest' },
+  { id: 'rating', label: 'Top rated' },
+]
+
 
 export const Route = createFileRoute('/clinics/')({
   head: ({ match }) => {
@@ -305,17 +311,15 @@ function ClinicsPage() {
             )
           }
         </SearchControl>
-        <OptionPicker
-          icon={ArrowUpDown}
-          title="Sort by"
-          value={sort}
-          options={[
-            { id: 'recommended', label: 'Recommended' },
-            { id: 'distance', label: 'Nearest' },
-            { id: 'rating', label: 'Top rated' },
-          ]}
-          onChange={(id) => setSort(id as SortId)}
-        />
+        <span className="toolbar__sort">
+          <OptionPicker
+            icon={ArrowUpDown}
+            title="Sort by"
+            value={sort}
+            options={CLINIC_SORTS}
+            onChange={(id) => setSort(id as SortId)}
+          />
+        </span>
         <button
           type="button"
           className="picker-btn filter-btn"
@@ -330,10 +334,23 @@ function ClinicsPage() {
         </button>
       </div>
 
-      <p className="mono-label rise" style={{ '--i': 2 } as React.CSSProperties} aria-live="polite">
-        {results.length} clinic{results.length === 1 ? '' : 's'}
-        {activeCount > 0 && ` · ${activeCount} filter${activeCount === 1 ? '' : 's'} on`}
-      </p>
+      <div className="results-bar">
+        <p className="mono-label" aria-live="polite">
+          {results.length} clinic{results.length === 1 ? '' : 's'}
+          {activeCount > 0 && ` · ${activeCount} filter${activeCount === 1 ? '' : 's'} on`}
+        </p>
+        <span className="results-bar__sort">
+          <OptionPicker
+            icon={ArrowUpDown}
+            title="Sort by"
+            variant="labeled"
+            prefix="Sort"
+            value={sort}
+            options={CLINIC_SORTS}
+            onChange={(id) => setSort(id as SortId)}
+          />
+        </span>
+      </div>
 
       {results.length > 0 ? (
         <div className="clinic-grid rise" style={{ '--i': 3 } as React.CSSProperties}>

@@ -203,7 +203,16 @@ export function BookingCard({ booking }: { booking: Booking }) {
 
 /* ------------------------------------------------------------- vaccine row */
 
-export function VaccineRow({ vax, showPet = true }: { vax: VaccineRecord; showPet?: boolean }) {
+export function VaccineRow({
+  vax,
+  showPet = true,
+  action,
+}: {
+  vax: VaccineRecord
+  showPet?: boolean
+  /** optional inline action (e.g. Book) shown under the status pill */
+  action?: React.ReactNode
+}) {
   const found = useAppState().pets.find((p) => p.id === vax.petId)?.name
   const petName = showPet ? found : undefined
   const tone =
@@ -231,7 +240,10 @@ export function VaccineRow({ vax, showPet = true }: { vax: VaccineRecord; showPe
           {vax.shieldsAgainst} · {relativeDue(vax.dueInDays)}
         </span>
       </span>
-      <Pill tone={tone}>{label}</Pill>
+      <span className="vax-row__end">
+        <Pill tone={tone}>{label}</Pill>
+        {action}
+      </span>
     </div>
   )
 }

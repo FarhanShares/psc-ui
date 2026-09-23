@@ -114,7 +114,7 @@ function HomePage() {
       </section>
 
       {pets.length === 0 ? (
-        <section className="card card--pad span-8 rise" style={{ '--i': 2 } as React.CSSProperties} aria-label="Add your first pet">
+        <section className="card card--pad span-hero rise" style={{ '--i': 2 } as React.CSSProperties} aria-label="Add your first pet">
           <div className="split" style={{ flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', minWidth: 0 }}>
               <span className="band__icon" aria-hidden>
@@ -137,20 +137,32 @@ function HomePage() {
           </div>
         </section>
       ) : (
-        <section className="pet-strip rise span-7" style={{ '--i': 3 } as React.CSSProperties} aria-label="Your pets">
-          {pets.slice(0, 2).map((pet) => (
-            <Link key={pet.id} to="/pets/$id" params={{ id: pet.id }} className="card card--press pet-card">
-              <span className={`pet-card__ava pet-card__ava--${pet.species}`}>
-                <PetGlyph species={pet.species} size={17} />
-              </span>
-              <span style={{ minWidth: 0 }}>
-                <span className="pet-card__name">{pet.name}</span>
-                <span className="row__sub" style={{ display: 'block' }}>
-                  {pet.breed}
+        <section className="pet-strip rise span-hero" style={{ '--i': 3 } as React.CSSProperties} aria-label="Your pets">
+          {pets.slice(0, 2).map((pet) => {
+            const recs = liveVaccines.filter((v) => v.petId === pet.id)
+            const overdue = recs.filter((v) => v.status === 'overdue')
+            const due = recs.filter((v) => v.status === 'due')
+            const tone = overdue.length ? 'bad' : due.length ? 'warn' : 'ok'
+            const status = overdue.length
+              ? `${overdue[0].name} overdue`
+              : due.length
+                ? `${due.length} due soon`
+                : recs.length
+                  ? 'Vaccines current'
+                  : 'No records yet'
+            return (
+              <Link key={pet.id} to="/pets/$id" params={{ id: pet.id }} className="card card--press pet-card">
+                <span className={`pet-card__ava pet-card__ava--${pet.species}`}>
+                  <PetGlyph species={pet.species} size={17} />
                 </span>
-              </span>
-            </Link>
-          ))}
+                <span style={{ minWidth: 0 }}>
+                  <span className="pet-card__name">{pet.name}</span>
+                  <span className="row__sub pet-card__breed">{pet.breed}</span>
+                  <span className={`pet-card__status pet-card__status--${tone}`}>{status}</span>
+                </span>
+              </Link>
+            )
+          })}
           <Link to="/pets" className="card card--press pet-card pet-card--more" aria-label="Manage pets">
             <span className="pet-card__ava" aria-hidden>
               {pets.length > 2 ? <span className="pet-card__plus num">+{pets.length - 2}</span> : <PawPrint size={16} strokeWidth={1.75} />}
@@ -165,7 +177,7 @@ function HomePage() {
         </section>
       )}
 
-      <section className="stack rise span-5" style={{ '--i': 4, gap: 'var(--space-sm)' } as React.CSSProperties} aria-label="Records">
+      <section className="records-row rise span-hero" style={{ '--i': 4 } as React.CSSProperties} aria-label="Records">
         <Link to="/orders" className="card card--press row">
           <span className="row__grow">
             <span className="row__title">Orders</span>

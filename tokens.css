@@ -106,11 +106,15 @@
   --shadow-whisper: 0 1px 2px oklch(25% 0.014 70 / 0.06);
   --shadow-sheet: 0 -12px 40px -16px oklch(25% 0.014 70 / 0.22);
   --color-scrim: oklch(25% 0.014 70 / 0.34);
+  --color-scrim-soft: oklch(25% 0.014 70 / 0.18); /* lighter scrim behind anchored popover panels */
+  --shadow-pop: 0 28px 56px -24px oklch(25% 0.014 70 / 0.3); /* floating desktop panels + dialogs */
 
   /* layout */
   --shell: 46.875rem;     /* 750px — mobile/tablet content column */
   --rail-w: 15rem;        /* desktop side rail */
   --page-max: 75rem;      /* desktop content cap */
+  --shell-wide: calc(var(--page-max) + 2 * var(--space-xl)); /* header/footer box: content cap + side padding, so every edge lines up */
+  --header-h: 4.25rem;    /* desktop site header height */
   --gutter: clamp(1rem, 2.5vw, 1.5rem);
   --tabbar-h: 4.25rem;
 }

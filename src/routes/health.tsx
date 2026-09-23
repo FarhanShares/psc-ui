@@ -102,20 +102,23 @@ function HealthPage() {
             </p>
           )}
           {petVaccines.map((v) => (
-            <div key={v.id}>
-              <VaccineRow vax={v} showPet={false} />
-              {(v.status === 'overdue' || v.status === 'due') && (
-                <div style={{ display: 'flex', justifyContent: 'flex-end', paddingBlock: 'var(--space-2xs)' }}>
+            <VaccineRow
+              key={v.id}
+              vax={v}
+              showPet={false}
+              action={
+                (v.status === 'overdue' || v.status === 'due') && (
                   <Link
                     to="/clinics"
                     search={{ service: 'vaccination' }}
                     className="btn btn--primary btn--sm"
+                    aria-label={`Book ${v.name} for ${pet.name}`}
                   >
-                    Book {v.name.toLowerCase()}
+                    Book
                   </Link>
-                </div>
-              )}
-            </div>
+                )
+              }
+            />
           ))}
         </section>
 

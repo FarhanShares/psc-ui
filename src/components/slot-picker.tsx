@@ -27,7 +27,16 @@ export function SlotPicker({
 }) {
   const offsets = DAY_OFFSETS.map((d) => d + startOffset)
   const dayIso = isoDay(dateFromOffset(dayOffset))
-  const open = BOOKING_SLOTS.filter((s) => slotAvailable(clinicId, dayIso, s)).length
+  // today's slots need 30 minutes' notice; sheets render client-side, so `now` is safe here
+  const now = new Date()
+  const cutoff = now.getHours() * 60 + now.getMinutes() + 30
+  const passed = (slot: string) => {
+    if (dayOffset !== 0) return false
+    const [h, m] = slot.split(':').map(Number)
+    return h * 60 + m < cutoff
+  }
+  const isOpen = (slot: string) => !passed(slot) && slotAvailable(clinicId, dayIso, slot)
+  const open = BOOKING_SLOTS.filter(isOpen).length
 
   return (
     <div className="stack">
@@ -62,7 +71,7 @@ export function SlotPicker({
         </legend>
         <div className="slots" role="group" aria-label="Time slots">
           {BOOKING_SLOTS.map((s) => {
-            const available = slotAvailable(clinicId, dayIso, s)
+            const available = isOpen(s)
             return (
               <button
                 key={s}
@@ -70,7 +79,7 @@ export function SlotPicker({
                 className="slot"
                 aria-pressed={slot === s}
                 disabled={!available}
-                aria-label={available ? s : `${s}, taken`}
+                aria-label={available ? s : `${s}, ${passed(s) ? 'passed' : 'taken'}`}
                 onClick={() => onSlot(s)}
               >
                 {s}
@@ -78,6 +87,9 @@ export function SlotPicker({
             )
           })}
         </div>
+        {open === 0 && (
+          <p className="row__sub">Fully booked — try another day.</p>
+        )}
       </fieldset>
     </div>
   )
