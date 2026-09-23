@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { Check, ChevronRight, MessageCircleQuestion, PackageCheck, Truck } from 'lucide-react'
 
@@ -64,6 +64,22 @@ function ProductPage() {
   const [qty, setQty] = useState(1)
   const [added, markAdded] = useCopiedLabel(1600)
   const { cart } = useAppState()
+  const buyRef = useRef<HTMLDivElement>(null)
+  const [buyInView, setBuyInView] = useState(true)
+
+  // related-product links reuse this component — start each product at qty 1
+  useEffect(() => setQty(1), [id])
+
+  // the sticky phone bar appears only after the inline buy row leaves the screen
+  useEffect(() => {
+    const el = buyRef.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(([entry]) => setBuyInView(entry.isIntersecting), {
+      rootMargin: '0px 0px -72px 0px',
+    })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [id])
 
   if (!product) {
     return (
@@ -137,7 +153,7 @@ function ProductPage() {
 
           <p className="pdp__blurb">{product.blurb}</p>
 
-          <div className="pdp__buy">
+          <div className="pdp__buy" ref={buyRef}>
             <Stepper value={qty} onChange={setQty} label={`Quantity of ${product.name}`} />
             <button
               type="button"
@@ -245,7 +261,7 @@ function ProductPage() {
       )}
 
       {product.stock > 0 && (
-        <div className="buy-bar" aria-label="Quick add">
+        <div className="buy-bar" aria-label="Quick add" data-hidden={buyInView} aria-hidden={buyInView || undefined}>
           <span style={{ minWidth: 0 }}>
             <Price value={product.price * qty} className="price--lg" />
             <span className="row__sub" style={{ display: 'block' }}>{qty > 1 ? `${qty} × ${money(product.price)}` : product.unit}</span>

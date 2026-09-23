@@ -74,6 +74,13 @@ function seedState(): AppState {
 const STORAGE_KEY = 'petsafecare.state.v1'
 
 let state: AppState = seedState()
+/**
+ * What the server rendered. Route components hydrate lazily — after the app
+ * shell has already pulled localStorage into `state` — so hydration must keep
+ * reading this snapshot or late-hydrating routes mismatch the SSR HTML.
+ * Never mutated: every write goes through setState, which replaces `state`.
+ */
+const serverState: AppState = state
 let hydrated = false
 const listeners = new Set<() => void>()
 let toastSeq = 1
@@ -136,7 +143,7 @@ function subscribe(cb: () => void) {
 }
 
 export function useAppState(): AppState {
-  return useSyncExternalStore(subscribe, () => state, () => state)
+  return useSyncExternalStore(subscribe, () => state, () => serverState)
 }
 
 /* --------------------------------------------------------------- toasts */

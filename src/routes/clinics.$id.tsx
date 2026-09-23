@@ -85,7 +85,9 @@ function ClinicPage() {
   function openBooking(service: ClinicService) {
     setBookingService(service)
     setPetId(pets[0]?.id ?? '')
-    setDay(0)
+    // the last slot is 17:15 — after about 16:45 today is gone, start on tomorrow
+    const now = new Date()
+    setDay(now.getHours() * 60 + now.getMinutes() > 16 * 60 + 45 ? 1 : 0)
     setSlot(null)
     setNote('')
     setDoneId(null)

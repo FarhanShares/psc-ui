@@ -272,16 +272,18 @@ function BookingPage() {
           </button>
         }
       >
-        <SlotPicker
-          clinicId={clinic.id}
-          dayOffset={day}
-          onDay={(d) => {
-            setDay(d)
-            setSlot(null)
-          }}
-          slot={slot}
-          onSlot={setSlot}
-        />
+        {reschedOpen && (
+          <SlotPicker
+            clinicId={clinic.id}
+            dayOffset={day}
+            onDay={(d) => {
+              setDay(d)
+              setSlot(null)
+            }}
+            slot={slot}
+            onSlot={setSlot}
+          />
+        )}
       </Sheet>
 
       {/* cancel confirm */}

@@ -1314,13 +1314,14 @@ img, svg {
   }
 }
 
-/* hero band is a desktop moment; the trust strip covers mobile */
-.shop-hero {
+/* hero band is a desktop moment; the trust strip covers mobile.
+   Qualified with .band so the later .split display rule can't reveal it on phones */
+.band.shop-hero {
   display: none;
 }
 
 @media (min-width: 64rem) {
-  .shop-hero {
+  .band.shop-hero {
     display: flex;
   }
 
@@ -2813,7 +2814,7 @@ details > summary::-webkit-details-marker {
   display: block;
   height: 100%;
   border-radius: 3px;
-  background: var(--color-warn);
+  background: var(--color-ink-2);
 }
 
 .review-list {
@@ -4299,6 +4300,17 @@ button.action-tile {
   border-top: 1px solid var(--color-rule);
 }
 
+/* only once the inline buy row has scrolled away — never two Add buttons on screen */
+.buy-bar {
+  transition: transform var(--dur-short) var(--ease-out), opacity var(--dur-short) var(--ease-out);
+}
+
+.buy-bar[data-hidden="true"] {
+  transform: translateY(100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
 @media (min-width: 48rem) {
   .buy-bar {
     display: none;
@@ -4683,4 +4695,76 @@ button.action-tile {
   .summary--sticky {
     top: calc(var(--header-h) + var(--space-md));
   }
+}
+
+/* ------------------------------------------------------- address picker */
+
+.addr-list {
+  display: grid;
+  gap: var(--space-2xs);
+}
+
+.addr-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 100%;
+  padding: var(--space-sm);
+  text-align: left;
+  background: var(--color-card);
+  border: 1px solid var(--color-rule-2);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color var(--dur-short) var(--ease-out),
+              background-color var(--dur-short) var(--ease-out);
+}
+
+.addr-option > svg {
+  flex: none;
+  color: var(--color-muted);
+}
+
+.addr-option .row__title,
+.addr-option .row__sub {
+  display: block;
+}
+
+@media (hover: hover) {
+  .addr-option:hover {
+    border-color: var(--color-accent);
+  }
+}
+
+.addr-option[aria-checked="true"] {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent-tint) 50%, var(--color-card));
+}
+
+.addr-option[aria-checked="true"] > svg {
+  color: var(--color-accent-deep);
+}
+
+.addr-option__default {
+  margin-left: var(--space-2xs);
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-muted);
+}
+
+.addr-option__radio {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-rule-2);
+  color: var(--color-accent-ink);
+}
+
+.addr-option[aria-checked="true"] .addr-option__radio {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
 }

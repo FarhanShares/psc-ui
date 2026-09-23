@@ -7,7 +7,6 @@ import {
   Heart,
   HeartPulse,
   Home,
-  MapPin,
   Minus,
   PawPrint,
   Plus,
@@ -22,7 +21,7 @@ import {
 
 import { CategoryIcon, tileClass } from './ui'
 import { CATEGORIES, FREE_DELIVERY_THRESHOLD, getProduct } from '../lib/data'
-import { money } from '../lib/format'
+import { formatCardNumber, formatExpiry, money } from '../lib/format'
 import {
   cartCount,
   cartTotals,
@@ -35,6 +34,7 @@ import {
   useToasts,
   useUnreadCount,
 } from '../lib/store'
+import { AddressPicker } from './address-picker'
 
 const NAV_ITEMS = [
   { to: '/', label: 'Home', icon: Home, exact: true },
@@ -254,6 +254,14 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
       setError('That card number looks too short. Enter all digits, or try another card.')
       return
     }
+    if (!/^\d{2} \/ \d{2}$/.test(expiry)) {
+      setError('Add the card’s expiry date as MM / YY.')
+      return
+    }
+    if (cvc.length < 3) {
+      setError('Add the 3- or 4-digit security code from the back of the card.')
+      return
+    }
     setError('')
     setPlacing(true)
     window.setTimeout(() => {
@@ -363,9 +371,12 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
                 </div>
               </div>
               {subtotal < FREE_DELIVERY_THRESHOLD && (
-                <p className="row__sub">
-                  Add {money(FREE_DELIVERY_THRESHOLD - subtotal)} more for free delivery.
-                </p>
+                <div className="free-meter">
+                  <span className="free-meter__track" aria-hidden>
+                    <span style={{ width: `${Math.min(100, (subtotal / FREE_DELIVERY_THRESHOLD) * 100)}%` }} />
+                  </span>
+                  <p className="row__sub">Add {money(FREE_DELIVERY_THRESHOLD - subtotal)} more for free delivery.</p>
+                </div>
               )}
               <button type="button" className="btn btn--primary btn--block" onClick={() => setMode('checkout')}>
                 Checkout · {money(total)}
@@ -383,21 +394,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
           <div className="drawer__body">
             <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
               <legend className="tag" style={{ marginBottom: 'var(--space-2xs)' }}>Delivery address</legend>
-              <div className="chips">
-                {profile.addresses.map((a) => (
-                  <button
-                    key={a.id}
-                    type="button"
-                    role="radio"
-                    aria-checked={addressId === a.id}
-                    className="chip"
-                    onClick={() => setAddressId(a.id)}
-                  >
-                    <MapPin size={13} strokeWidth={1.75} />
-                    {a.label} — {a.line}
-                  </button>
-                ))}
-              </div>
+              <AddressPicker addresses={profile.addresses} value={addressId} onChange={setAddressId} />
             </fieldset>
 
             <div className="field">
@@ -417,14 +414,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
                   id="dr-card"
                   className="input"
                   value={card}
-                  onChange={(e) =>
-                    setCard(
-                      e.target.value
-                        .replace(/[^\d]/g, '')
-                        .slice(0, 16)
-                        .replace(/(\d{4})(?=\d)/g, '$1 '),
-                    )
-                  }
+                  onChange={(e) => setCard(formatCardNumber(e.target.value))}
                   inputMode="numeric"
                   placeholder="4242 4242 4242 4242"
                   autoComplete="cc-number"
@@ -433,7 +423,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-sm)' }}>
                 <div className="field">
                   <label className="field__label" htmlFor="dr-exp">Expiry</label>
-                  <input id="dr-exp" className="input" value={expiry} onChange={(e) => setExpiry(e.target.value.slice(0, 5))} inputMode="numeric" placeholder="09 / 29" autoComplete="cc-exp" />
+                  <input id="dr-exp" className="input" value={expiry} onChange={(e) => setExpiry(formatExpiry(e.target.value))} inputMode="numeric" placeholder="09 / 29" autoComplete="cc-exp" />
                 </div>
                 <div className="field">
                   <label className="field__label" htmlFor="dr-cvc">CVC</label>

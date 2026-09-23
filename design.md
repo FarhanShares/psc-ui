@@ -134,3 +134,16 @@ Auth screens render without shop chrome (`BARE_ROUTES` in `nav.tsx`).
   removals still get an undo toast.
 - Day pickers are a 7-column grid, never a scrolling strip.
 - Notifications are derived from live state (`deriveNotices`) — only read-state is stored.
+
+## Overlays & alignment (desktop ≥64rem)
+- One box for every edge: header, page content, footer and toasts all use
+  `--shell-wide` (content cap + side padding) so brand, content and cart align.
+- Cart drawer is an anchored panel dropped from the cart button, right-aligned to
+  the content column — never glued to the viewport corner of a wide monitor.
+- Sheets become centred dialogs (max 32rem). Page-child sizing rules must skip
+  `dialog` (`.page > :not(dialog)`), or dialogs inherit the 75rem content cap.
+- Sticky columns offset by `--header-h` so they clear the sticky header.
+- Catalogue pages: a results bar (count left, labelled Sort right) replaces the
+  icon toolbar; phones keep the one-row icon toolbar.
+- Product page: media left, title/price/buy right, above the fold. The phone buy
+  bar appears only after the inline buy row scrolls away.

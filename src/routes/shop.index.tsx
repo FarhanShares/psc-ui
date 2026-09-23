@@ -294,11 +294,12 @@ function ShopPage() {
           type="button"
           className="btn btn--primary"
           onClick={() => {
+            setCategory('health')
             setSort('popular')
-            document.querySelector('.grid-products')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            document.querySelector('.shop-layout')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
           }}
         >
-          Shop best sellers
+          Shop flea &amp; tick
         </button>
       </section>
 

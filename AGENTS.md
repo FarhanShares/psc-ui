@@ -49,11 +49,13 @@ Read `design.md` before touching any style. Core rules:
 ## Patterns
 
 - State: vanilla store in `src/lib/store.ts` (`useSyncExternalStore` +
-  `localStorage: petsafecare.state.v1`). Seeds use relative day-offsets so
+  `localStorage: petsafecare.state.v1`). `getServerSnapshot` returns the frozen
+  seed (`serverState`) — routes hydrate lazily after localStorage loads, so
+  reading live state during hydration causes mismatches. Seeds use relative day-offsets so
   dates stay current. Adding state? Extend the seed AND the `persist()` list —
   missing keys fall back to seed values on hydrate.
-- Sheets: `Sheet` component (native `<dialog>`, bottom sheet on mobile, side
-  panel on desktop). Never set `display` on a closed `<dialog>` — author
+- Sheets: `Sheet` component (native `<dialog>`, bottom sheet on mobile, centred
+  dialog on desktop; the cart drawer is a panel anchored under the cart button). Never set `display` on a closed `<dialog>` — author
   display overrides the UA's `display: none` (caused an always-open drawer).
 - Empty states are designed moments (zero pets → onboarding card with the
   shared `AddPetSheet`). Derived counts only count records whose pet exists.

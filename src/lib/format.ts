@@ -84,3 +84,23 @@ export function initials(name: string): string {
     .map((w) => w[0])
     .join('')
 }
+
+/** "4242424242424242" → "4242 4242 4242 4242" */
+export function formatCardNumber(raw: string): string {
+  return raw
+    .replace(/\D/g, '')
+    .slice(0, 16)
+    .replace(/(\d{4})(?=\d)/g, '$1 ')
+}
+
+/** "0929" → "09 / 29"; clamps the month to 01–12 */
+export function formatExpiry(raw: string): string {
+  let d = raw.replace(/\D/g, '').slice(0, 4)
+  // a leading 2–9 can only be a single-digit month
+  if (d.length > 0 && Number(d[0]) > 1) d = `0${d}`.slice(0, 4)
+  if (d.length >= 2) {
+    const mm = Math.min(12, Math.max(1, Number(d.slice(0, 2))))
+    d = String(mm).padStart(2, '0') + d.slice(2)
+  }
+  return d.length > 2 ? `${d.slice(0, 2)} / ${d.slice(2)}` : d
+}

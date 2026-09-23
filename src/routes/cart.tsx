@@ -1,14 +1,15 @@
 import { useState } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { Check, ChevronLeft, MapPin, ShoppingCart, Trash2 } from 'lucide-react'
+import { Check, ChevronLeft, ShoppingCart, Trash2 } from 'lucide-react'
 
 import { CategoryIcon, EmptyState, Stepper, tileClass } from '../components/ui'
 import { FREE_DELIVERY_THRESHOLD, PRODUCTS, getProduct } from '../lib/data'
 import { ProductCard } from '../components/cards'
-import { money } from '../lib/format'
+import { formatCardNumber, formatExpiry, money } from '../lib/format'
 import { cartTotals, placeOrder, removeFromCart, setCartQty, useAppState } from '../lib/store'
 import type { Order } from '../lib/types'
 import { seo } from '../lib/seo'
+import { AddressPicker } from '../components/address-picker'
 
 export const Route = createFileRoute('/cart')({
   head: () => seo({ title: 'Cart', path: '/cart', noindex: true }),
@@ -16,7 +17,8 @@ export const Route = createFileRoute('/cart')({
 })
 
 function CartPage() {
-  const { cart, profile } = useAppState()
+  const { cart, profile, savedProducts } = useAppState()
+  const savedInStock = savedProducts.filter((id) => (getProduct(id)?.stock ?? 0) > 0)
   const { subtotal, delivery, total } = cartTotals(cart)
 
   const [stage, setStage] = useState<'cart' | 'checkout' | 'placed'>('cart')
@@ -50,6 +52,14 @@ function CartPage() {
     }
     if (card.replace(/\s/g, '').length < 12) {
       setError('That card number looks too short. Enter all digits, or try another card.')
+      return
+    }
+    if (!/^\d{2} \/ \d{2}$/.test(expiry)) {
+      setError('Add the card’s expiry date as MM / YY.')
+      return
+    }
+    if (cvc.length < 3) {
+      setError('Add the 3- or 4-digit security code from the back of the card.')
       return
     }
     setError('')
@@ -112,6 +122,19 @@ function CartPage() {
             icon={<ShoppingCart size={20} strokeWidth={1.75} />}
           />
         </div>
+        {savedInStock.length > 0 && (
+          <section className="rise" style={{ '--i': 2 } as React.CSSProperties}>
+            <div className="section-head">
+              <h2 className="section-head__title">From your saved list</h2>
+              <Link to="/saved" className="section-head__link">All saved</Link>
+            </div>
+            <div className="grid-products">
+              {savedInStock.slice(0, 4).map((id, i) => (
+                <ProductCard key={id} id={id} i={i} />
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     )
   }
@@ -241,21 +264,7 @@ function CartPage() {
                     Manage
                   </Link>
                 </div>
-                <div className="chips" role="radiogroup" aria-label="Delivery address">
-                  {profile.addresses.map((a) => (
-                    <button
-                      key={a.id}
-                      type="button"
-                      role="radio"
-                      aria-checked={addressId === a.id}
-                      className="chip"
-                      onClick={() => setAddressId(a.id)}
-                    >
-                      <MapPin size={13} strokeWidth={1.75} />
-                      {a.label} — {a.line}
-                    </button>
-                  ))}
-                </div>
+                <AddressPicker addresses={profile.addresses} value={addressId} onChange={setAddressId} />
               </section>
 
               <section className="stack">
@@ -303,14 +312,7 @@ function CartPage() {
                     id="co-card"
                     className="input"
                     value={card}
-                    onChange={(e) =>
-                      setCard(
-                        e.target.value
-                          .replace(/[^\d]/g, '')
-                          .slice(0, 16)
-                          .replace(/(\d{4})(?=\d)/g, '$1 '),
-                      )
-                    }
+                    onChange={(e) => setCard(formatCardNumber(e.target.value))}
                     inputMode="numeric"
                     placeholder="4242 4242 4242 4242"
                     autoComplete="cc-number"
@@ -325,7 +327,7 @@ function CartPage() {
                       id="co-exp"
                       className="input"
                       value={expiry}
-                      onChange={(e) => setExpiry(e.target.value.slice(0, 5))}
+                      onChange={(e) => setExpiry(formatExpiry(e.target.value))}
                       inputMode="numeric"
                       placeholder="09 / 29"
                       autoComplete="cc-exp"
