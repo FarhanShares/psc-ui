@@ -7,8 +7,12 @@ import { EmptyState, PetGlyph } from '../components/ui'
 import { GUIDES, GUIDE_TOPICS, type GuideTopic } from '../lib/guides'
 import { absoluteUrl, breadcrumbLd, seo } from '../lib/seo'
 import type { Species } from '../lib/types'
+import { SPECIES, isSpecies, speciesInfo } from '../lib/species'
 
 type Search = { topic?: GuideTopic; for?: Species }
+
+/** pet chips only for animals that have guides (same rule as the shop) */
+const GUIDE_PETS = SPECIES.filter((sp) => GUIDES.some((g) => g.species.includes(sp.id)))
 
 function filtered({ topic, for: sp }: Search) {
   return GUIDES.filter((g) => (!topic || g.topic === topic) && (!sp || g.species.includes(sp)))
@@ -16,7 +20,7 @@ function filtered({ topic, for: sp }: Search) {
 
 function heading({ topic, for: sp }: Search): string {
   const t = GUIDE_TOPICS.find((x) => x.id === topic)?.label
-  const who = sp === 'dog' ? 'dogs' : sp === 'cat' ? 'cats' : ''
+  const who = sp ? speciesInfo(sp).many.toLowerCase() : ''
   if (t && who) return `${t} guides for ${who}`
   if (t) return `${t} guides`
   if (who) return `Care guides for ${who}`
@@ -26,7 +30,7 @@ function heading({ topic, for: sp }: Search): string {
 export const Route = createFileRoute('/guides/')({
   validateSearch: (s: Record<string, unknown>): Search => ({
     topic: GUIDE_TOPICS.some((t) => t.id === s.topic) ? (s.topic as GuideTopic) : undefined,
-    for: s.for === 'dog' || s.for === 'cat' ? s.for : undefined,
+    for: isSpecies(s.for) ? s.for : undefined,
   }),
   head: ({ match }) => {
     const search = match.search as Search
@@ -38,8 +42,12 @@ export const Route = createFileRoute('/guides/')({
     const path = `/guides${qs ? `?${qs}` : ''}`
     return seo({
       title: heading(search),
+      // each indexable filter says what is actually on it, so no two pages share a description
       description:
-        'Plain-English pet care guides: vaccination schedules, flea and tick prevention, switching food, dental care, toxic foods and calmer vet visits.',
+        GUIDE_TOPICS.find((t) => t.id === search.topic)?.description ??
+        (search.for
+          ? `${heading(search)}: ${list.map((g) => g.title.split(':')[0].toLowerCase()).slice(0, 4).join(', ')} — plain-English and practical.`
+          : 'Plain-English pet care guides: vaccination schedules, flea and tick prevention, switching food, dental care, toxic foods and calmer vet visits.'),
       path,
       // a thin filter combination is not worth indexing
       noindex: list.length < 2,
@@ -97,15 +105,15 @@ function GuidesPage() {
           ))}
         </div>
         <div className="chips" role="group" aria-label="Pet">
-          {(['dog', 'cat'] as const).map((sp) => (
+          {GUIDE_PETS.map((sp) => (
             <Link
-              key={sp}
+              key={sp.id}
               to="/guides"
-              search={{ topic: search.topic, for: search.for === sp ? undefined : sp }}
+              search={{ topic: search.topic, for: search.for === sp.id ? undefined : sp.id }}
               className="chip"
-              aria-pressed={search.for === sp}
+              aria-pressed={search.for === sp.id}
             >
-              <PetGlyph species={sp} size={14} /> {sp === 'dog' ? 'Dogs' : 'Cats'}
+              <PetGlyph species={sp.id} size={14} /> {sp.many}
             </Link>
           ))}
         </div>

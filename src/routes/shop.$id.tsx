@@ -9,7 +9,7 @@ import { CATEGORIES, DELIVERY_FEE, FREE_DELIVERY_THRESHOLD, PRODUCTS, getProduct
 import { hasOptions, optionSummary, priceRange, resolveVariant, variantLabel, variantsOf } from '../lib/catalog'
 import type { AxisId, Product, ProductVariant } from '../lib/types'
 import { money } from '../lib/format'
-import { absoluteUrl, breadcrumbLd, seo } from '../lib/seo'
+import { SITE, absoluteUrl, breadcrumbLd, seo } from '../lib/seo'
 import { addToCart, cartCount, cartTotals, noteViewed, pushToast, useAppState } from '../lib/store'
 import { VariantPicker, VariantPrice } from '../components/variant-picker'
 import { ProductGallery } from '../components/product-media'
@@ -23,12 +23,19 @@ const CATEGORY_NOTES: Record<string, string> = {
   health: 'Follow the schedule on the pack, and check with your vet before combining treatments.',
 }
 
+/** prices are reviewed yearly: valid to the end of next year */
+function priceValidUntil(): string {
+  return `${new Date().getFullYear() + 1}-12-31`
+}
+
 function offerLd(p: Product, v: ProductVariant) {
   return {
     '@type': 'Offer',
     url: absoluteUrl(hasOptions(p) ? `/shop/${p.id}?v=${v.id}` : `/shop/${p.id}`),
     priceCurrency: 'USD',
     price: v.price.toFixed(2),
+    priceValidUntil: priceValidUntil(),
+    seller: { '@type': 'Organization', name: SITE.name },
     availability: v.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
     itemCondition: 'https://schema.org/NewCondition',
     shippingDetails: {
@@ -66,16 +73,26 @@ export const Route = createFileRoute('/shop/$id')({
     const p = getProduct(params.id)
     if (!p) return seo({ title: 'Product not found', noindex: true })
     const cat = CATEGORIES.find((c) => c.id === p.category)?.label ?? p.category
-    const chosen = resolveVariant(p, (match.search as { v?: string }).v)
-    const label = variantLabel(p, chosen)
+    const v = (match.search as { v?: string }).v
+    const chosen = resolveVariant(p, v)
+    // the bare URL is the product, not its first option; ?v= pages name the option
+    const label = v ? variantLabel(p, chosen) : ''
     const { min, max } = priceRange(p)
-    const priceText = min === max ? money(min) : `${money(min)}–${money(max)}`
+    const priceText = min === max ? money(min) : `from ${money(min)}`
+    const pets = p.suits.map((sp) => speciesInfo(sp).many.toLowerCase()).join(' & ')
     const common = {
       brand: { '@type': 'Brand', name: p.brand },
       category: cat,
       description: p.description?.join(' ') ?? p.blurb,
-      image: p.images?.length ? p.images.map((src) => absoluteUrl(src)) : absoluteUrl('/og-image.png'),
-      aggregateRating: { '@type': 'AggregateRating', ratingValue: p.rating, reviewCount: p.reviews },
+      image: p.images?.length ? p.images.map((src) => absoluteUrl(src)) : absoluteUrl(`/og/${p.id}.jpg`),
+      aggregateRating: { '@type': 'AggregateRating', ratingValue: p.rating, reviewCount: p.reviews, bestRating: 5 },
+      review: productReviews(p.id).map((r) => ({
+        '@type': 'Review',
+        author: { '@type': 'Person', name: r.author },
+        datePublished: new Date(Date.now() - r.daysAgo * 86_400_000).toISOString().slice(0, 10),
+        reviewRating: { '@type': 'Rating', ratingValue: r.rating, bestRating: 5 },
+        reviewBody: r.text,
+      })),
     }
     // variant products are a ProductGroup whose hasVariant entries each carry an offer
     const productLd = hasOptions(p)
@@ -95,10 +112,18 @@ export const Route = createFileRoute('/shop/$id')({
         }
       : { '@type': 'Product', name: p.name, sku: `PSC-${p.id.toUpperCase()}`, ...common, offers: offerLd(p, chosen) }
     return seo({
-      title: label ? `${p.name} — ${label}` : `${p.name} — ${p.unit}`,
-      description: `${p.blurb} ${priceText} from ${p.brand}${hasOptions(p) ? ` in ${optionSummary(p)}` : ''}. Free delivery over ${money(FREE_DELIVERY_THRESHOLD)}.`,
+      title: label ? `${p.name} — ${label}` : p.name.length <= 34 ? `${p.name} by ${p.brand}` : p.name,
+      // the name is already in the title: say what it is, then what it costs — the
+      // longest complete version that fits a results snippet
+      description: [
+        `${p.blurb} For ${pets}, ${priceText}${hasOptions(p) ? ` in ${optionSummary(p)}` : ''}.`,
+        `${p.blurb} ${priceText[0].toUpperCase()}${priceText.slice(1)}.`,
+        p.blurb,
+      ].find((d) => d.length <= 158) ?? p.blurb,
       // every ?v= option consolidates onto the product URL
       path: `/shop/${p.id}`,
+      image: `/og/${p.id}.jpg`,
+      imageAlt: `${p.name} by ${p.brand}`,
       type: 'product',
       jsonLd: [
         productLd,

@@ -155,6 +155,18 @@ Auth screens and `/welcome` onboarding render without shop chrome (`BARE_ROUTES`
   topic. Guides link out to products and clinics, and are linked from the
   landing, pet profiles, help, search and the footer.
 - Filtered/search result pages (`/shop?q=`, `/search`) are `noindex, follow`.
+- Titles ≤ 60 characters: `pageTitle()` drops the " · PetSafeCare" suffix when it
+  would push a title over. Product titles are the product (plus "by Brand" when
+  short); only `?v=` pages name the option.
+- Descriptions are written to fit (70–160 characters, whole sentences — pick the
+  longest complete version that fits); `clampText()` is only the safety net.
+- Indexable pages send `max-image-preview:large`. Share images are 1200×630
+  JPEGs: `/og-image.jpg` for the site, `/og/<productId>.jpg` per product —
+  regenerate with `npm run og` after changing products, prices or pack shots
+  (social networks don't accept SVG).
+- Product JSON-LD carries reviews and `priceValidUntil`; clinic `openingHours`
+  uses the schema.org form (`Mo-Sa 09:00-19:00`). The sitemap lists product
+  images.
 - `sitemap.xml` is generated from data; `public/robots.txt` disallows account pages.
 - Set `VITE_SITE_URL` in production so canonicals point at the real domain.
 

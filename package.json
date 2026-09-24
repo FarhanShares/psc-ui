@@ -9,7 +9,8 @@
     "dev": "vite dev",
     "generate-routes": "tsr generate",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "og": "node scripts/og-images.mjs"
   },
   "dependencies": {
     "@tanstack/react-router": "latest",

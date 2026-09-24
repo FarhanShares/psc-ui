@@ -7,11 +7,40 @@ import { AddPetSheet } from '../components/add-pet'
 import { ClinicCard } from '../components/cards'
 import { SlotPicker } from '../components/slot-picker'
 import { PetGlyph, ServiceIcon, Sheet, Stars } from '../components/ui'
-import { CLINICS, SERVICE_TYPES, clinicReviews, getClinic, ratingBreakdown } from '../lib/data'
+import { CLINICS, clinicReviews, getClinic, ratingBreakdown } from '../lib/data'
 import { dateFromOffset, initials, longDate, money, shortDate } from '../lib/format'
 import { absoluteUrl, breadcrumbLd, seo } from '../lib/seo'
 import { bookService, pushToast, useAppState } from '../lib/store'
 import type { ClinicService } from '../lib/types'
+
+const SERVICE_WORD: Record<string, string> = {
+  consultation: 'consults',
+  vaccination: 'vaccines',
+  grooming: 'grooming',
+  dental: 'dental care',
+  surgery: 'surgery',
+  checkup: 'check-ups',
+}
+
+/** "a, b and c" without repeats */
+function listWords(words: string[]): string {
+  const w = [...new Set(words)]
+  return w.length > 1 ? `${w.slice(0, -1).join(', ')} and ${w[w.length - 1]}` : (w[0] ?? '')
+}
+
+const dollars = (n: number) => (Number.isInteger(n) ? `$${n}` : money(n))
+
+const DAY: Record<string, string> = { Mon: 'Mo', Tue: 'Tu', Wed: 'We', Thu: 'Th', Fri: 'Fr', Sat: 'Sa', Sun: 'Su' }
+
+/** "Mon–Sat · 9:00–19:00" → "Mo-Sa 09:00-19:00", the form schema.org openingHours expects */
+function schemaHours(hours: string): string {
+  if (/24 hours/i.test(hours)) return 'Mo-Su 00:00-23:59'
+  const m = hours.match(/^(Daily|(\w{3})–(\w{3}))\s*·\s*(\d{1,2}):(\d{2})–(\d{1,2}):(\d{2})$/)
+  if (!m) return hours
+  const days = m[1] === 'Daily' ? 'Mo-Su' : `${DAY[m[2]] ?? m[2]}-${DAY[m[3]] ?? m[3]}`
+  const pad = (h: string) => h.padStart(2, '0')
+  return `${days} ${pad(m[4])}:${m[5]}-${pad(m[6])}:${m[7]}`
+}
 
 export const Route = createFileRoute('/clinics/$id')({
   // unknown ids are real 404s (status + noindex), not soft "not found" pages
@@ -21,11 +50,13 @@ export const Route = createFileRoute('/clinics/$id')({
   head: ({ params }) => {
     const c = getClinic(params.id)
     if (!c) return seo({ title: 'Clinic not found', noindex: true })
-    const services = [...new Set(c.services.map((s) => SERVICE_TYPES.find((t) => t.id === s.type)?.label ?? s.type))]
     const from = Math.min(...c.services.map((s) => s.price))
     return seo({
       title: `${c.name} — vet in ${c.area}`,
-      description: `${services.join(', ')} at ${c.name}, ${c.area}. Rated ${c.rating.toFixed(1)} from ${c.reviews} reviews · ${c.hours} · from ${money(from)}. Book online in under a minute.`,
+      description: [
+        `Rated ${c.rating.toFixed(1)} by ${c.reviews} pet parents: ${listWords(c.services.map((s) => SERVICE_WORD[s.type] ?? s.type))} in ${c.area}, from ${dollars(from)}. ${c.hours.replace(' · ', ' ')}. Book online.`,
+        `Rated ${c.rating.toFixed(1)} by ${c.reviews} pet parents: vet care in ${c.area} from ${dollars(from)}. ${c.hours.replace(' · ', ' ')}. Book online in a minute.`,
+      ].find((d) => d.length <= 158),
       path: `/clinics/${c.id}`,
       jsonLd: [
         {
@@ -36,7 +67,7 @@ export const Route = createFileRoute('/clinics/$id')({
           telephone: c.phone,
           priceRange: '$'.repeat(c.priceBand),
           address: { '@type': 'PostalAddress', addressLocality: c.area },
-          openingHours: c.hours,
+          openingHours: schemaHours(c.hours),
           aggregateRating: { '@type': 'AggregateRating', ratingValue: c.rating, reviewCount: c.reviews },
           makesOffer: c.services.map((s) => ({
             '@type': 'Offer',

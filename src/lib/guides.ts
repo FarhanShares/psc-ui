@@ -32,11 +32,31 @@ export interface Guide {
   related?: string[]
 }
 
-export const GUIDE_TOPICS: { id: GuideTopic; label: string }[] = [
-  { id: 'health', label: 'Health & vaccines' },
-  { id: 'nutrition', label: 'Food & weight' },
-  { id: 'everyday', label: 'Everyday care' },
-  { id: 'visits', label: 'Vet visits' },
+export const GUIDE_TOPICS: { id: GuideTopic; label: string; description: string }[] = [
+  {
+    id: 'health',
+    label: 'Health & vaccines',
+    description:
+      'Puppy and kitten vaccination schedules and a year-round flea and tick plan — plain-English pet health guides you can act on.',
+  },
+  {
+    id: 'nutrition',
+    label: 'Food & weight',
+    description:
+      'Switch your pet’s food without an upset stomach and keep them at a healthy weight — practical food guides for dogs and cats.',
+  },
+  {
+    id: 'everyday',
+    label: 'Everyday care',
+    description:
+      'Brushing teeth at home, and the foods and plants that are toxic to pets — everyday care guides for dogs and cats.',
+  },
+  {
+    id: 'visits',
+    label: 'Vet visits',
+    description:
+      'How to prepare your dog or cat for a calmer vet visit: carriers, what to bring and what to ask — guides from PetSafeCare.',
+  },
 ]
 
 export const GUIDES: Guide[] = [

@@ -12,6 +12,9 @@ with OKLCH tokens (no Tailwind, no UI kit), lucide-react as the only icon set.
 - `npx tsc --noEmit -p tsconfig.json` — must report **zero errors** before any
   commit. Route `head()` titles go in `meta: [{ title }]`, not a top-level key.
 - `npm run build` / `npm run preview` — production build.
+- `npm run og` — regenerates the 1200×630 share cards (`public/og-image.jpg`,
+  `public/og/<id>.jpg`) with headless Chrome. Re-run after changing products,
+  prices or pack shots.
 
 ## Design system — `design.md` is the source of truth
 
