@@ -1299,8 +1299,7 @@ img, svg {
 @media (min-width: 64rem) {
   .shop-layout {
     display: grid;
-    /* wide enough for the four-way pet toggle (All · Cats · Dogs · Birds) */
-    grid-template-columns: 17rem minmax(0, 1fr);
+    grid-template-columns: 15rem minmax(0, 1fr);
     gap: var(--space-xl);
     align-items: start;
   }
@@ -6096,15 +6095,23 @@ html[data-session="in"] [data-guest-view] {
   }
 }
 
-/* four-way pet toggle in the shop filters */
-.pet-toggle button {
-  gap: 4px;
-  padding-inline: 6px;
-  font-size: var(--text-sm);
+/* pet chips in the shop filters: glyph + name, wrap like any chip row */
+.pet-chip svg {
+  flex: none;
 }
 
-.pet-toggle svg {
-  flex: none;
+/* sidebar facet list: the selected row is a filled pill, not a trailing tick,
+   so the count column stays aligned whichever row is chosen */
+.facet-row {
+  min-height: 2.5rem;
+}
+
+.facet-row.is-selected {
+  background: var(--color-accent-tint);
+}
+
+.facet-row.is-selected .option-row__hint {
+  color: var(--color-accent-deep);
 }
 
 /* the species toggle in add-pet forms */

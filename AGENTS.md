@@ -62,7 +62,7 @@ Read `design.md` before touching any style. Core rules:
 - Cart: `/cart` page is canonical (mobile); desktop additionally has the header
   cart drawer with complete inline checkout.
 - Shop search, category, pet and brand live in the URL
-  (`/shop?q=…&cat=…&for=dog|cat&brand=…`); landing copy comes from
+  (`/shop?q=…&cat=…&for=cat|dog|bird&brand=…`); landing copy comes from
   `src/lib/shop-landing.ts`.
 - Variants: see design.md "Product variants". Use `src/lib/catalog.ts`
   (`resolveVariant`, `variantLabel`, `priceRange`…) — cart/order lines are

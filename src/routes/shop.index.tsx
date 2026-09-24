@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { ArrowUpDown, Check, PackageCheck, ShieldCheck, SlidersHorizontal, Truck } from 'lucide-react'
+import { ArrowUpDown, PackageCheck, ShieldCheck, SlidersHorizontal, Truck } from 'lucide-react'
 
 import { ProductCard } from '../components/cards'
 import { OptionPicker, ResultRow, SearchControl } from '../components/pickers'
@@ -101,10 +101,13 @@ interface Filters {
 
 const NO_FILTERS: Filters = { price: 'any', minRating: 0, inStockOnly: false }
 
-const PETS: { id: Species | 'all'; label: string }[] = [
-  { id: 'all', label: 'All' },
-  ...SPECIES.map((sp) => ({ id: sp.id, label: sp.many })),
-]
+/** only species the catalogue actually stocks — a new species appears here
+ *  once it has products, so the filter never offers an empty shelf */
+const PETS = SPECIES.map((sp) => ({
+  id: sp.id,
+  label: sp.many,
+  count: PRODUCTS.filter((p) => p.suits.includes(sp.id)).length,
+})).filter((sp) => sp.count > 0)
 
 function matchesFilters(
   p: (typeof PRODUCTS)[number],
@@ -188,18 +191,17 @@ function ShopPage() {
   const filterPanel = (
     <div className="stack shop-filter-panel">
       <fieldset className="plain-fieldset">
-        <legend className="tag">Pet</legend>
-        <div className="segmented pet-toggle" role="radiogroup" aria-label="Pet">
+        <legend className="tag" style={{ marginBottom: 'var(--space-2xs)' }}>Pet</legend>
+        <div className="chips" role="group" aria-label="Pet">
           {PETS.map((o) => (
             <button
               key={o.id}
               type="button"
-              role="radio"
-              aria-checked={(pet ?? 'all') === o.id}
-              aria-pressed={(pet ?? 'all') === o.id}
-              onClick={() => setPet(o.id)}
+              className="chip pet-chip"
+              aria-pressed={pet === o.id}
+              onClick={() => setPet(pet === o.id ? 'all' : o.id)}
             >
-              {o.id !== 'all' && <PetGlyph species={o.id} size={14} />}
+              <PetGlyph species={o.id} size={14} />
               {o.label}
             </button>
           ))}
@@ -215,14 +217,13 @@ function ShopPage() {
               type="button"
               role="radio"
               aria-checked={category === c.id}
-              className={`option-row${category === c.id ? ' is-selected' : ''}`}
+              className={`option-row facet-row${category === c.id ? ' is-selected' : ''}`}
               onClick={() => setCategory(c.id)}
             >
               <span className="option-row__label">{c.id === 'all' ? 'All supplies' : c.label}</span>
               <span className="option-row__hint">
                 {c.id === 'all' ? PRODUCTS.length : counts.get(c.id) ?? 0}
               </span>
-              {category === c.id && <Check size={15} strokeWidth={2.25} aria-hidden />}
             </button>
           ))}
         </div>

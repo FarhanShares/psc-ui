@@ -199,8 +199,12 @@ Auth screens and `/welcome` onboarding render without shop chrome (`BARE_ROUTES`
 - `Species` = cat | dog | bird. Labels, defaults and order come from
   `src/lib/species.ts` (`SPECIES`, `speciesInfo`, `formatWeight`) — no
   dog-or-cat ternaries. Add-pet forms default to Cat; order is Cat · Dog · Bird.
-- Shop pet filter: All · Cats · Dogs · Birds (URL `for=`); the desktop filter
-  sidebar is 17rem so the four-way toggle fits. Birds get a green avatar tint.
+- Shop pet filter: toggle chips (Cats · Dogs · Birds, URL `for=`); tap the
+  active chip again for all pets — no "All" option. Chips are derived from the
+  catalogue, so a species appears only once it has products (adding fish is a
+  data change, not a UI one). Birds get a green avatar tint.
+- Sidebar facet lists (shop categories) mark the selection with a filled
+  accent-tint row, never a trailing tick, so the count column stays aligned.
 - Weights under 1 kg display in grams (budgies ~40 g).
 
 ## Product media
