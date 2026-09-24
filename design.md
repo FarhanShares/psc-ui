@@ -19,8 +19,9 @@ modern-minimal (warmed). Minimal bones, maximal typographic contrast.
 - `--color-ink`       oklch(25% 0.014 70)
 - `--color-ink-2`     oklch(35% 0.012 68)
 - `--color-rule`      oklch(90% 0.008 80)
-- `--color-accent`    oklch(56% 0.2 256)     the one cobalt signal
-- `--color-accent-deep` oklch(48% 0.19 258)
+- `--color-accent`    oklch(52% 0.2 260)     the one cobalt signal (#105fd9; white text 5.4:1, inside sRGB)
+- `--color-accent-deep` oklch(45% 0.19 262)
+- `--color-rule-field` oklch(66% 0.012 72)  form-field edges, 3:1 against card
 - Category tile tints: food oklch(93% 0.045 75) · treats oklch(93% 0.05 48) ·
   grooming oklch(92% 0.045 200) · toys oklch(93% 0.045 265) · health oklch(92% 0.05 150)
 
@@ -32,6 +33,9 @@ modern-minimal (warmed). Minimal bones, maximal typographic contrast.
   small headings instead.
 - Scale: 11 / 13 / 15 / 16 / 18 / 22 / 28 / clamp(32–42) / clamp(40–56)
 - Page titles: `--text-2xl`; Home greeting: `--text-display`. Commit to the jumps.
+- Section heads (`.section-head__title`): 22px for page sections, 18px inside a
+  card, sheet or band — the container carries the grouping, not a bigger heading.
+- Headings `text-wrap: balance`; paragraphs and list items `text-wrap: pretty`.
 
 ## Spacing
 4-point named scale, tokens in `tokens.css`. Named tokens only.
@@ -48,6 +52,11 @@ Six primitives, all transform/opacity only, all reduced-motion safe:
 Easings and durations unchanged from tokens. Reduced-motion: opacity-only ≤150ms.
 
 ## Empty states (doctrine)
+- One component (`EmptyState`): tinted medallion icon (never a warning icon),
+  22px display title as a real heading (`level` 2/3), one sentence on what will
+  live here, a primary action and optional secondary, and optional extras
+  (suggestion chips) under a rule. `compact` inside sections that already have
+  a heading.
 - Zero pets is a designed onboarding moment, never a hole: Home shows an
   "Add your first pet" card (primary CTA opens the shared AddPetSheet in
   place; secondary escapes to the shop); Health offers the same sheet.
@@ -81,8 +90,11 @@ Silent success; undo toasts for removals/cancels; instant focus rings;
 hover only under `@media (hover: hover)`.
 
 ## CTA voice
-Primary: solid cobalt fill, 8px radius, Bricolage 600, verb-first labels.
-Secondary: hairline ghost. Tertiary: quiet text link.
+Primary: solid cobalt fill, 8px radius, Bricolage 600, verb-first labels — one
+per view where possible. Soft (`.btn--soft`, accent tint): the action repeated
+on every row of a list (Book on clinic cards and service rows, Book in the
+vaccine timeline). Secondary: hairline ghost. Tertiary: quiet text link.
+Sizes: 44px default; `.btn--sm` 36px, 40px on coarse pointers.
 
 ## Responsive contract (non-negotiable)
 - < 40rem: phone — top bar + bottom tab bar, 750px column, 2-up product grid.
@@ -209,6 +221,10 @@ Auth screens and `/welcome` onboarding render without shop chrome (`BARE_ROUTES`
 
 ## Product media
 - `Product.images` (first = hero). No images → the category icon tile, as before.
+- `ProductThumb` is the one small product picture for lists (cart, drawer,
+  orders, search, quick add, reviews, reorder) — pack shot or icon tile.
+- Card flags (Offer, Out of stock) sit top-left, opposite the save heart; image
+  dots stay bottom-centre.
 - Cards (`CardMedia`): several images crossfade slowly while the card is on
   screen; paused on hover/focus, never for reduced motion; dots show position.
 - Detail (`ProductGallery`): swipeable snap track that also auto-advances,

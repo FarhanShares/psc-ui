@@ -211,7 +211,7 @@ function ClinicPage() {
                   </span>
                   <span style={{ display: 'grid', justifyItems: 'end', gap: 'var(--space-3xs)' }}>
                     <span className="price price--lg">{money(service.price)}</span>
-                    <button type="button" className="btn btn--primary btn--sm" onClick={() => openBooking(service)}>
+                    <button type="button" className="btn btn--soft btn--sm" onClick={() => openBooking(service)} aria-label={`Book ${service.name}, ${money(service.price)}`}>
                       Book
                     </button>
                   </span>

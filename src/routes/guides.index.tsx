@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { BookOpen } from 'lucide-react'
 
 import { Crumbs } from '../components/blocks'
 import { GuideCard } from '../components/guide-card'
@@ -111,7 +112,13 @@ function GuidesPage() {
       </div>
 
       {list.length === 0 ? (
-        <EmptyState title="No guides here yet" text="Try another topic, or all guides." actionLabel="All guides" actionTo="/guides" />
+        <EmptyState
+          title="No guides here yet"
+          text="We’re writing more. Try another topic, or read across all guides."
+          actionLabel="All guides"
+          actionTo="/guides"
+          icon={<BookOpen size={20} strokeWidth={1.75} />}
+        />
       ) : (
         <div className="guide-grid">
           {showFeatured && first && <GuideCard guide={first} featured i={2} />}

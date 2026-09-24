@@ -20,15 +20,19 @@
   /* rules */
   --color-rule: oklch(90% 0.008 80);
   --color-rule-2: oklch(84.5% 0.01 78);
+  /* form-field edges: 3:1 against card, so an empty input still reads as one */
+  --color-rule-field: oklch(66% 0.012 72);
 
   /* accent — the one cobalt signal */
-  --color-accent: oklch(56% 0.2 256);
-  --color-accent-deep: oklch(48% 0.19 258);
+  /* 52% L keeps white labels at 5.4:1 (56% was 4.6:1) and sits inside sRGB,
+     so every screen shows the same cobalt instead of a gamut-mapped guess */
+  --color-accent: oklch(52% 0.2 260);
+  --color-accent-deep: oklch(45% 0.19 262);
   --color-accent-ink: oklch(99% 0.004 85);
-  --color-accent-tint: oklch(94.5% 0.03 250);
+  --color-accent-tint: oklch(94.5% 0.025 258);
 
   /* focus */
-  --color-focus: oklch(56% 0.2 256);
+  --color-focus: oklch(52% 0.2 260);
 
   /* graphite — the one dark band */
   --color-graphite: oklch(23% 0.014 265);

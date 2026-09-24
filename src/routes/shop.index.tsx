@@ -4,7 +4,8 @@ import { ArrowUpDown, PackageCheck, SearchX, ShieldCheck, SlidersHorizontal, Tru
 
 import { ProductCard } from '../components/cards'
 import { OptionPicker, ResultRow, SearchControl } from '../components/pickers'
-import { CategoryIcon, PetGlyph, Sheet, tileClass } from '../components/ui'
+import { PetGlyph, Sheet } from '../components/ui'
+import { ProductThumb } from '../components/product-media'
 import { CATEGORIES, FREE_DELIVERY_THRESHOLD, PRODUCTS } from '../lib/data'
 import { money } from '../lib/format'
 import { absoluteUrl, breadcrumbLd, seo } from '../lib/seo'
@@ -416,11 +417,7 @@ function ShopPage() {
                           const hit = variantForQuery(p, query)
                           return hit ? { v: hit.id } : undefined
                         })()}
-                        tile={
-                          <span className={`tile ${tileClass(p.category)}`} style={{ width: '2.5rem', height: '2.5rem' }}>
-                            <CategoryIcon category={p.category} size={16} />
-                          </span>
-                        }
+                        tile={<ProductThumb product={p} size={2.5} />}
                       />
                     ))
                   ) : (

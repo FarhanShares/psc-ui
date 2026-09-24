@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { CreditCard, LifeBuoy, MapPin, Package, RotateCcw, Undo2 } from 'lucide-react'
+import { CreditCard, LifeBuoy, MapPin, PackageX, RotateCcw, Undo2 } from 'lucide-react'
 
 import { Crumbs, SuccessMark, Timeline, type TimelineStep } from '../components/blocks'
-import { CategoryIcon, EmptyState, OrderStatusLabel, Sheet, tileClass } from '../components/ui'
+import { EmptyState, OrderStatusLabel, Sheet } from '../components/ui'
+import { ProductThumb } from '../components/product-media'
 import { getProduct } from '../lib/data'
 import { dateFromOffset, longDate, money, plural, shortDate } from '../lib/format'
 import { seo } from '../lib/seo'
@@ -72,7 +73,7 @@ function OrderPage() {
           text="It may belong to a different account, or the link is incomplete."
           actionLabel="See all orders"
           actionTo="/orders"
-          icon={<Package size={20} strokeWidth={1.75} />}
+          icon={<PackageX size={20} strokeWidth={1.75} />}
         />
       </div>
     )
@@ -127,9 +128,7 @@ function OrderPage() {
                   search={item.variantId ? { v: item.variantId } : {}}
                   className="row line-item"
                 >
-                  <span className={`tile ${tileClass(p.category)}`} style={{ width: '2.75rem', height: '2.75rem' }}>
-                    <CategoryIcon category={p.category} size={18} />
-                  </span>
+                  <ProductThumb product={p} size={3} />
                   <span className="row__grow">
                     <span className="row__title">{p.name}</span>
                     {item.variantLabel && <span className="row__sub line-item__variant">{item.variantLabel}</span>}

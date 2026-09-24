@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { Check } from 'lucide-react'
 
-import { CategoryIcon, Price, Sheet, Stepper, tileClass } from './ui'
+import { Price, Sheet, Stepper } from './ui'
+import { ProductThumb } from './product-media'
 import {
   bestValueOption,
   defaultVariant,
@@ -81,7 +82,16 @@ export function VariantPicker({
 }
 
 /** price block for a chosen variant: price, was-price, per-kg, stock */
-export function VariantPrice({ variant, large = false }: { variant: ProductVariant; large?: boolean }) {
+export function VariantPrice({
+  variant,
+  large = false,
+  status,
+}: {
+  variant: ProductVariant
+  large?: boolean
+  /** e.g. the stock pill — sits on the price line, centred on the figure */
+  status?: React.ReactNode
+}) {
   const unit = unitPriceLabel(variant, money)
   const saving = variant.compareAt && variant.compareAt > variant.price ? variant.compareAt - variant.price : 0
   return (
@@ -93,6 +103,7 @@ export function VariantPrice({ variant, large = false }: { variant: ProductVaria
           <span className="pill pill--ok">Save {money(saving)}</span>
         </>
       )}
+      {status}
       <span className="row__sub num vprice__unit">
         {variant.unit}
         {unit ? ` · ${unit}` : ''}
@@ -150,9 +161,7 @@ export function QuickAddSheet({
     >
       <div className="stack">
         <div className="quick-add__head">
-          <span className={`tile ${tileClass(product.category)}`} style={{ width: '3.5rem', height: '3.5rem' }}>
-            <CategoryIcon category={product.category} size={22} />
-          </span>
+          <ProductThumb product={product} size={3.5} />
           <span className="row__grow">
             <span className="tag">{product.brand}</span>
             <Link to="/shop/$id" params={{ id: product.id }} search={{ v: variant.id }} className="row__title" onClick={onClose}>

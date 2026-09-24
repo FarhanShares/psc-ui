@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
 import { Link } from '@tanstack/react-router'
-import { ArrowUpDown, PenLine, Star } from 'lucide-react'
+import { ArrowUpDown, MessageSquareText, PenLine, Star } from 'lucide-react'
 
 import { Crumbs, RatingSummary, ReviewList, SuccessMark } from './blocks'
 import { OptionPicker } from './pickers'
-import { CategoryIcon, EmptyState, Sheet, tileClass } from './ui'
+import { EmptyState, Sheet } from './ui'
+import { ProductThumb } from './product-media'
 import { CATEGORIES, allReviews, getClinic, getProduct, ratingBreakdown } from '../lib/data'
 import { initials } from '../lib/format'
 import { addUserReview, pushToast, toggleHelpful, useAppState } from '../lib/store'
@@ -92,9 +93,7 @@ export function ReviewsPage({ kind, id }: { kind: ReviewKind; id: string }) {
       <header className="reviews-head rise">
         <Link to={detailTo} params={{ id }} className="reviews-head__item" aria-label={`Back to ${item.name}`}>
           {product ? (
-            <span className={`tile ${tileClass(product.category)}`} style={{ width: '3rem', height: '3rem' }}>
-              <CategoryIcon category={product.category} size={20} />
-            </span>
+            <ProductThumb product={product} size={3} />
           ) : (
             <span className="clinic-card__mono" style={{ width: '3rem', height: '3rem' }} aria-hidden>
               {initials(item.name)}
@@ -160,6 +159,7 @@ export function ReviewsPage({ kind, id }: { kind: ReviewKind; id: string }) {
                 setStars(0)
                 setTopic('')
               }}
+              icon={<MessageSquareText size={20} strokeWidth={1.75} />}
             />
           ) : (
             <div className="card card--pad reviews-card">

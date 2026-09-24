@@ -3,7 +3,7 @@ import { createFileRoute, notFound, Link } from '@tanstack/react-router'
 import { Bell, Check, ChevronRight, MessageCircleQuestion, PackageCheck, Truck } from 'lucide-react'
 
 import { Crumbs, RatingSummary, ReviewList, SaveButton } from '../components/blocks'
-import { ProductCard } from '../components/cards'
+import { ProductRail } from '../components/product-rail'
 import { PetGlyph, Pill, Price, Stars, Stepper, useCopiedLabel } from '../components/ui'
 import { CATEGORIES, DELIVERY_FEE, FREE_DELIVERY_THRESHOLD, PRODUCTS, getProduct, productReviews, ratingBreakdown } from '../lib/data'
 import { hasOptions, optionSummary, priceRange, resolveVariant, variantLabel, variantsOf } from '../lib/catalog'
@@ -169,11 +169,18 @@ function ProductPage() {
   const stockTone = variant.stock === 0 ? 'bad' : variant.stock <= 5 ? 'warn' : 'ok'
   const stockLabel =
     variant.stock === 0 ? 'Out of stock' : variant.stock <= 5 ? `Only ${variant.stock} left` : 'In stock'
-  const inCategory = PRODUCTS.filter((p) => p.category === product.category && p.id !== product.id)
-  const fillers = PRODUCTS.filter(
-    (p) => p.category !== product.category && p.id !== product.id,
-  ).sort((a, b) => b.rating - a.rating)
-  const related = [...inCategory, ...fillers].slice(0, 4)
+  // related: the same animal first (a cat page never leads with bird seed), then
+  // the same category, then rating — enough to fill a rail
+  const sharesPet = (p: Product) => p.suits.some((sp) => product.suits.includes(sp))
+  const onlyPet = product.suits.length === 1 ? product.suits[0] : undefined
+  const ranked = PRODUCTS.filter((p) => p.id !== product.id)
+    .map((p) => ({ p, score: (sharesPet(p) ? 4 : 0) + (p.category === product.category ? 2 : 0) + p.rating / 10 }))
+    .sort((a, b) => b.score - a.score)
+    .map((x) => x.p)
+  // a "More for cats" rail holds only cat things (when there are enough of them)
+  const samePet = ranked.filter(sharesPet)
+  const railPet = onlyPet && samePet.length >= 4 ? onlyPet : undefined
+  const related = (railPet ? samePet : ranked).slice(0, 8)
   const reviews = productReviews(product.id)
   const catLabel = CATEGORIES.find((c) => c.id === product.category)?.label ?? product.category
   const productLines = cart.filter((i) => i.productId === product.id)
@@ -241,8 +248,7 @@ function ProductPage() {
           </div>
 
           <div className="pdp__price">
-            <VariantPrice variant={variant} large />
-            <Pill tone={stockTone}>{stockLabel}</Pill>
+            <VariantPrice variant={variant} large status={<Pill tone={stockTone}>{stockLabel}</Pill>} />
           </div>
 
           <p className="pdp__blurb">{product.blurb}</p>
@@ -396,17 +402,13 @@ function ProductPage() {
         <section className="rise" style={{ '--i': 3 } as React.CSSProperties}>
           <div className="section-head">
             <h2 className="section-head__title">
-              {inCategory.length > 1 ? `More ${catLabel.toLowerCase()}` : 'You might also need'}
+              {railPet ? `More for ${speciesInfo(railPet).many.toLowerCase()}` : 'You might also like'}
             </h2>
-            <Link to="/shop" className="section-head__link">
-              All supplies <ChevronRight size={13} strokeWidth={2} />
+            <Link to="/shop" search={railPet ? { for: railPet } : {}} className="section-head__link">
+              {railPet ? `All ${speciesInfo(railPet).one.toLowerCase()} supplies` : 'All supplies'} <ChevronRight size={13} strokeWidth={2} />
             </Link>
           </div>
-          <div className="grid-products">
-            {related.map((p, i) => (
-              <ProductCard key={p.id} id={p.id} i={i} />
-            ))}
-          </div>
+          <ProductRail ids={related.map((p) => p.id)} label={railPet ? `More for ${speciesInfo(railPet).many.toLowerCase()}` : 'You might also like'} />
         </section>
       )}
 

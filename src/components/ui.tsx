@@ -4,7 +4,7 @@ import {
   Bath,
   Bone,
   Check,
-  CircleAlert,
+  Inbox,
   Cookie,
   HeartPulse,
   Pill as PillIcon,
@@ -127,36 +127,78 @@ export function OrderStatusLabel({ status }: { status: string }) {
   )
 }
 
+/**
+ * An empty list is a moment, not a hole: say what will live here, then give
+ * one clear way forward (plus an optional second). `children` holds extras
+ * such as suggestion chips. `level` sets the heading so it nests correctly
+ * under the section it sits in.
+ */
 export function EmptyState({
   title,
   text,
+  icon,
   actionLabel,
   actionTo,
+  actionSearch,
   onClick,
-  icon,
+  secondaryLabel,
+  secondaryTo,
+  secondarySearch,
+  onSecondary,
+  level = 2,
+  compact = false,
+  children,
 }: {
   title: string
   text: string
+  icon?: React.ReactNode
   actionLabel?: string
   actionTo?: string
+  actionSearch?: Record<string, string>
   onClick?: () => void
-  icon?: React.ReactNode
+  secondaryLabel?: string
+  secondaryTo?: string
+  secondarySearch?: Record<string, string>
+  onSecondary?: () => void
+  level?: 2 | 3
+  compact?: boolean
+  children?: React.ReactNode
 }) {
+  const Heading = level === 3 ? 'h3' : 'h2'
+  const primary =
+    actionLabel && actionTo ? (
+      <Link to={actionTo} search={actionSearch as never} className="btn btn--primary">
+        {actionLabel}
+      </Link>
+    ) : actionLabel && onClick ? (
+      <button type="button" className="btn btn--primary" onClick={onClick}>
+        {actionLabel}
+      </button>
+    ) : null
+  const secondary =
+    secondaryLabel && secondaryTo ? (
+      <Link to={secondaryTo} search={secondarySearch as never} className="btn btn--ghost">
+        {secondaryLabel}
+      </Link>
+    ) : secondaryLabel && onSecondary ? (
+      <button type="button" className="btn btn--ghost" onClick={onSecondary}>
+        {secondaryLabel}
+      </button>
+    ) : null
   return (
-    <div className="empty">
-      <span className="empty__icon">{icon ?? <CircleAlert size={20} strokeWidth={1.75} />}</span>
-      <p className="empty__title">{title}</p>
+    <div className={`empty${compact ? ' empty--compact' : ''}`}>
+      <span className="empty__icon" aria-hidden>
+        {icon ?? <Inbox size={22} strokeWidth={1.75} />}
+      </span>
+      <Heading className="empty__title">{title}</Heading>
       <p className="empty__text">{text}</p>
-      {actionLabel && actionTo && (
-        <Link to={actionTo} className="btn btn--primary btn--sm">
-          {actionLabel}
-        </Link>
+      {(primary || secondary) && (
+        <div className="empty__actions">
+          {primary}
+          {secondary}
+        </div>
       )}
-      {actionLabel && !actionTo && onClick && (
-        <button type="button" className="btn btn--primary btn--sm" onClick={onClick}>
-          {actionLabel}
-        </button>
-      )}
+      {children && <div className="empty__extra">{children}</div>}
     </div>
   )
 }

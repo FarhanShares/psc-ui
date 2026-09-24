@@ -8,9 +8,9 @@ import { addToCart, markVaccineGiven, useAppState } from '../lib/store'
 import type { Booking, Order, VaccineRecord } from '../lib/types'
 import { SaveButton } from './blocks'
 import { QuickAddSheet } from './variant-picker'
-import { CardMedia } from './product-media'
+import { CardMedia, ProductThumb } from './product-media'
 import { defaultVariant, hasOptions, optionSummary, priceRange, variantLabel, variantsOf } from '../lib/catalog'
-import { CategoryIcon, OrderStatusLabel, PetGlyph, Pill, Price, ServiceIcon, Stars, tileClass, useCopiedLabel } from './ui'
+import { OrderStatusLabel, PetGlyph, Pill, Price, ServiceIcon, Stars, useCopiedLabel } from './ui'
 
 /* ------------------------------------------------------------ product card */
 
@@ -144,7 +144,7 @@ export function ClinicCard({ id }: { id: string }) {
         </span>
         <span style={{ display: 'inline-flex', gap: 'var(--space-2xs)', alignItems: 'center' }}>
           <SaveButton kind="clinic" id={clinic.id} name={clinic.name} />
-          <Link to="/clinics/$id" params={{ id: clinic.id }} className="btn btn--primary btn--sm">
+          <Link to="/clinics/$id" params={{ id: clinic.id }} className="btn btn--soft btn--sm" aria-label={`Book at ${clinic.name}`}>
             Book
           </Link>
         </span>
@@ -168,9 +168,7 @@ export function OrderCard({ order }: { order: Order }) {
           const p = getProduct(item.productId)
           if (!p) return null
           return (
-            <span key={`${item.productId}-${item.variantId ?? ""}`} className={`tile ${tileClass(p.category)}`}>
-              <CategoryIcon category={p.category} size={16} />
-            </span>
+            <ProductThumb key={`${item.productId}-${item.variantId ?? ''}`} product={p} />
           )
         })}
         {order.items.length > 4 && <span className="tile num">+{order.items.length - 4}</span>}
@@ -324,7 +322,7 @@ export function VaccineTimeline({ records, petName }: { records: VaccineRecord[]
                   <Link
                     to="/clinics"
                     search={{ service: 'vaccination' }}
-                    className="btn btn--primary btn--sm"
+                    className="btn btn--soft btn--sm"
                     aria-label={`Book ${v.name} for ${petName}`}
                   >
                     Book
@@ -389,11 +387,10 @@ export function ReorderCard({ pick }: { pick: ReorderPick }) {
   const variant = variantsOf(product).find((v) => v.id === pick.variantId) ?? defaultVariant(product)
   const label = variantLabel(product, variant)
   const soldOut = variant.stock === 0
-  const image = product.images?.[0]
   return (
     <article className="card reorder">
-      <Link to="/shop/$id" params={{ id: product.id }} search={variant.id !== defaultVariant(product).id ? { v: variant.id } : {}} className={`tile reorder__tile ${tileClass(product.category)}`} tabIndex={-1} aria-hidden>
-        {image ? <img src={image} alt="" width={96} height={96} loading="lazy" decoding="async" /> : <CategoryIcon category={product.category} size={22} />}
+      <Link to="/shop/$id" params={{ id: product.id }} search={variant.id !== defaultVariant(product).id ? { v: variant.id } : {}} className="reorder__tile" tabIndex={-1} aria-hidden>
+        <ProductThumb product={product} />
       </Link>
       <div className="reorder__body">
         <Link to="/shop/$id" params={{ id: product.id }} search={variant.id !== defaultVariant(product).id ? { v: variant.id } : {}} className="row__title reorder__name">

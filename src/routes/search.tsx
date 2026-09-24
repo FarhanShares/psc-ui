@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { ChevronRight, Clock, HelpCircle, Search, X } from 'lucide-react'
+import { ChevronRight, Clock, HelpCircle, Search, SearchX, X } from 'lucide-react'
 
 import { ProductCard } from '../components/cards'
 import { GuideCard } from '../components/guide-card'
@@ -146,17 +146,28 @@ function SearchPage() {
 
       {results && (
         <>
-          <p className="mono-label" aria-live="polite">
+          <p className={total === 0 ? 'visually-hidden' : 'mono-label'} aria-live="polite">
             {total} result{total === 1 ? '' : 's'} for “{q.trim()}”
           </p>
 
           {total === 0 && (
             <EmptyState
-              title="No matches"
-              text="Check the spelling, or try a broader word like “food” or “vaccine”."
+              title={`Nothing found for “${q.trim()}”`}
+              text="Check the spelling, or try a broader word — these are popular right now."
               actionLabel="Browse the shop"
               actionTo="/shop"
-            />
+              secondaryLabel="Find a clinic"
+              secondaryTo="/clinics"
+              icon={<SearchX size={20} strokeWidth={1.75} />}
+            >
+              <div className="chips">
+                {POPULAR.map((s) => (
+                  <Link key={s} to="/search" search={{ q: s }} className="chip">
+                    {s}
+                  </Link>
+                ))}
+              </div>
+            </EmptyState>
           )}
 
           {results.services.length > 0 && (

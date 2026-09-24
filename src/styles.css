@@ -38,6 +38,15 @@ h1, h2, h3, h4, p {
   overflow-wrap: anywhere;
 }
 
+/* headings share their words across lines; paragraphs avoid one-word last lines */
+h1, h2, h3 {
+  text-wrap: balance;
+}
+
+p, li, dd {
+  text-wrap: pretty;
+}
+
 button {
   font: inherit;
   color: inherit;
@@ -576,12 +585,22 @@ img, svg {
   margin-bottom: var(--space-sm);
 }
 
+/* page sections speak at 22px; inside a card or sheet the same class steps
+   down to 18px so the card, not its heading, carries the grouping */
 .section-head__title {
   font-family: var(--font-display);
   font-weight: 700;
+  font-size: var(--text-lg);
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  color: var(--color-ink);
+}
+
+.card .section-head__title,
+.sheet .section-head__title,
+.band .section-head__title {
   font-size: var(--text-md);
   letter-spacing: -0.02em;
-  color: var(--color-ink);
 }
 
 .section-head__link {
@@ -700,9 +719,30 @@ img, svg {
 }
 
 .btn--sm {
-  min-height: 2.125rem;
+  min-height: 2.25rem;
   padding: var(--space-3xs) var(--space-sm);
   font-size: var(--text-sm);
+}
+
+/* fingers need more than cursors: small buttons grow to 40px on touch screens */
+@media (pointer: coarse) {
+  .btn--sm {
+    min-height: 2.5rem;
+  }
+}
+
+/* soft: the repeated action in a list (Book on every clinic, Reorder on every
+   line) — clearly a button, but it leaves solid cobalt to the page's one CTA */
+.btn--soft {
+  background: var(--color-accent-tint);
+  color: var(--color-accent-deep);
+}
+
+@media (hover: hover) {
+  .btn--soft:hover {
+    background: var(--color-accent);
+    color: var(--color-accent-ink);
+  }
 }
 
 .btn--block {
@@ -913,10 +953,14 @@ img, svg {
   margin: 0 var(--space-sm) var(--space-sm);
 }
 
+/* flags sit top-left, opposite the save heart, so the image dots and the
+   pack's own label along the bottom stay clear */
 .product-card__flag {
   position: absolute;
-  bottom: var(--space-2xs);
-  left: var(--space-2xs);
+  /* vertically centred on the 36px save heart opposite (4px + 18px) */
+  top: var(--space-sm);
+  left: var(--space-xs);
+  z-index: 1;
   background: var(--color-card);
   border: 1px solid var(--color-rule-2);
   border-radius: var(--radius-sm);
@@ -1937,7 +1981,7 @@ img, svg {
   min-height: 2.75rem;
   padding: var(--space-2xs) var(--space-sm);
   background: var(--color-card);
-  border: 1px solid var(--color-rule-2);
+  border: 1px solid var(--color-rule-field);
   border-radius: var(--radius-sm);
   font: inherit;
   font-size: var(--text-body);
@@ -2101,6 +2145,8 @@ img, svg {
 
 .search .input {
   padding-left: 2.375rem;
+  /* the magnifier identifies it; keep the same edge as the sort/filter buttons beside it */
+  border-color: var(--color-rule-2);
 }
 
 /* ------------------------------------------------------------------ sheet */
@@ -2348,36 +2394,88 @@ img, svg {
 .empty {
   display: grid;
   justify-items: center;
-  gap: var(--space-2xs);
+  gap: var(--space-xs);
   text-align: center;
-  padding: var(--space-2xl) var(--space-md);
-  border: 1px dashed var(--color-rule-2);
-  border-radius: var(--radius-md);
+  padding: var(--space-2xl) var(--space-lg);
+  background: var(--color-card);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-lg);
 }
 
+/* medallion: tinted disc with a soft halo, so the moment reads as intentional */
 .empty__icon {
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 3.5rem;
+  height: 3.5rem;
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: var(--color-paper-2);
-  color: var(--color-muted);
-  margin-bottom: var(--space-3xs);
+  background: var(--color-accent-tint);
+  color: var(--color-accent-deep);
+  outline: 0.375rem solid color-mix(in oklch, var(--color-accent-tint) 45%, transparent);
+  margin-bottom: var(--space-sm);
+}
+
+.empty__icon svg {
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
 .empty__title {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: var(--text-body);
+  font-size: var(--text-lg);
+  line-height: 1.2;
+  letter-spacing: -0.025em;
   color: var(--color-ink);
 }
 
 .empty__text {
-  font-size: var(--text-sm);
+  font-size: var(--text-body);
+  line-height: 1.5;
   color: var(--color-muted);
-  max-width: 26ch;
+  max-width: 38ch;
+}
+
+.empty__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+}
+
+.empty__extra {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-xs);
+  margin-top: var(--space-sm);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-rule);
+  width: min(100%, 30rem);
+}
+
+.empty__extra .chips {
+  justify-content: center;
+}
+
+/* inside a section that already has its own heading */
+.empty--compact {
+  padding: var(--space-xl) var(--space-md);
+}
+
+.empty--compact .empty__icon {
+  width: 2.75rem;
+  height: 2.75rem;
   margin-bottom: var(--space-2xs);
+}
+
+.empty--compact .empty__icon svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.empty--compact .empty__title {
+  font-size: var(--text-md);
 }
 
 /* ------------------------------------------------------------------ enter */
@@ -4468,7 +4566,6 @@ button.action-tile {
 }
 
 .vax-row__end .btn--sm {
-  min-height: 2rem;
   padding-inline: var(--space-sm);
 }
 
@@ -5789,6 +5886,17 @@ html[data-session="in"] [data-guest-view] {
   width: 18px;
 }
 
+/* ---- list thumbnails: the pack shot fills the tile, the icon sits centred */
+.thumb {
+  overflow: hidden;
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 /* ---- detail gallery */
 
 .gallery {
@@ -5925,17 +6033,23 @@ html[data-session="in"] [data-guest-view] {
   display: grid;
   gap: var(--space-xs);
   align-content: start;
-  padding: var(--space-sm) var(--space-md);
-  background: var(--color-paper);
-  border: 1px solid var(--color-rule);
-  border-radius: var(--radius-sm);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-rule);
 }
 
 @media (min-width: 48rem) {
   .pdp__desc {
     grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
     gap: var(--space-xl);
-    align-items: start;
+    align-items: stretch;
+  }
+
+  /* side by side the rule turns vertical: one card, two columns, no box-in-a-box */
+  .pdp__highlights {
+    padding-top: 0;
+    border-top: 0;
+    padding-left: var(--space-xl);
+    border-left: 1px solid var(--color-rule);
   }
 }
 
@@ -6336,14 +6450,12 @@ html[data-session="in"] [data-guest-view] {
   width: 4.5rem;
   height: 4.5rem;
   flex: none;
-  border-radius: var(--radius-sm);
-  overflow: hidden;
+  display: block;
 }
 
-.reorder__tile img {
+.reorder__tile .thumb {
   width: 100%;
   height: 100%;
-  object-fit: cover;
 }
 
 .reorder__body {

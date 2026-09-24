@@ -23,8 +23,9 @@ Read `design.md` before touching any style. Core rules:
   32–42px, home greeting up to 56px) + **Figtree** body + JetBrains Mono for
   readouts ONLY (ids, times, counts, slots). Small labels use `.tag`, never
   decorative mono. Headings are roman, sentence case.
-- One cobalt accent `oklch(56% 0.2 256)`, < 5% of any viewport. Status colours
-  always pair with an icon or text, never colour alone.
+- One cobalt accent `oklch(52% 0.2 260)`, < 5% of any viewport. Status colours
+  always pair with an icon or text, never colour alone. Repeated row actions use
+  `.btn--soft`, so solid cobalt stays for the page's main action.
 - Category-tinted product tiles encode data; they are not decoration.
 - Cards: brighter surface + 1px hairline, radius 8/12/20. No shadows except the
   defined whisper/sheet tokens.

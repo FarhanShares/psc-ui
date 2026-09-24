@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
-import { ArrowUpDown, Check, SlidersHorizontal } from 'lucide-react'
+import { ArrowUpDown, MapPinOff, SlidersHorizontal } from 'lucide-react'
 
 import { ClinicCard } from '../components/cards'
 import { OptionPicker, ResultRow, SearchControl } from '../components/pickers'
@@ -93,11 +93,13 @@ function FilterFacets({
                 type="button"
                 role="radio"
                 aria-checked={value.service === o.id}
-                className={`option-row${value.service === o.id ? ' is-selected' : ''}`}
+                className={`option-row facet-row${value.service === o.id ? ' is-selected' : ''}`}
                 onClick={() => onChange({ service: o.id })}
               >
                 <span className="option-row__label">{o.label}</span>
-                {value.service === o.id && <Check size={15} strokeWidth={2.25} aria-hidden />}
+                <span className="option-row__hint">
+                  {o.id === 'all' ? CLINICS.length : CLINICS.filter((c) => c.services.some((s) => s.type === o.id)).length}
+                </span>
               </button>
             ),
           )}
@@ -372,9 +374,12 @@ function ClinicsPage() {
         <div className="rise" style={{ '--i': 4 } as React.CSSProperties}>
           <EmptyState
             title="No clinics match these filters"
-            text="Widen the distance, or turn off a filter or two."
+            text="Widen the distance or turn off a filter. In an emergency, the 24-hour hospital is always listed on the emergency page."
             actionLabel="Reset filters"
             onClick={() => setApplied(DEFAULT_FILTERS)}
+            secondaryLabel="Emergency help"
+            secondaryTo="/emergency"
+            icon={<MapPinOff size={20} strokeWidth={1.75} />}
           />
         </div>
         )}

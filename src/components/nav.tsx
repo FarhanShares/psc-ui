@@ -19,7 +19,7 @@ import {
   X,
 } from 'lucide-react'
 
-import { CategoryIcon, tileClass } from './ui'
+import { ProductThumb } from './product-media'
 import { CATEGORIES, FREE_DELIVERY_THRESHOLD } from '../lib/data'
 import { findVariant, lineKey, variantLabel } from '../lib/catalog'
 import { money } from '../lib/format'
@@ -314,9 +314,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
                 const label = variantLabel(p, variant)
                 return (
                   <div key={lineKey(p.id, item.variantId)} className="drawer__item">
-                    <span className={`tile ${tileClass(p.category)}`} style={{ width: '2.5rem', height: '2.5rem' }}>
-                      <CategoryIcon category={p.category} size={16} />
-                    </span>
+                    <ProductThumb product={p} size={2.75} />
                     <span style={{ flex: 1, minWidth: 0 }}>
                       <span className="row__title" style={{ display: 'block', fontSize: 'var(--text-sm)' }}>
                         {p.name}

@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { ChevronDown, Trash2 } from 'lucide-react'
 
-import { CategoryIcon, Stepper, tileClass } from './ui'
+import { Stepper } from './ui'
+import { ProductThumb } from './product-media'
 import { ChangeVariantSheet } from './variant-picker'
 import { findVariant, hasOptions, variantLabel } from '../lib/catalog'
 import { money } from '../lib/format'
@@ -21,9 +22,7 @@ export function CartLine({ item }: { item: CartItem }) {
   return (
     <div className="card cart-line">
       <Link to="/shop/$id" params={{ id: p.id }} search={hasOptions(p) ? { v: variant.id } : {}} className="cart-line__tile" aria-hidden tabIndex={-1}>
-        <span className={`tile ${tileClass(p.category)}`}>
-          <CategoryIcon category={p.category} size={20} />
-        </span>
+        <ProductThumb product={p} />
       </Link>
       <div className="cart-line__body">
         <div className="cart-line__top">

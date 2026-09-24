@@ -84,8 +84,10 @@ function NotificationsPage() {
 
       {list.length === 0 ? (
         <EmptyState
-          title={filter === 'unread' ? 'Nothing unread' : 'No notifications here'}
-          text="Reminders for vaccines, deliveries and visits land here."
+          title={filter === 'unread' ? 'You’re all caught up' : 'No notifications here'}
+          text="Vaccine reminders, delivery updates and visit confirmations land here as they happen."
+          secondaryLabel={filter === 'unread' ? 'See all notifications' : undefined}
+          onSecondary={filter === 'unread' ? () => setFilter('all') : undefined}
           icon={<BellOff size={20} strokeWidth={1.75} />}
         />
       ) : (

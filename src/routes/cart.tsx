@@ -3,7 +3,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { Check, ChevronLeft, ShoppingCart } from 'lucide-react'
 
 import { EmptyState } from '../components/ui'
-import { FREE_DELIVERY_THRESHOLD, PRODUCTS, getProduct } from '../lib/data'
+import { CATEGORIES, FREE_DELIVERY_THRESHOLD, PRODUCTS, getProduct } from '../lib/data'
 import { ProductCard } from '../components/cards'
 import { CartLine } from '../components/cart-line'
 import { lineKey } from '../lib/catalog'
@@ -19,7 +19,7 @@ export const Route = createFileRoute('/cart')({
 })
 
 function CartPage() {
-  const { cart, savedProducts, signedIn } = useAppState()
+  const { cart, savedProducts, signedIn, orders } = useAppState()
   const navigate = useNavigate()
   const savedInStock = savedProducts.filter((id) => (getProduct(id)?.stock ?? 0) > 0)
   const { subtotal, delivery, total } = cartTotals(cart)
@@ -106,11 +106,22 @@ function CartPage() {
         <div className="rise" style={{ '--i': 1 } as React.CSSProperties}>
           <EmptyState
             title="Your cart is empty"
-            text="Food, treats, grooming — the shop has the everyday things pets run out of."
+            text={`Food, treats and everyday care, delivered in 2–4 days — free over ${money(FREE_DELIVERY_THRESHOLD)}.`}
             actionLabel="Browse the shop"
             actionTo="/shop"
+            secondaryLabel={signedIn && orders.length > 0 ? 'Buy again from an order' : undefined}
+            secondaryTo={signedIn && orders.length > 0 ? '/orders' : undefined}
             icon={<ShoppingCart size={20} strokeWidth={1.75} />}
-          />
+          >
+            <span className="tag">Shop by category</span>
+            <div className="chips">
+              {CATEGORIES.filter((c) => c.id !== 'all').map((c) => (
+                <Link key={c.id} to="/shop" search={{ cat: c.id }} className="chip">
+                  {c.label}
+                </Link>
+              ))}
+            </div>
+          </EmptyState>
         </div>
         {savedInStock.length > 0 && (
           <section className="rise" style={{ '--i': 2 } as React.CSSProperties}>

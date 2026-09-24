@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { CalendarDays, Pencil, Plus, Scale, Syringe, Trash2 } from 'lucide-react'
+import { CalendarDays, PawPrint, Pencil, Plus, Scale, Syringe, Trash2 } from 'lucide-react'
 
 import { Crumbs, Stat } from '../components/blocks'
 import { BookingCard, VaccineTimeline } from '../components/cards'
@@ -46,6 +46,7 @@ function PetPage() {
           text="It may have been removed. Your other pets are one tap away."
           actionLabel="See your pets"
           actionTo="/pets"
+          icon={<PawPrint size={20} strokeWidth={1.75} />}
         />
       </div>
     )
@@ -155,6 +156,8 @@ function PetPage() {
                 actionLabel="Find a clinic"
                 actionTo="/clinics"
                 icon={<CalendarDays size={20} strokeWidth={1.75} />}
+                level={3}
+                compact
               />
             )}
           </section>

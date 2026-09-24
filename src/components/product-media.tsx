@@ -5,6 +5,30 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { CategoryIcon, tileClass } from './ui'
 import type { Product } from '../lib/types'
 
+/* ------------------------------------------------------------------ thumb */
+
+/**
+ * Small square product picture for lists — cart, orders, search, sheets. The
+ * pack shot when the product has one, the category icon tile when it doesn't.
+ * Size comes from the caller's CSS (or `size` in rem) so each list keeps its rhythm.
+ */
+export function ProductThumb({ product, size, className = '' }: { product: Product; size?: number; className?: string }) {
+  const src = product.images?.[0]
+  return (
+    <span
+      className={`tile thumb ${tileClass(product.category)}${className ? ` ${className}` : ''}`}
+      style={size ? { width: `${size}rem`, height: `${size}rem` } : undefined}
+      aria-hidden
+    >
+      {src ? (
+        <img src={src} alt="" width={96} height={96} loading="lazy" decoding="async" />
+      ) : (
+        <CategoryIcon category={product.category} size={size ? Math.round(size * 6.5) : 18} />
+      )}
+    </span>
+  )
+}
+
 /* -------------------------------------------------------------- card media */
 
 /**

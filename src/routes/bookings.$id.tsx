@@ -1,15 +1,6 @@
 import { useState } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
-import {
-  CalendarDays,
-  CalendarPlus,
-  Clock,
-  MapPin,
-  Navigation,
-  Phone,
-  Star,
-  Wallet,
-} from 'lucide-react'
+import { CalendarPlus, CalendarX, Clock, MapPin, Navigation, Phone, Star, Wallet } from 'lucide-react'
 
 import { Crumbs, SuccessMark } from '../components/blocks'
 import { SlotPicker } from '../components/slot-picker'
@@ -87,7 +78,7 @@ function BookingPage() {
           text="It may have been removed, or the link is incomplete."
           actionLabel="See all bookings"
           actionTo="/bookings"
-          icon={<CalendarDays size={20} strokeWidth={1.75} />}
+          icon={<CalendarX size={20} strokeWidth={1.75} />}
         />
       </div>
     )

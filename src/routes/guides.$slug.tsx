@@ -1,5 +1,5 @@
 import { createFileRoute, notFound, Link } from '@tanstack/react-router'
-import { CalendarDays, Clock, Info, Share2, Siren } from 'lucide-react'
+import { BookOpen, CalendarDays, Clock, Info, Share2, Siren } from 'lucide-react'
 
 import { Crumbs } from '../components/blocks'
 import { GuideCard } from '../components/guide-card'
@@ -58,7 +58,13 @@ function GuidePage() {
     return (
       <div className="page">
         <Crumbs items={[{ label: 'Care guides', to: '/guides' }, { label: 'Not found' }]} />
-        <EmptyState title="We can’t find that guide" text="It may have moved. The full list is one tap away." actionLabel="All guides" actionTo="/guides" />
+        <EmptyState
+          title="We can’t find that guide"
+          text="It may have moved. The full list is one tap away."
+          actionLabel="All guides"
+          actionTo="/guides"
+          icon={<BookOpen size={20} strokeWidth={1.75} />}
+        />
       </div>
     )
   }

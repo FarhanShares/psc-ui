@@ -47,6 +47,8 @@ function PetsPage() {
           text="Vaccination reminders, clinic bookings and the right food — it starts here."
           actionLabel="Add a pet"
           onClick={() => setAddOpen(true)}
+          secondaryLabel="Browse the shop"
+          secondaryTo="/shop"
           icon={<PawPrint size={20} strokeWidth={1.75} />}
         />
       ) : (

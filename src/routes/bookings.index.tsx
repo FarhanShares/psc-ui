@@ -84,6 +84,9 @@ function BookingsPage() {
             }
             actionLabel={tab === 'upcoming' ? 'Find a clinic' : undefined}
             actionTo={tab === 'upcoming' ? '/clinics' : undefined}
+            secondaryLabel={tab === 'upcoming' ? 'Book a vaccination' : undefined}
+            secondaryTo={tab === 'upcoming' ? '/clinics' : undefined}
+            secondarySearch={tab === 'upcoming' ? { service: 'vaccination' } : undefined}
             icon={<CalendarDays size={20} strokeWidth={1.75} />}
           />
         </div>
