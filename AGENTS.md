@@ -106,6 +106,11 @@ Read `design.md` before touching any style. Core rules:
 - SEO: use `seo({ title, description, path })` from `src/lib/seo.ts` for route
   heads (adds canonical/OG/JSON-LD).
 
+## Backend (not built yet)
+
+- `docs/api.md` is the API plan: each endpoint names the screen it serves and
+  the store function it replaces. Keep it in step when adding store actions.
+
 ## Workflow
 
 - Commit after each verified change, imperative subject line, body explaining
