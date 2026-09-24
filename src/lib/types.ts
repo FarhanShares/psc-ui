@@ -1,4 +1,4 @@
-export type Species = 'dog' | 'cat'
+export type Species = 'dog' | 'cat' | 'bird'
 
 export type ProductCategory = 'food' | 'treats' | 'grooming' | 'toys' | 'health'
 
@@ -15,6 +15,12 @@ export interface Product {
   blurb: string
   /** which species the product suits — drives per-pet recommendations */
   suits: Species[]
+  /** long-form description paragraphs for the product page (falls back to blurb) */
+  description?: string[]
+  /** short scannable points shown with the description */
+  highlights?: string[]
+  /** image URLs, first is the hero; absent → the category icon tile is used */
+  images?: string[]
   /** option axes (size, flavour, life stage…) — absent for single-SKU products */
   axes?: VariantAxis[]
   /** purchasable combinations of the axes; `price`/`stock`/`unit` above summarise them */

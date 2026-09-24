@@ -4,7 +4,7 @@ import { Bell, Check, ChevronRight, MessageCircleQuestion, PackageCheck, Truck }
 
 import { Crumbs, RatingSummary, ReviewList, SaveButton } from '../components/blocks'
 import { ProductCard } from '../components/cards'
-import { CategoryIcon, PetGlyph, Pill, Price, Stars, Stepper, tileClass, useCopiedLabel } from '../components/ui'
+import { PetGlyph, Pill, Price, Stars, Stepper, useCopiedLabel } from '../components/ui'
 import { CATEGORIES, DELIVERY_FEE, FREE_DELIVERY_THRESHOLD, PRODUCTS, getProduct, productReviews, ratingBreakdown } from '../lib/data'
 import { hasOptions, optionSummary, priceRange, resolveVariant, variantLabel, variantsOf } from '../lib/catalog'
 import type { AxisId, Product, ProductVariant } from '../lib/types'
@@ -12,6 +12,8 @@ import { money } from '../lib/format'
 import { absoluteUrl, breadcrumbLd, seo } from '../lib/seo'
 import { addToCart, cartCount, noteViewed, pushToast, useAppState } from '../lib/store'
 import { VariantPicker, VariantPrice } from '../components/variant-picker'
+import { ProductGallery } from '../components/product-media'
+import { speciesInfo } from '../lib/species'
 
 const CATEGORY_NOTES: Record<string, string> = {
   food: 'Switch to a new food gradually over about a week, mixing growing amounts into the current diet.',
@@ -71,8 +73,8 @@ export const Route = createFileRoute('/shop/$id')({
     const common = {
       brand: { '@type': 'Brand', name: p.brand },
       category: cat,
-      description: p.blurb,
-      image: absoluteUrl('/og-image.png'),
+      description: p.description?.join(' ') ?? p.blurb,
+      image: p.images?.length ? p.images.map((src) => absoluteUrl(src)) : absoluteUrl('/og-image.png'),
       aggregateRating: { '@type': 'AggregateRating', ratingValue: p.rating, reviewCount: p.reviews },
     }
     // variant products are a ProductGroup whose hasVariant entries each carry an offer
@@ -197,12 +199,16 @@ function ProductPage() {
 
       <div className="pdp rise" style={{ '--i': 1 } as React.CSSProperties}>
         <div className="pdp__media">
-          <span className={`tile pdp__tile ${tileClass(product.category)}`}>
-            <CategoryIcon category={product.category} size={88} />
-            {variant.stock === 0 && <span className="product-card__flag">Out of stock</span>}
-            {label && <span className="pdp__variant-tag">{label}</span>}
-          </span>
-          <SaveButton kind="product" id={product.id} name={product.name} variant="overlay" />
+          <ProductGallery
+            product={product}
+            overlay={
+              <>
+                {variant.stock === 0 && <span className="product-card__flag">Out of stock</span>}
+                {label && <span className="pdp__variant-tag">{label}</span>}
+                <SaveButton kind="product" id={product.id} name={product.name} variant="overlay" />
+              </>
+            }
+          />
         </div>
 
         <div className="pdp__info">
@@ -223,7 +229,7 @@ function ProductPage() {
                     className="chip"
                     aria-label={`More ${catLabel.toLowerCase()} for ${sp}s`}
                   >
-                    <PetGlyph species={sp} size={13} /> {sp === 'dog' ? 'Dogs' : 'Cats'}
+                    <PetGlyph species={sp} size={13} /> {speciesInfo(sp).many}
                   </Link>
                 ))}
               </span>
@@ -299,6 +305,25 @@ function ProductPage() {
         </div>
       </div>
 
+      <section className="card card--pad pdp__desc rise" style={{ '--i': 2 } as React.CSSProperties} aria-labelledby="desc-h">
+        <div className="pdp__desc-text">
+          <h2 id="desc-h" className="section-head__title">Description</h2>
+          {(product.description ?? [product.blurb]).map((para) => (
+            <p key={para.slice(0, 24)} className="pdp__blurb">{para}</p>
+          ))}
+        </div>
+        {product.highlights && product.highlights.length > 0 && (
+          <div className="pdp__highlights">
+            <h3 className="tag">Highlights</h3>
+            <ul className="check-list">
+              {product.highlights.map((h) => (
+                <li key={h}>{h}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </section>
+
       <div className="pdp__details rise" style={{ '--i': 2 } as React.CSSProperties}>
         <div className="stack">
           <section className="card card--pad">
@@ -322,7 +347,7 @@ function ProductPage() {
               </div>
               <div className="spec-list__row">
                 <dt>Suits</dt>
-                <dd>{product.suits.map((sp) => (sp === 'dog' ? 'Dogs' : 'Cats')).join(' & ')}</dd>
+                <dd>{product.suits.map((sp) => speciesInfo(sp).many).join(' & ')}</dd>
               </div>
               <div className="spec-list__row">
                 <dt>Size</dt>

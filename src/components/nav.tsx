@@ -483,6 +483,7 @@ export function SiteFooter() {
             ))}
             <li><Link to="/shop" search={{ for: 'dog' }}>For dogs</Link></li>
             <li><Link to="/shop" search={{ for: 'cat' }}>For cats</Link></li>
+            <li><Link to="/shop" search={{ for: 'bird' }}>For birds</Link></li>
           </ul>
         </nav>
         <nav aria-label="Care">

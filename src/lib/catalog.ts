@@ -4,7 +4,7 @@
  * callers never branch on "has variants".
  */
 import { getProduct } from './data'
-import type { AxisId, Product, ProductVariant } from './types'
+import type { AxisId, Product, ProductVariant, Species } from './types'
 
 export function hasOptions(p: Product): boolean {
   return (p.variants?.length ?? 0) > 1
@@ -127,7 +127,7 @@ export function variantForQuery(p: Product, query: string): ProductVariant | nul
  * The option that fits a particular pet: life stage from age, weight band
  * from body weight. Returns undefined when the product has no such axis.
  */
-export function variantForPet(p: Product, pet: { species: 'dog' | 'cat'; ageYears: number; weightKg: number }): string | undefined {
+export function variantForPet(p: Product, pet: { species: Species; ageYears: number; weightKg: number }): string | undefined {
   if (!p.axes) return undefined
   const all = variantsOf(p)
   const want: Partial<Record<AxisId, string>> = {}

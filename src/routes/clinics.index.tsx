@@ -354,6 +354,7 @@ function ClinicsPage() {
             title="Sort by"
             variant="labeled"
             prefix="Sort"
+            align="end"
             value={sort}
             options={CLINIC_SORTS}
             onChange={(id) => setSort(id as SortId)}

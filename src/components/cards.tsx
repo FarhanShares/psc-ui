@@ -8,6 +8,7 @@ import { addToCart, useAppState } from '../lib/store'
 import type { Booking, Order, VaccineRecord } from '../lib/types'
 import { SaveButton } from './blocks'
 import { QuickAddSheet } from './variant-picker'
+import { CardMedia } from './product-media'
 import { defaultVariant, hasOptions, optionSummary, priceRange, variantLabel, variantsOf } from '../lib/catalog'
 import { CategoryIcon, OrderStatusLabel, PetGlyph, Pill, Price, ServiceIcon, Stars, tileClass, useCopiedLabel } from './ui'
 
@@ -37,14 +38,13 @@ export function ProductCard({ id, i = 0, variantId }: { id: string; i?: number; 
         className="product-card__link"
         aria-label={`${product.name}, ${min !== max ? 'from ' : ''}${money(min)}`}
       >
-        <span className={`tile tile--card ${tileClass(product.category)}`}>
-          <CategoryIcon category={product.category} size={34} />
+        <CardMedia product={product}>
           {product.stock === 0 ? (
             <span className="product-card__flag">Out of stock</span>
           ) : onSale ? (
             <span className="product-card__flag product-card__flag--sale">Offer</span>
           ) : null}
-        </span>
+        </CardMedia>
         <span className="product-card__body">
           <span className="tag">{product.brand}</span>
           <span className="product-card__name">{product.name}</span>

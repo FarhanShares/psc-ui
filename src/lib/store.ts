@@ -12,6 +12,7 @@ import {
   VACCINES,
 } from './data'
 import { findVariant, variantLabel } from './catalog'
+import { speciesInfo } from './species'
 import type {
   Address,
   Booking,
@@ -21,6 +22,7 @@ import type {
   PaymentCard,
   Pet,
   Profile,
+  Species,
   UserReview,
   VaccineRecord,
 } from './types'
@@ -506,14 +508,14 @@ export function updatePet(petId: string, patch: Partial<(typeof PETS)[number]>) 
 
 export function addPet(pet: {
   name: string
-  species: 'dog' | 'cat'
+  species: Species
   breed: string
   ageYears?: number
   weightKg?: number
   sex?: Pet['sex']
 }) {
   const id = `pet${state.pets.length + 1}-${Date.now().toString(36)}`
-  const weightKg = pet.weightKg ?? (pet.species === 'cat' ? 4 : 12)
+  const weightKg = pet.weightKg ?? speciesInfo(pet.species).defaultWeightKg
   setState({
     pets: [
       ...state.pets,

@@ -1,3 +1,4 @@
+import { speciesInfo } from './species'
 import type {
   AxisId,
   ProductVariant,
@@ -256,6 +257,62 @@ const BASE_PRODUCTS: Product[] = [
       'A long canvas fish stuffed with organic catnip, sized for hugging and bunny-kicking. Zip pocket lets you refresh the nip.',
     suits: ['cat'],
   },
+  {
+    id: 'p17',
+    name: 'Garden Seed & Millet Blend',
+    brand: 'Featherfield',
+    category: 'food',
+    price: 6.5,
+    unit: '500 g bag',
+    rating: 4.7,
+    reviews: 121,
+    stock: 45,
+    blurb:
+      'Canary seed, white and red millet with dried vegetables and a little oat groat. Dust-cleaned and sized for budgies and cockatiels.',
+    suits: ['bird'],
+  },
+  {
+    id: 'p18',
+    name: 'Golden Millet Sprays',
+    brand: 'Featherfield',
+    category: 'treats',
+    price: 4.25,
+    unit: '6 sprays',
+    rating: 4.9,
+    reviews: 204,
+    stock: 38,
+    blurb:
+      'Whole sun-dried millet on the stalk — the treat small birds forage for. Clip one to the cage bars as a weekly reward.',
+    suits: ['bird'],
+  },
+  {
+    id: 'p19',
+    name: 'Cuttlebone & Mineral Block',
+    brand: 'Vetline',
+    category: 'health',
+    price: 5.4,
+    unit: '2 cuttlebones + 1 block',
+    rating: 4.6,
+    reviews: 77,
+    stock: 30,
+    blurb:
+      'Natural cuttlebone and a calcium-iodine mineral block for strong beaks and eggshells. Includes stainless clips.',
+    suits: ['bird'],
+  },
+  {
+    id: 'p20',
+    name: 'Cotton Rope Perch Swing',
+    brand: 'Featherfield',
+    category: 'toys',
+    price: 8.9,
+    unit: 'Medium · 30 cm',
+    rating: 4.4,
+    reviews: 58,
+    stock: 22,
+    blurb:
+      'A bendable cotton rope perch with a wooden bell ring. Varied grip diameters keep feet healthy between hops.',
+    suits: ['bird'],
+  },
 ]
 
 /* ------------------------------------------------------------ variants */
@@ -401,6 +458,24 @@ const VARIANTS: Record<string, ReturnType<typeof variantSet>> = {
       [{ size: 'xl' }, 9.5, 4, '7 sticks · dogs over 40 kg'],
     ],
   ),
+  p17: variantSet(
+    'p17',
+    [SIZE(['500g', '500 g'], ['1kg', '1 kg'], ['2kg', '2 kg'])],
+    [
+      [{ size: '500g' }, 6.5, 30, '500 g bag', kg(0.5)],
+      [{ size: '1kg' }, 11.5, 24, '1 kg bag', kg(1)],
+      [{ size: '2kg' }, 20.0, 10, '2 kg bag', { ...kg(2), compareAt: 23.0 }],
+    ],
+  ),
+  p20: variantSet(
+    'p20',
+    [SIZE(['s', 'S'], ['m', 'M'], ['l', 'L'])],
+    [
+      [{ size: 's' }, 7.5, 8, 'Small · 20 cm · budgies'],
+      [{ size: 'm' }, 8.9, 14, 'Medium · 30 cm · cockatiels'],
+      [{ size: 'l' }, 11.5, 0, 'Large · 45 cm · parrots'],
+    ],
+  ),
   p12: variantSet(
     'p12',
     [SIZE(['90', '90 chews'], ['180', '180 chews'])],
@@ -411,11 +486,173 @@ const VARIANTS: Record<string, ReturnType<typeof variantSet>> = {
   ),
 }
 
+/* --------------------------------------------------------- descriptions */
+
+/** long-form copy for product pages — merged onto the catalogue below */
+const COPY: Record<string, { description: string[]; highlights: string[] }> = {
+  p01: {
+    description: [
+      'Harvest Bowl is slow-cooked in small batches so the kibble keeps more of its natural flavour. Real chicken or lamb leads the ingredient list, with brown rice and oats for steady energy through the day.',
+      'Omega-3 and omega-6 from salmon oil and flaxseed support a glossy coat and healthy skin, while added glucosamine helps joints in active and larger breeds.',
+    ],
+    highlights: ['Named meat as the first ingredient', 'No artificial colours, flavours or preservatives', 'Omega-3 & 6 for skin and coat', 'Resealable bag in every size'],
+  },
+  p02: {
+    description: [
+      'Ocean Feast is built around wild-caught salmon, with a crunchy kibble shape designed to encourage chewing and slow down fast eaters. Each life-stage recipe is balanced for what cats need at that age.',
+      'Kitten adds DHA for brain and eye development; Adult keeps calories in check for indoor cats; Senior 7+ adds antioxidants and gentler fibre for older digestion.',
+    ],
+    highlights: ['Grain-free, salmon first', 'Taurine for heart and eye health', 'Recipes for kitten, adult and senior', 'Small kibble for small mouths'],
+  },
+  p03: {
+    description: [
+      'A starter kibble for small and medium-breed puppies up to twelve months. The pieces are small and slightly porous so they soften quickly when you add a splash of warm water for very young pups.',
+      'DHA from fish oil supports learning and eyesight, and a controlled calcium level helps joints grow at a healthy pace.',
+    ],
+    highlights: ['DHA for brain development', 'Controlled calcium for growing joints', 'Easy to soften for weaning', 'Made without artificial preservatives'],
+  },
+  p04: {
+    description: [
+      'Soft Bites are single-protein treats — salmon, chicken or duck — gently air-dried so they stay soft enough to break into training-size pieces without crumbling in your pocket.',
+      'Because each flavour uses one protein, they are a good choice for pets on a limited-ingredient diet. Suitable for dogs and cats.',
+    ],
+    highlights: ['One protein per flavour', 'Soft texture, easy to split', 'No added sugar or fillers', 'Resealable pouch'],
+  },
+  p05: {
+    description: [
+      'Crunchy oven-baked biscuits made with whole-wheat flour and unsweetened peanut butter. The texture helps scrape plaque while your dog chews.',
+      'Free from xylitol — the sweetener that is toxic to dogs — and baked without artificial colours.',
+    ],
+    highlights: ['Xylitol-free peanut butter', 'Crunchy texture for teeth', 'Baked in small batches', 'About 12 kcal per biscuit'],
+  },
+  p06: {
+    description: [
+      'A soap-free shampoo with colloidal oatmeal and aloe vera to calm itchy, dry or sensitive skin. It lathers easily and rinses clean without leaving residue.',
+      'pH-balanced for both dogs and cats and gentle enough for weekly use. The light scent fades within a day.',
+    ],
+    highlights: ['Colloidal oatmeal + aloe', 'pH-balanced for dogs and cats', 'Soap- and paraben-free', 'Rinses clean'],
+  },
+  p07: {
+    description: [
+      'Five-finger glove with soft silicone tips that lift loose undercoat while you stroke. Most pets treat it as extra petting, not grooming.',
+      'Use it dry for daily de-shedding or wet at bath time to work shampoo into the coat. Fur peels off in one sheet and the glove rinses clean.',
+    ],
+    highlights: ['Works wet or dry', 'Adjustable wrist strap', 'Four hand sizes, S to XL', 'Machine-washable'],
+  },
+  p08: {
+    description: [
+      'Two braided cotton ropes — a short one for tug and a long one for throwing. The natural fibres act like floss as your dog chews.',
+      'Replace a rope once it starts to fray to avoid swallowed strands.',
+    ],
+    highlights: ['100% natural cotton', 'Two lengths for tug and fetch', 'Flossing action', 'Machine-washable'],
+  },
+  p09: {
+    description: [
+      'A flexible fibreglass wand with natural feathers and a small bell. The long reach lets you keep the lure moving like real prey, so indoor cats get a proper workout.',
+      'Two replacement feather bunches are included. Put the wand away after play so it is not chewed unsupervised.',
+    ],
+    highlights: ['65 cm flexible wand', 'Natural feathers + bell', 'Two refills included', 'Great for indoor cats'],
+  },
+  p10: {
+    description: [
+      'A natural-rubber bone with a low-toned squeaker and deep grooves you can smear with a little spread. Tough enough for heavy chewers.',
+      'Dishwasher-safe and it floats, so it doubles as a pool and beach toy.',
+    ],
+    highlights: ['Natural rubber', 'Floats in water', 'Dishwasher-safe', 'Sizes M to XL'],
+  },
+  p11: {
+    description: [
+      'A veterinary-strength spot-on that kills fleas and ticks on contact and keeps working for four weeks. Each pipette is dosed for a body-weight band, so choose the band that matches your dog today.',
+      'Apply to dry skin between the shoulder blades and avoid bathing for 48 hours. Not for use on cats.',
+    ],
+    highlights: ['Kills fleas and ticks for 4 weeks', 'Dosed by dog weight', 'Waterproof after 48 hours', 'Not for cats'],
+  },
+  p12: {
+    description: [
+      'Soft duck-flavoured chews with glucosamine, chondroitin and green-lipped mussel to support hips and joints. Most dogs take them as a treat.',
+      'Give one to four chews a day depending on weight. Benefits build over four to six weeks of daily use.',
+    ],
+    highlights: ['Glucosamine + chondroitin', 'Green-lipped mussel', 'Tasty duck flavour', 'For senior and active dogs'],
+  },
+  p13: {
+    description: [
+      'A seaweed-based powder sprinkled on your pet’s usual food once a day. Over a few weeks it helps reduce plaque and tartar build-up and freshens breath.',
+      'Odourless and tasteless, so fussy eaters rarely notice it. One jar lasts a medium dog about three months.',
+    ],
+    highlights: ['Natural seaweed', 'Tasteless — mix into food', 'Dogs and cats', 'Lasts up to 3 months'],
+  },
+  p14: {
+    description: [
+      'Purrfect Pâté is a smooth, hydrating wet food with real fish or poultry first. Each 85 g tray is one meal for most adult cats, with no leftover tins in the fridge.',
+      'Wet food adds moisture to the diet, which helps cats who drink little. Mix flavours for variety — they are nutritionally complete on their own.',
+    ],
+    highlights: ['Complete wet food', 'Grain- and carrageenan-free', 'Easy-peel single-serve trays', 'Save more with the 24-pack'],
+  },
+  p15: {
+    description: [
+      'Ridged dental sticks that flex as your dog chews, scrubbing along the gum line where plaque starts. One stick a day as part of a dental routine.',
+      'Choose by weight: a stick that is too small can be swallowed whole, one too big will not get chewed properly.',
+    ],
+    highlights: ['Daily dental chew', 'Sized XS to XL by weight', 'Real chicken flavour', 'No added sugar'],
+  },
+  p16: {
+    description: [
+      'A long canvas fish stuffed with organic catnip and crinkle paper — the right size for your cat to hug and bunny-kick.',
+      'The zipped pocket lets you refresh the catnip when the scent fades. Around one in three cats does not react to catnip, but most still enjoy the kicker shape.',
+    ],
+    highlights: ['Organic catnip, refillable', 'Durable canvas', 'Crinkle inside', '28 cm long'],
+  },
+  p17: {
+    description: [
+      'A clean, dust-extracted seed mix for budgies, cockatiels and other small parrots, with canary seed, white and red millet, oat groats and dried vegetables.',
+      'Seed alone is not a complete diet — offer fresh greens and a pellet alongside it, and blow the empty husks off the dish each day.',
+    ],
+    highlights: ['Dust-cleaned seed', 'Added dried vegetables', 'For budgies & cockatiels', '500 g to 2 kg'],
+  },
+  p18: {
+    description: [
+      'Whole sprays of sun-dried millet, still on the stalk. Foraging for the seeds keeps small birds busy and is a great reward during hand-taming.',
+      'Offer one small piece a few times a week — millet is a treat, not a main food.',
+    ],
+    highlights: ['Natural foraging treat', 'Ideal for training', 'Six sprays per pack', 'No added sugar'],
+  },
+  p19: {
+    description: [
+      'Two natural cuttlebones and one mineral block supply calcium for strong beaks and eggshells, and iodine for a healthy thyroid.',
+      'Clip them to the cage with the soft side facing your bird. Replace when worn down or soiled.',
+    ],
+    highlights: ['Calcium + iodine', 'Helps keep beaks trimmed', 'Stainless steel clips', 'For small and medium birds'],
+  },
+  p20: {
+    description: [
+      'A bendable cotton rope perch you can shape into a swing, spiral or bridge. The varied diameter works feet muscles and helps prevent sore spots.',
+      'Pick by bird size — small for budgies, medium for cockatiels, large for African greys and similar.',
+    ],
+    highlights: ['Bendable into any shape', 'Varied grip diameter', 'Wooden bell ring', 'Sizes S to L'],
+  },
+}
+
+/* ---------------------------------------------------------------- images */
+
+/**
+ * Product photography lives in /public/products. Products not listed here
+ * have no photos yet and keep their category icon tile.
+ */
+const IMAGES: Record<string, string[]> = {
+  p01: ['/products/p01-1.svg', '/products/p01-2.svg', '/products/p01-3.svg'],
+  p02: ['/products/p02-1.svg', '/products/p02-2.svg', '/products/p02-3.svg'],
+  p04: ['/products/p04-1.svg', '/products/p04-2.svg'],
+  p06: ['/products/p06-1.svg'],
+  p14: ['/products/p14-1.svg', '/products/p14-2.svg', '/products/p14-3.svg'],
+  p17: ['/products/p17-1.svg', '/products/p17-2.svg'],
+}
+
 /**
  * Products with variants carry summary fields so lists, filters and sorting
  * keep working: `price` = lowest price, `stock` = total, `unit` = default's.
  */
-export const PRODUCTS: Product[] = BASE_PRODUCTS.map((p) => {
+export const PRODUCTS: Product[] = BASE_PRODUCTS.map((base) => {
+  const p: Product = { ...base, ...COPY[base.id], images: IMAGES[base.id] }
   const v = VARIANTS[p.id]
   if (!v) return p
   const inStock = v.variants.filter((x) => x.stock > 0)
@@ -814,6 +1051,18 @@ const CLINIC_REVIEW_POOL = [
 ]
 
 
+/** bird products get their own lines — dog/cat pools mention chewing and litter */
+const BIRD_REVIEW_POOL = [
+  'Our budgies went straight for it. Very little dust in the bag.',
+  'Cockatiel approved — she chirps when she sees it coming.',
+  'Good quality, clean and fresh smelling. Will reorder.',
+  'Clips on the cage bars easily and survived a week of beak work.',
+  'Nice variety, less waste on the cage floor than our old brand.',
+  'Arrived quickly and well sealed.',
+  'Fine, but our parrot preferred the larger size.',
+  'Ours ignored it for a few days before trying it.',
+]
+
 const EXTRA_PRODUCT_LINES = [
   'Arrived well packed and on time. Exactly as described.',
   'Second time ordering — consistent quality both times.',
@@ -847,7 +1096,9 @@ export function allReviews(kind: 'product' | 'clinic', id: string): Review[] {
   const seed = hashSeed(`${kind}:${id}`)
   const pool =
     kind === 'product'
-      ? [...PRODUCT_REVIEW_POOL[(item as Product).category], ...EXTRA_PRODUCT_LINES]
+      ? (item as Product).suits.every((sp) => sp === 'bird')
+        ? BIRD_REVIEW_POOL
+        : [...PRODUCT_REVIEW_POOL[(item as Product).category], ...EXTRA_PRODUCT_LINES]
       : [...CLINIC_REVIEW_POOL, ...EXTRA_CLINIC_LINES]
   const n = Math.min(24, Math.max(8, Math.round(item.reviews / 12)))
   // spread the star counts in the same proportions as the breakdown bars
@@ -872,7 +1123,7 @@ export function allReviews(kind: 'product' | 'clinic', id: string): Review[] {
       rating,
       daysAgo: 2 + ((r >>> 5) % 360),
       text,
-      pet: kind === 'product' ? (suits[i % suits.length] === 'cat' ? 'Cat parent' : 'Dog parent') : undefined,
+      pet: kind === 'product' ? `${speciesInfo(suits[i % suits.length]).one} parent` : undefined,
       verified: r % 5 !== 0,
       helpful: (r >>> 7) % 23,
       topic: kind === 'clinic' ? services[(r >>> 4) % services.length] : undefined,

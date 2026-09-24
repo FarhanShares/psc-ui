@@ -15,6 +15,7 @@ import { removePet, useAppState } from '../lib/store'
 import { RequireAccount } from '../components/gate'
 import { GuideCard } from '../components/guide-card'
 import { guidesFor } from '../lib/guides'
+import { formatWeight, speciesInfo } from '../lib/species'
 
 export const Route = createFileRoute('/pets/$id')({
   head: () => seo({ title: 'Pet profile', noindex: true }),
@@ -75,7 +76,7 @@ function PetPage() {
         <div style={{ minWidth: 0, flex: 1 }}>
           <h1 className="page-title">{pet.name}</h1>
           <p className="muted">
-            {pet.breed} · {pet.species === 'cat' ? 'Cat' : 'Dog'}
+            {pet.breed} · {speciesInfo(pet.species).one}
             {pet.sex ? ` · ${pet.sex === 'female' ? 'Female' : 'Male'}` : ''}
             {pet.neutered ? ` · ${pet.sex === 'female' ? 'Spayed' : 'Neutered'}` : ''}
           </p>
@@ -89,8 +90,8 @@ function PetPage() {
         <Stat label="Age" value={plural(pet.ageYears, 'yr', 'yrs')} />
         <Stat
           label="Weight"
-          value={`${pet.weightKg.toFixed(1)} kg`}
-          hint={Math.abs(delta) >= 0.1 ? `${delta > 0 ? '+' : '−'}${Math.abs(delta).toFixed(1)} kg this year` : 'Steady'}
+          value={formatWeight(pet.weightKg)}
+          hint={Math.abs(delta) >= (pet.weightKg < 1 ? 0.002 : 0.1) ? `${delta > 0 ? '+' : '−'}${formatWeight(Math.abs(delta))} this year` : 'Steady'}
         />
         <Stat label="Vaccines" value={`${upToDate}/${records.length}`} hint={attention.length ? `${attention.length} need attention` : 'All current'} />
       </div>
@@ -231,21 +232,23 @@ function PetPage() {
         </section>
       )}
 
-      <section className="rise" style={{ '--i': 5 } as React.CSSProperties}>
-        <div className="section-head">
-          <h2 className="section-head__title">Guides for {pet.species === 'cat' ? 'cat' : 'dog'} parents</h2>
-          <Link to="/guides" search={{ for: pet.species }} className="section-head__link">
-            All guides
-          </Link>
-        </div>
-        <div className="guide-grid">
-          {guidesFor(pet.species)
-            .slice(0, 3)
-            .map((g, i) => (
-              <GuideCard key={g.slug} guide={g} i={i} />
-            ))}
-        </div>
-      </section>
+      {guidesFor(pet.species).length > 0 && (
+        <section className="rise" style={{ '--i': 5 } as React.CSSProperties}>
+          <div className="section-head">
+            <h2 className="section-head__title">Guides for {speciesInfo(pet.species).one.toLowerCase()} parents</h2>
+            <Link to="/guides" search={{ for: pet.species }} className="section-head__link">
+              All guides
+            </Link>
+          </div>
+          <div className="guide-grid">
+            {guidesFor(pet.species)
+              .slice(0, 3)
+              .map((g, i) => (
+                <GuideCard key={g.slug} guide={g} i={i} />
+              ))}
+          </div>
+        </section>
+      )}
 
       <EditPetSheet pet={pet} open={editOpen} onClose={() => setEditOpen(false)} />
       <LogWeightSheet pet={pet} open={weightOpen} onClose={() => setWeightOpen(false)} />

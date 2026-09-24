@@ -11,6 +11,8 @@ import { absoluteUrl, breadcrumbLd, seo } from '../lib/seo'
 import { optionKeywords, variantForQuery, variantLabel } from '../lib/catalog'
 import type { ProductCategory, Species } from '../lib/types'
 import { BRANDS, parseBrands, shopLanding } from '../lib/shop-landing'
+import { SPECIES, isSpecies } from '../lib/species'
+import { FeaturedSlider } from '../components/featured-slider'
 
 type ShopSearch = { q?: string; cat?: string; for?: Species; brand?: string }
 
@@ -60,7 +62,7 @@ export const Route = createFileRoute('/shop/')({
       typeof search.cat === 'string' && CATEGORIES.some((c) => c.id === search.cat && c.id !== 'all')
         ? search.cat
         : undefined,
-    for: search.for === 'dog' || search.for === 'cat' ? search.for : undefined,
+    for: isSpecies(search.for) ? search.for : undefined,
     brand: parseBrands(search.brand)?.join(','),
   }),
   component: ShopPage,
@@ -100,9 +102,8 @@ interface Filters {
 const NO_FILTERS: Filters = { price: 'any', minRating: 0, inStockOnly: false }
 
 const PETS: { id: Species | 'all'; label: string }[] = [
-  { id: 'all', label: 'All pets' },
-  { id: 'dog', label: 'Dogs' },
-  { id: 'cat', label: 'Cats' },
+  { id: 'all', label: 'All' },
+  ...SPECIES.map((sp) => ({ id: sp.id, label: sp.many })),
 ]
 
 function matchesFilters(
@@ -188,7 +189,7 @@ function ShopPage() {
     <div className="stack shop-filter-panel">
       <fieldset className="plain-fieldset">
         <legend className="tag">Pet</legend>
-        <div className="segmented" role="radiogroup" aria-label="Pet">
+        <div className="segmented pet-toggle" role="radiogroup" aria-label="Pet">
           {PETS.map((o) => (
             <button
               key={o.id}
@@ -329,26 +330,9 @@ function ShopPage() {
         </li>
       </ul>
 
-      <section className="band shop-hero rise split" style={{ '--i': 1, flexWrap: 'wrap' } as React.CSSProperties} aria-label="Featured">
-        <div style={{ minWidth: 0 }}>
-          <span className="tag">Featured</span>
-          <h2 className="band__title">Flea &amp; tick season is here</h2>
-          <p className="band__meta">
-            Spot-ons and chews for dogs and cats — free delivery over {money(FREE_DELIVERY_THRESHOLD)}.
-          </p>
-        </div>
-        <button
-          type="button"
-          className="btn btn--primary"
-          onClick={() => {
-            setCategory('health')
-            setSort('popular')
-            document.querySelector('.shop-layout')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-          }}
-        >
-          Shop flea &amp; tick
-        </button>
-      </section>
+      <div className="rise" style={{ '--i': 1 } as React.CSSProperties}>
+        <FeaturedSlider />
+      </div>
 
       <div className="shop-layout rise" style={{ '--i': 2 } as React.CSSProperties}>
         <aside className="shop-aside" aria-label="Product filters">
@@ -426,6 +410,7 @@ function ShopPage() {
                 title="Sort by"
                 variant="labeled"
                 prefix="Sort"
+                align="end"
                 value={sort}
                 options={SORTS.map((s) => ({ id: s.id, label: s.label }))}
                 onChange={(id) => setSort(id as SortId)}

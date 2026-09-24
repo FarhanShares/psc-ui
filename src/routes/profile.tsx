@@ -38,6 +38,7 @@ import {
   useUnreadCount,
 } from '../lib/store'
 import type { Address } from '../lib/types'
+import { formatWeight } from '../lib/species'
 
 export const Route = createFileRoute('/profile')({
   head: () => seo({ title: 'Profile', path: '/profile', noindex: true }),
@@ -151,7 +152,7 @@ function ProfilePage() {
                     <span className="row__grow">
                       <span className="row__title">{pet.name}</span>
                       <span className="row__sub">
-                        {pet.breed} · {plural(pet.ageYears, 'yr')} · {pet.weightKg.toFixed(1)} kg
+                        {pet.breed} · {plural(pet.ageYears, 'yr')} · {formatWeight(pet.weightKg)}
                       </span>
                     </span>
                     <ChevronRight size={16} strokeWidth={1.75} className="muted" aria-hidden />

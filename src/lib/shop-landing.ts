@@ -25,6 +25,7 @@ const CATEGORY_INTRO: Record<ProductCategory, string> = {
 const PET_WORD: Record<Species, { one: string }> = {
   dog: { one: 'dog' },
   cat: { one: 'cat' },
+  bird: { one: 'bird' },
 }
 
 export const BRANDS = [...new Set(PRODUCTS.map((p) => p.brand))].sort()

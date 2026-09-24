@@ -20,7 +20,7 @@ function urls(): Array<{ loc: string; priority: string; changefreq: string }> {
   const cats = CATEGORIES.filter((c) => c.id !== 'all')
   for (const c of cats) out.push({ loc: `/shop?cat=${c.id}`, priority: '0.8', changefreq: 'weekly' })
   // pet landings, and category × pet only where products exist (no thin pages)
-  for (const pet of ['dog', 'cat'] as const) {
+  for (const pet of ['dog', 'cat', 'bird'] as const) {
     out.push({ loc: `/shop?for=${pet}`, priority: '0.8', changefreq: 'weekly' })
     for (const c of cats) {
       if (PRODUCTS.some((p) => p.category === c.id && p.suits.includes(pet)))

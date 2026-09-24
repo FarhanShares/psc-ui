@@ -9,6 +9,7 @@ import { PetGlyph } from '../components/ui'
 import { pushToast, syncClinicRecords, useAppState } from '../lib/store'
 import { seo } from '../lib/seo'
 import { RequireAccount } from '../components/gate'
+import { formatWeight } from '../lib/species'
 
 export const Route = createFileRoute('/health')({
   head: () => seo({ title: 'Health', path: '/health', noindex: true }),
@@ -99,7 +100,7 @@ function HealthPage() {
             </button>
           </div>
           <p className="row__sub" style={{ marginBottom: 'var(--space-2xs)' }}>
-            {pet.breed} · {pet.ageYears} yr · {pet.weightKg.toFixed(1)} kg
+            {pet.breed} · {pet.ageYears} yr · {formatWeight(pet.weightKg)}
           </p>
           {petVaccines.length === 0 && (
             <p className="row__sub" style={{ paddingBlock: 'var(--space-sm)' }}>

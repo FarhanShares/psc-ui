@@ -126,6 +126,9 @@ export function Landing({ recentlyViewed }: { recentlyViewed: string[] }) {
           <Link to="/shop" search={{ for: 'cat' }} className="chip">
             <PetGlyph species="cat" size={14} /> Everything for cats
           </Link>
+          <Link to="/shop" search={{ for: 'bird' }} className="chip">
+            <PetGlyph species="bird" size={14} /> Everything for birds
+          </Link>
         </div>
         <div className="cat-grid">
           {CATEGORIES.filter((c) => c.id !== 'all').map((c) => (

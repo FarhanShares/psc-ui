@@ -9,6 +9,7 @@ import { plural } from '../lib/format'
 import { seo } from '../lib/seo'
 import { addPet, removePet, updateProfile, useAppState } from '../lib/store'
 import type { Pet } from '../lib/types'
+import { DEFAULT_SPECIES, SPECIES, speciesInfo } from '../lib/species'
 
 export const Route = createFileRoute('/welcome')({
   validateSearch: (s: Record<string, unknown>): { redirect?: string } => ({
@@ -26,7 +27,7 @@ const TITLES: Record<Step, { title: string; sub: string }> = {
   2: { title: 'You’re all set', sub: 'Here’s a good place to start.' },
 }
 
-const BLANK = { name: '', species: 'dog' as Pet['species'], breed: '', age: '', sex: undefined as Pet['sex'] }
+const BLANK = { name: '', species: DEFAULT_SPECIES as Pet['species'], breed: '', age: '', sex: undefined as Pet['sex'] }
 
 function WelcomePage() {
   const { redirect } = Route.useSearch()
@@ -63,7 +64,7 @@ function WelcomePage() {
     addPet({
       name,
       species: draft.species,
-      breed: draft.breed.trim() || (draft.species === 'cat' ? 'Domestic cat' : 'Mixed breed'),
+      breed: draft.breed.trim() || speciesInfo(draft.species).defaultBreed,
       ageYears: draft.age ? Math.max(0, Number(draft.age)) : undefined,
       sex: draft.sex,
     })
@@ -121,10 +122,17 @@ function WelcomePage() {
             }}
             noValidate
           >
-            <div className="segmented" role="group" aria-label="Species">
-              {(['dog', 'cat'] as const).map((sp) => (
-                <button key={sp} type="button" aria-pressed={draft.species === sp} onClick={() => setDraft((d) => ({ ...d, species: sp }))}>
-                  <PetGlyph species={sp} size={15} /> {sp === 'dog' ? 'Dog' : 'Cat'}
+            <div className="segmented species-toggle" role="radiogroup" aria-label="Species">
+              {SPECIES.map((sp) => (
+                <button
+                  key={sp.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={draft.species === sp.id}
+                  aria-pressed={draft.species === sp.id}
+                  onClick={() => setDraft((d) => ({ ...d, species: sp.id }))}
+                >
+                  <PetGlyph species={sp.id} size={15} /> {sp.one}
                 </button>
               ))}
             </div>
@@ -135,7 +143,7 @@ function WelcomePage() {
                 className="input"
                 value={draft.name}
                 onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
-                placeholder={draft.species === 'cat' ? 'Mochi' : 'Biscuit'}
+                placeholder={speciesInfo(draft.species).namePlaceholder}
                 aria-invalid={!!nameError || undefined}
                 aria-describedby="ob-name-help"
                 autoFocus

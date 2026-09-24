@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Sheet } from './ui'
 import { addVaccineRecord, logWeight, pushToast, updatePet } from '../lib/store'
 import type { Pet } from '../lib/types'
+import { formatWeight } from '../lib/species'
 
 /* ------------------------------------------------------------- edit pet */
 
@@ -139,9 +140,9 @@ export function LogWeightSheet({ pet, open, onClose }: { pet: Pet; open: boolean
           className="btn btn--primary btn--block"
           disabled={!valid}
           onClick={() => {
-            logWeight(pet.id, Math.round(value * 10) / 10)
+            logWeight(pet.id, pet.weightKg < 1 ? Math.round(value * 1000) / 1000 : Math.round(value * 10) / 10)
             onClose()
-            pushToast(`${pet.name}: ${value.toFixed(1)} kg logged`)
+            pushToast(`${pet.name}: ${formatWeight(value)} logged`)
           }}
         >
           Save weight
@@ -155,7 +156,7 @@ export function LogWeightSheet({ pet, open, onClose }: { pet: Pet; open: boolean
           className="input input--big num"
           type="number"
           inputMode="decimal"
-          step="0.1"
+          step={pet.weightKg < 1 ? '0.001' : '0.1'}
           min={0}
           value={kg}
           onChange={(e) => setKg(e.target.value)}

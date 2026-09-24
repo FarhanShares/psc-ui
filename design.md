@@ -194,3 +194,26 @@ Auth screens and `/welcome` onboarding render without shop chrome (`BARE_ROUTES`
   "Tideline cat supplies"). Single-brand landings are indexable; multi-brand
   mixes and free-text `q` are noindex. The sitemap lists category × pet only
   where products exist (no thin pages).
+
+## Species
+- `Species` = cat | dog | bird. Labels, defaults and order come from
+  `src/lib/species.ts` (`SPECIES`, `speciesInfo`, `formatWeight`) — no
+  dog-or-cat ternaries. Add-pet forms default to Cat; order is Cat · Dog · Bird.
+- Shop pet filter: All · Cats · Dogs · Birds (URL `for=`); the desktop filter
+  sidebar is 17rem so the four-way toggle fits. Birds get a green avatar tint.
+- Weights under 1 kg display in grams (budgies ~40 g).
+
+## Product media
+- `Product.images` (first = hero). No images → the category icon tile, as before.
+- Cards (`CardMedia`): several images crossfade slowly while the card is on
+  screen; paused on hover/focus, never for reduced motion; dots show position.
+- Detail (`ProductGallery`): swipeable snap track that also auto-advances,
+  pauses on hover/touch/focus, arrows on hover, thumbnails below; overlays
+  (save, option tag) sit inside the image stage.
+- Product page has a Description section (paragraphs + Highlights) before
+  How to use; JSON-LD uses the full description and all images.
+
+## Featured slider (shop)
+- One graphite card, swipeable, auto-advancing every 6s with dots (and arrows on
+  pointer devices); paused on hover/focus/touch/off-screen/reduced motion.
+- Dropdown pickers align to the trigger's right edge when it sits on the right.

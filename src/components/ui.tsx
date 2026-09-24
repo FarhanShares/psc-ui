@@ -53,6 +53,16 @@ export function ServiceIcon({ type, size = 18 }: { type: ServiceType; size?: num
 }
 
 export function PetGlyph({ species, size = 18 }: { species: Species; size?: number }) {
+  if (species === 'bird') {
+    return (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M16 7h.01" />
+        <path d="M3.5 20 11 13" />
+        <path d="M11 13c-1.6-4.6.4-9 5-9 2.2 0 3.6 1.3 4 3l1.5.5L20 9c0 5-3.6 9-9 9H7" />
+        <path d="M11 13c2 .3 4-.3 5.5-2" />
+      </svg>
+    )
+  }
   return species === 'cat' ? (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d="M4 9.5 4.5 4l4 3h7l4-3 .5 5.5" />

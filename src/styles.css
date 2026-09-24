@@ -1299,7 +1299,8 @@ img, svg {
 @media (min-width: 64rem) {
   .shop-layout {
     display: grid;
-    grid-template-columns: 14.5rem minmax(0, 1fr);
+    /* wide enough for the four-way pet toggle (All · Cats · Dogs · Birds) */
+    grid-template-columns: 17rem minmax(0, 1fr);
     gap: var(--space-xl);
     align-items: start;
   }
@@ -1421,6 +1422,7 @@ img, svg {
 
 .pet-card__ava--dog { background: var(--tint-food);     color: var(--tint-food-ink); }
 .pet-card__ava--cat { background: var(--tint-grooming); color: var(--tint-grooming-ink); }
+.pet-card__ava--bird { background: var(--tint-health); color: var(--tint-health-ink); }
 
 .pet-card__name {
   font-family: var(--font-display);
@@ -5714,4 +5716,405 @@ html[data-session="in"] [data-guest-view] {
   gap: var(--space-2xs);
   font-size: var(--text-xs);
   color: var(--color-muted);
+}
+
+/* ------------------------------------------------------------ product media */
+
+/* card image area: images stack and crossfade; the tint shows while loading */
+.tile--media {
+  overflow: hidden;
+}
+
+.tile--media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.media-fade {
+  opacity: 0;
+  transition: opacity 700ms var(--ease-in-out);
+}
+
+.media-fade.is-on {
+  opacity: 1;
+}
+
+@media (hover: hover) {
+  .product-card:hover .media-fade.is-on {
+    transform: scale(1.03);
+    transition: opacity 700ms var(--ease-in-out), transform var(--dur-long) var(--ease-out);
+  }
+}
+
+.media-dots {
+  position: absolute;
+  left: 50%;
+  bottom: var(--space-xs);
+  translate: -50% 0;
+  z-index: 1;
+  display: flex;
+  gap: 4px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-card) 70%, transparent);
+}
+
+.media-dots span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-ink-2);
+  opacity: 0.3;
+  transition: opacity var(--dur-short) var(--ease-out), width var(--dur-short) var(--ease-out);
+}
+
+.media-dots span.is-on {
+  width: 12px;
+  border-radius: 3px;
+  opacity: 0.85;
+}
+
+.media-dots--lg {
+  bottom: var(--space-sm);
+}
+
+.media-dots--lg span {
+  width: 7px;
+  height: 7px;
+}
+
+.media-dots--lg span.is-on {
+  width: 18px;
+}
+
+/* ---- detail gallery */
+
+.gallery {
+  position: relative;
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.gallery__stage {
+  position: relative;
+}
+
+.gallery__track {
+  /* explicit width: with aspect-ratio + max-height the track would otherwise
+     shrink narrower than the stage, leaving overlays hanging outside it */
+  width: 100%;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 100%;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-rule);
+}
+
+.gallery__track::-webkit-scrollbar {
+  display: none;
+}
+
+.gallery__slide {
+  margin: 0;
+  scroll-snap-align: start;
+  min-width: 0;
+}
+
+.gallery__slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (min-width: 48rem) {
+  .gallery__track {
+    aspect-ratio: 1;
+    max-height: 34rem;
+  }
+}
+
+.gallery__arrow {
+  position: absolute;
+  top: 50%;
+  translate: 0 -50%;
+  z-index: 1;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-card) 90%, transparent);
+  border-color: transparent;
+  box-shadow: var(--shadow-whisper);
+  opacity: 0;
+  transition: opacity var(--dur-short) var(--ease-out);
+}
+
+.gallery__arrow--prev { left: var(--space-sm); }
+.gallery__arrow--next { right: var(--space-sm); }
+
+/* arrows appear on hover/focus for pointer users; touch users swipe */
+@media (hover: hover) {
+  .gallery__stage:hover .gallery__arrow,
+  .gallery__arrow:focus-visible {
+    opacity: 1;
+  }
+}
+
+.gallery__thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs);
+}
+
+.gallery__thumb {
+  width: 4rem;
+  height: 4rem;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  border: 2px solid transparent;
+  overflow: hidden;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+
+.gallery__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gallery__thumb[aria-selected="true"] {
+  border-color: var(--color-accent);
+  opacity: 1;
+}
+
+@media (hover: hover) {
+  .gallery__thumb:hover {
+    opacity: 1;
+  }
+}
+
+/* overlay extras sit above the gallery image */
+.gallery .save-btn--overlay {
+  z-index: 2;
+}
+
+.gallery .product-card__flag,
+.gallery .pdp__variant-tag {
+  z-index: 2;
+}
+
+/* ---- product description */
+
+.pdp__desc {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.pdp__desc-text {
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.pdp__highlights {
+  display: grid;
+  gap: var(--space-xs);
+  align-content: start;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-paper);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-sm);
+}
+
+@media (min-width: 48rem) {
+  .pdp__desc {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: var(--space-xl);
+    align-items: start;
+  }
+}
+
+/* --------------------------------------------------------- featured slider */
+
+.fslider {
+  position: relative;
+  border-radius: var(--radius-md);
+  background: var(--color-graphite);
+  color: var(--color-on-graphite);
+  overflow: hidden;
+}
+
+.fslider .tag {
+  color: var(--color-on-graphite-muted);
+}
+
+.fslider__track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 100%;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.fslider__track::-webkit-scrollbar {
+  display: none;
+}
+
+.fslider__slide {
+  scroll-snap-align: start;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 5.5rem;
+  gap: var(--space-sm);
+  align-items: center;
+  padding: var(--space-md) var(--space-md) 3rem;
+  min-width: 0;
+}
+
+.fslider__copy {
+  display: grid;
+  gap: var(--space-2xs);
+  justify-items: start;
+  min-width: 0;
+}
+
+.fslider__cta {
+  margin-top: var(--space-2xs);
+}
+
+.fslider__media {
+  aspect-ratio: 1;
+  border-radius: var(--radius-md);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.fslider__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fslider__controls {
+  position: absolute;
+  left: var(--space-md);
+  bottom: var(--space-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+}
+
+.fslider__arrow {
+  display: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--color-graphite-rule);
+  background: transparent;
+  color: var(--color-on-graphite);
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .fslider__arrow {
+    display: grid;
+  }
+
+  .fslider__arrow:hover {
+    border-color: var(--color-on-graphite-muted);
+  }
+}
+
+.fslider__dots {
+  display: flex;
+  gap: 2px;
+}
+
+/* 24px hit area around a small visual dot */
+.fslider__dot {
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.fslider__dot::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-on-graphite-muted);
+  opacity: 0.5;
+  transition: width var(--dur-short) var(--ease-out), opacity var(--dur-short) var(--ease-out);
+}
+
+.fslider__dot[aria-selected="true"]::after {
+  width: 18px;
+  opacity: 1;
+  background: var(--color-on-graphite);
+}
+
+@media (min-width: 40rem) {
+  .fslider__slide {
+    grid-template-columns: minmax(0, 1fr) 9rem;
+    gap: var(--space-lg);
+    padding: var(--space-lg) var(--space-lg) 3.25rem;
+  }
+
+  .fslider__controls {
+    left: var(--space-lg);
+  }
+}
+
+@media (min-width: 64rem) {
+  .fslider__slide {
+    grid-template-columns: minmax(0, 1fr) 11rem;
+    padding: var(--space-lg) var(--space-xl) 3.5rem;
+    min-height: 13rem;
+  }
+
+  .fslider__controls {
+    left: var(--space-xl);
+    bottom: var(--space-md);
+  }
+
+  .fslider .band__meta {
+    max-width: 52ch;
+  }
+}
+
+/* four-way pet toggle in the shop filters */
+.pet-toggle button {
+  gap: 4px;
+  padding-inline: 6px;
+  font-size: var(--text-sm);
+}
+
+.pet-toggle svg {
+  flex: none;
+}
+
+/* the species toggle in add-pet forms */
+.species-toggle button {
+  min-height: 2.75rem;
+}
+
+/* detail gallery: option tag owns bottom-left, so the dots sit bottom-right */
+.gallery .media-dots--lg {
+  left: auto;
+  right: var(--space-sm);
+  translate: none;
 }

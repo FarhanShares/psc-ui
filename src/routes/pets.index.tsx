@@ -9,6 +9,7 @@ import { plural } from '../lib/format'
 import { seo } from '../lib/seo'
 import { useAppState } from '../lib/store'
 import { RequireAccount } from '../components/gate'
+import { formatWeight } from '../lib/species'
 
 export const Route = createFileRoute('/pets/')({
   head: () => seo({ title: 'Your pets', path: '/pets', noindex: true }),
@@ -62,7 +63,7 @@ function PetsPage() {
                 <span className="row__grow">
                   <span className="row__title" style={{ fontSize: 'var(--text-md)' }}>{pet.name}</span>
                   <span className="row__sub">
-                    {pet.breed} · {plural(pet.ageYears, 'yr')} · {pet.weightKg.toFixed(1)} kg
+                    {pet.breed} · {plural(pet.ageYears, 'yr')} · {formatWeight(pet.weightKg)}
                   </span>
                 </span>
                 {needs > 0 ? (
