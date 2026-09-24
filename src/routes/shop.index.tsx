@@ -1,17 +1,17 @@
 import { useMemo, useState } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { ArrowUpDown, PackageCheck, ShieldCheck, SlidersHorizontal, Truck } from 'lucide-react'
+import { ArrowUpDown, PackageCheck, SearchX, ShieldCheck, SlidersHorizontal, Truck } from 'lucide-react'
 
 import { ProductCard } from '../components/cards'
 import { OptionPicker, ResultRow, SearchControl } from '../components/pickers'
-import { CategoryIcon, EmptyState, PetGlyph, Sheet, tileClass } from '../components/ui'
+import { CategoryIcon, PetGlyph, Sheet, tileClass } from '../components/ui'
 import { CATEGORIES, FREE_DELIVERY_THRESHOLD, PRODUCTS } from '../lib/data'
 import { money } from '../lib/format'
 import { absoluteUrl, breadcrumbLd, seo } from '../lib/seo'
 import { optionKeywords, variantForQuery, variantLabel } from '../lib/catalog'
 import type { ProductCategory, Species } from '../lib/types'
 import { BRANDS, parseBrands, shopLanding } from '../lib/shop-landing'
-import { SPECIES, isSpecies } from '../lib/species'
+import { SPECIES, isSpecies, speciesInfo } from '../lib/species'
 import { FeaturedSlider } from '../components/featured-slider'
 
 type ShopSearch = { q?: string; cat?: string; for?: Species; brand?: string }
@@ -182,7 +182,59 @@ function ShopPage() {
     if (sort === 'name') list = [...list].sort((a, b) => a.name.localeCompare(b.name))
     if (sort === 'popular') list = [...list].sort((a, b) => b.reviews - a.reviews)
     return list
-  }, [category, query, sort, filters])
+  }, [category, pet, brands, query, sort, filters])
+
+  // few or no results: offer the one-step ways out, each with what it would show
+  const widen = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    const count = (scope: { category: ProductCategory | 'all'; pet?: Species; brands: string[] }, f: Filters, text: string) =>
+      PRODUCTS.filter(
+        (p) =>
+          matchesFilters(p, scope, f) &&
+          (!text || `${p.name} ${p.brand} ${p.category} ${optionKeywords(p)}`.toLowerCase().includes(text)),
+      ).length
+    const scope = { category, pet, brands }
+    const petWord = pet ? speciesInfo(pet).one.toLowerCase() : ''
+    const catLabel = CATEGORIES.find((c) => c.id === category)?.label
+    const moves: { id: string; label: string; n: number; run: () => void }[] = []
+    if (category !== 'all')
+      moves.push({
+        id: 'cat',
+        label: petWord ? `All ${petWord} supplies` : 'All supplies',
+        n: count({ ...scope, category: 'all' }, filters, q),
+        run: () => setCategory('all'),
+      })
+    if (pet)
+      moves.push({
+        id: 'pet',
+        label: `${catLabel ?? 'Supplies'} for every pet`,
+        n: count({ ...scope, pet: undefined }, filters, q),
+        run: () => setPet('all'),
+      })
+    if (brands.length > 0)
+      moves.push({
+        id: 'brand',
+        label: 'Every brand',
+        n: count({ ...scope, brands: [] }, filters, q),
+        run: () => navigate({ to: '/shop', search: (prev) => ({ ...prev, brand: undefined }), replace: true }),
+      })
+    if (filters.price !== 'any' || filters.minRating > 0 || filters.inStockOnly)
+      moves.push({
+        id: 'filters',
+        label: 'Any price or rating',
+        n: count(scope, NO_FILTERS, q),
+        run: () => setFilters(NO_FILTERS),
+      })
+    if (q)
+      moves.push({
+        id: 'q',
+        label: `Without “${query.trim()}”`,
+        n: count(scope, filters, ''),
+        run: () => setQuery(''),
+      })
+    return moves.filter((m) => m.n > results.length)
+  }, [category, pet, brands, query, filters, results.length])
+
 
   // changing this remounts the grid so cards re-stagger — it signals "new results"
   const resultKey = `${category}|${pet}|${brands.join()}|${query}|${sort}|${JSON.stringify(filters)}`
@@ -419,18 +471,27 @@ function ShopPage() {
             </span>
           </div>
 
-          {results.length > 0 ? (
+          {results.length > 0 && (
             <div className="grid-products" key={resultKey}>
               {results.map((p, i) => (
                 <ProductCard key={p.id} id={p.id} i={i} variantId={query ? variantForQuery(p, query)?.id : undefined} />
               ))}
+              {results.length < 4 && widen.length > 0 && (
+                <WidenCard
+                  title={query.trim() ? `That’s everything matching “${query.trim()}”` : `That’s all our ${land.h1.toLowerCase()}`}
+                  text="Widen the search to see more."
+                  moves={widen}
+                />
+              )}
             </div>
-          ) : (
-            <EmptyState
-              title="Nothing matches these filters"
-              text="Try a shorter word, or clear a filter or two."
-              actionLabel="Clear everything"
-              onClick={() => {
+          )}
+          {results.length === 0 && (
+            <WidenCard
+              empty
+              title={query.trim() ? `Nothing matches “${query.trim()}” here` : 'Nothing matches these filters'}
+              text={widen.length > 0 ? 'One of these will bring results back.' : 'Try a shorter word, or clear everything.'}
+              moves={widen}
+              clearAll={() => {
                 setFilters(NO_FILTERS)
                 navigate({ to: '/shop', search: {}, replace: true })
               }}
@@ -452,5 +513,45 @@ function ShopPage() {
         {filterPanel}
       </Sheet>
     </div>
+  )
+}
+
+/** the way out of a thin result set: each button is one step wider, with its count */
+function WidenCard({
+  title,
+  text,
+  moves,
+  empty = false,
+  clearAll,
+}: {
+  title: string
+  text: string
+  moves: { id: string; label: string; n: number; run: () => void }[]
+  empty?: boolean
+  clearAll?: () => void
+}) {
+  return (
+    <section className={`widen${empty ? ' widen--empty' : ''}`} aria-label="Widen your search">
+      {empty && (
+        <span className="empty__icon" aria-hidden>
+          <SearchX size={20} strokeWidth={1.75} />
+        </span>
+      )}
+      <h2 className="widen__title">{title}</h2>
+      <p className="row__sub">{text}</p>
+      <div className="widen__moves">
+        {moves.map((m) => (
+          <button key={m.id} type="button" className="chip" onClick={m.run}>
+            {m.label}
+            <span className="chip__count">{m.n}</span>
+          </button>
+        ))}
+        {clearAll && (
+          <button type="button" className="btn btn--primary btn--sm" onClick={clearAll}>
+            Clear everything
+          </button>
+        )}
+      </div>
+    </section>
   )
 }

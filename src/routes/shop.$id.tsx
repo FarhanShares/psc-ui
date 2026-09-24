@@ -10,7 +10,7 @@ import { hasOptions, optionSummary, priceRange, resolveVariant, variantLabel, va
 import type { AxisId, Product, ProductVariant } from '../lib/types'
 import { money } from '../lib/format'
 import { absoluteUrl, breadcrumbLd, seo } from '../lib/seo'
-import { addToCart, cartCount, noteViewed, pushToast, useAppState } from '../lib/store'
+import { addToCart, cartCount, cartTotals, noteViewed, pushToast, useAppState } from '../lib/store'
 import { VariantPicker, VariantPrice } from '../components/variant-picker'
 import { ProductGallery } from '../components/product-media'
 import { speciesInfo } from '../lib/species'
@@ -182,6 +182,10 @@ function ProductPage() {
     productLines.filter((i) => resolveVariant(product, i.variantId).id === variant.id),
   )
 
+  // what the basket would be with this pick in it — the free-delivery nudge is about the next tap
+  const basket = cartTotals(cart).subtotal + (variant.stock > 0 ? variant.price * qty : 0)
+  const toFree = FREE_DELIVERY_THRESHOLD - basket
+
   function add() {
     addToCart(product!.id, qty, variant.id)
     markAdded()
@@ -289,9 +293,24 @@ function ProductPage() {
           )}
 
           <ul className="pdp__trust">
-            <li>
+            <li className="pdp__ship">
               <Truck size={15} strokeWidth={1.75} aria-hidden />
-              Free delivery over {money(FREE_DELIVERY_THRESHOLD)} — arrives in 2–4 days
+              <span className="row__grow">
+                {toFree <= 0 ? (
+                  <span>
+                    <strong className="pdp__ship-ok">Free delivery</strong> with this in your basket — arrives in 2–4 days
+                  </span>
+                ) : (
+                  <span>
+                    Add <strong className="num">{money(toFree)}</strong> more for free delivery — arrives in 2–4 days
+                  </span>
+                )}
+                {toFree > 0 && (
+                  <span className="free-meter__track" aria-hidden>
+                    <span style={{ width: `${Math.min(100, (basket / FREE_DELIVERY_THRESHOLD) * 100)}%` }} />
+                  </span>
+                )}
+              </span>
             </li>
             <li>
               <PackageCheck size={15} strokeWidth={1.75} aria-hidden />

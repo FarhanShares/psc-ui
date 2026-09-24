@@ -922,6 +922,20 @@ export const SEED_ORDERS: Order[] = [
     status: 'delivered',
     addressLine: '14 Alder Lane, Apt 3',
   },
+  {
+    id: 'PS-0951',
+    placedAtDaysAgo: 34,
+    items: [
+      { productId: 'p02', variantId: 'p02-adult-3kg', variantLabel: 'Adult · 3 kg', qty: 1, priceAtPurchase: 23.5 },
+      { productId: 'p14', variantId: 'p14-tuna-12', variantLabel: 'Tuna & pumpkin · 12 × 85 g', qty: 1, priceAtPurchase: 13.5 },
+      { productId: 'p15', variantId: 'p15-m', variantLabel: 'M', qty: 2, priceAtPurchase: 7.5 },
+    ],
+    subtotal: 52.0,
+    delivery: 0,
+    total: 52.0,
+    status: 'delivered',
+    addressLine: '14 Alder Lane, Apt 3',
+  },
 ]
 
 export const SEED_BOOKINGS: Booking[] = [

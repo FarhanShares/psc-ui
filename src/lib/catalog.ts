@@ -72,6 +72,24 @@ export function unitPriceLabel(v: ProductVariant, money: (n: number) => string):
 }
 
 /**
+ * The option on this axis with the lowest price per kg/L, given the other
+ * current choices — only when it is meaningfully cheaper (5%+) than the
+ * dearest, so near-identical packs don't get a meaningless badge.
+ */
+export function bestValueOption(p: Product, current: ProductVariant, axis: AxisId): string | null {
+  const opts = (p.axes ?? []).find((a) => a.id === axis)?.options ?? []
+  const priced = opts.flatMap((o) => {
+    const want = { ...current.options, [axis]: o.id }
+    const v = variantsOf(p).find((x) => (p.axes ?? []).every((a) => x.options[a.id] === want[a.id]))
+    return v?.netQty && v.stock > 0 ? [{ id: o.id, per: v.netQty.per, amount: v.netQty.amount, unit: v.price / v.netQty.amount }] : []
+  })
+  // only a pack-size choice is a value choice — flavours of the same pack just differ in price
+  if (priced.length < 2 || new Set(priced.map((x) => x.per)).size > 1 || new Set(priced.map((x) => x.amount)).size < 2) return null
+  const sorted = [...priced].sort((a, b) => a.unit - b.unit)
+  return sorted[0].unit <= sorted[sorted.length - 1].unit * 0.95 ? sorted[0].id : null
+}
+
+/**
  * Pick the variant after the shopper changes one axis: keep their other
  * choices when that combination exists (preferring in-stock), otherwise take
  * the closest in-stock match for the new option.

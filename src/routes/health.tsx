@@ -4,7 +4,7 @@ import { ChevronRight, Plus, RefreshCw } from 'lucide-react'
 
 import { AddPetSheet } from '../components/add-pet'
 import { AddRecordSheet } from '../components/pet-sheets'
-import { VaccineRow } from '../components/cards'
+import { VaccineTimeline } from '../components/cards'
 import { PetGlyph } from '../components/ui'
 import { pushToast, syncClinicRecords, useAppState } from '../lib/store'
 import { seo } from '../lib/seo'
@@ -107,25 +107,7 @@ function HealthPage() {
               No records for {pet.name} yet — add one from a certificate or the pet passport.
             </p>
           )}
-          {petVaccines.map((v) => (
-            <VaccineRow
-              key={v.id}
-              vax={v}
-              showPet={false}
-              action={
-                (v.status === 'overdue' || v.status === 'due') && (
-                  <Link
-                    to="/clinics"
-                    search={{ service: 'vaccination' }}
-                    className="btn btn--primary btn--sm"
-                    aria-label={`Book ${v.name} for ${pet.name}`}
-                  >
-                    Book
-                  </Link>
-                )
-              }
-            />
-          ))}
+          {petVaccines.length > 0 && <VaccineTimeline records={petVaccines} petName={pet.name} />}
         </section>
 
         <div className="stack side-col">

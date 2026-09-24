@@ -586,6 +586,22 @@ export function addVaccineRecord(input: {
   return record
 }
 
+/** the owner says the jab already happened (e.g. at a vet we don't sync with) */
+export function markVaccineGiven(id: string) {
+  const prev = state.vaccines
+  const rec = prev.find((v) => v.id === id)
+  if (!rec) return
+  setState({
+    vaccines: prev.map((v) =>
+      v.id === id ? { ...v, dueInDays: 365, status: 'ok' as const, scheduledFor: undefined } : v,
+    ),
+  })
+  pushToast(`${rec.name} marked as given — next due in a year`, {
+    actionLabel: 'Undo',
+    onAction: () => setState({ vaccines: prev }),
+  })
+}
+
 export function removeVaccineRecord(id: string) {
   const prev = state.vaccines
   setState({ vaccines: state.vaccines.filter((v) => v.id !== id) })

@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
-import { BadgeCheck, Check, ChevronRight, Clock, MapPin, Syringe, Truck } from 'lucide-react'
+import { BadgeCheck, CalendarCheck, Check, ChevronRight, CircleAlert, Clock, MapPin, Syringe, Truck } from 'lucide-react'
 
 import { money, relativeDue, shortDate, dateFromOffset } from '../lib/format'
 import { getProduct, getService, getClinic } from '../lib/data'
-import { addToCart, useAppState } from '../lib/store'
+import { addToCart, markVaccineGiven, useAppState } from '../lib/store'
 import type { Booking, Order, VaccineRecord } from '../lib/types'
 import { SaveButton } from './blocks'
 import { QuickAddSheet } from './variant-picker'
@@ -271,6 +271,160 @@ export function VaccineRow({
         {action}
       </span>
     </div>
+  )
+}
+
+/**
+ * A pet's vaccinations as a timeline, most urgent first. Each state is an
+ * icon + words (never colour alone), and anything due carries its own next
+ * step: book it, or say it was already given.
+ */
+export function VaccineTimeline({ records, petName }: { records: VaccineRecord[]; petName: string }) {
+  const sorted = [...records].sort((a, b) => a.dueInDays - b.dueInDays)
+  return (
+    <ol className="vax-tl" aria-label={`${petName}’s vaccinations`}>
+      {sorted.map((v) => {
+        const d = v.dueInDays
+        const when = shortDate(dateFromOffset(d))
+        const status =
+          v.status === 'overdue'
+            ? `${Math.abs(d)} day${Math.abs(d) === 1 ? '' : 's'} overdue`
+            : v.status === 'due'
+              ? d === 0
+                ? 'Due today'
+                : `Due in ${d} day${d === 1 ? '' : 's'}`
+              : v.status === 'scheduled'
+                ? 'Booked'
+                : 'Up to date'
+        const meta =
+          v.status === 'overdue'
+            ? `Was due ${when}`
+            : v.status === 'due'
+              ? `Due ${when}`
+              : v.status === 'scheduled'
+                ? `Visit ${v.scheduledFor ?? `on ${when}`}`
+                : `Next due ${when}`
+        const Icon = v.status === 'overdue' ? CircleAlert : v.status === 'due' ? Clock : v.status === 'scheduled' ? CalendarCheck : Check
+        const needs = v.status === 'overdue' || v.status === 'due'
+        return (
+          <li key={v.id} className={`vax-tl__item vax-tl--${v.status}`}>
+            <span className="vax-tl__node" aria-hidden>
+              <Icon size={15} strokeWidth={2} />
+            </span>
+            <div className="vax-tl__body">
+              <div className="vax-tl__head">
+                <span className="row__title">{v.name}</span>
+                <span className="vax-tl__status">{status}</span>
+              </div>
+              <span className="row__sub">
+                {v.shieldsAgainst} · {meta} · {v.source}
+              </span>
+              {needs && (
+                <div className="vax-tl__actions">
+                  <Link
+                    to="/clinics"
+                    search={{ service: 'vaccination' }}
+                    className="btn btn--primary btn--sm"
+                    aria-label={`Book ${v.name} for ${petName}`}
+                  >
+                    Book
+                  </Link>
+                  <button
+                    type="button"
+                    className="btn btn--ghost btn--sm"
+                    onClick={() => markVaccineGiven(v.id)}
+                    aria-label={`Mark ${v.name} as given for ${petName}`}
+                  >
+                    Mark as given
+                  </button>
+                </div>
+              )}
+              {v.status === 'scheduled' && (
+                <Link to="/bookings" className="vax-tl__link">
+                  See booking
+                </Link>
+              )}
+            </div>
+          </li>
+        )
+      })}
+    </ol>
+  )
+}
+
+/* ---------------------------------------------------------- running low */
+
+/** categories that get used up — toys and gear don't need reordering */
+const CONSUMABLE = new Set(['food', 'treats', 'health', 'grooming'])
+
+export interface ReorderPick {
+  productId: string
+  variantId?: string
+  qty: number
+  daysAgo: number
+}
+
+/**
+ * Consumables from delivered orders at least ten days old, newest purchase of
+ * each option only, the longest-ago first — the ones most likely to be running out.
+ */
+export function runningLow(orders: Order[], limit = 4): ReorderPick[] {
+  const seen = new Map<string, ReorderPick>()
+  for (const o of [...orders].sort((a, b) => a.placedAtDaysAgo - b.placedAtDaysAgo)) {
+    if (o.status !== 'delivered' || o.placedAtDaysAgo < 10) continue
+    for (const it of o.items) {
+      const p = getProduct(it.productId)
+      if (!p || !CONSUMABLE.has(p.category)) continue
+      const key = `${it.productId}::${it.variantId ?? ''}`
+      if (!seen.has(key)) seen.set(key, { productId: it.productId, variantId: it.variantId, qty: it.qty, daysAgo: o.placedAtDaysAgo })
+    }
+  }
+  return [...seen.values()].sort((a, b) => b.daysAgo - a.daysAgo).slice(0, limit)
+}
+
+export function ReorderCard({ pick }: { pick: ReorderPick }) {
+  const [added, markAdded] = useCopiedLabel(1600)
+  const product = getProduct(pick.productId)
+  if (!product) return null
+  const variant = variantsOf(product).find((v) => v.id === pick.variantId) ?? defaultVariant(product)
+  const label = variantLabel(product, variant)
+  const soldOut = variant.stock === 0
+  const image = product.images?.[0]
+  return (
+    <article className="card reorder">
+      <Link to="/shop/$id" params={{ id: product.id }} search={variant.id !== defaultVariant(product).id ? { v: variant.id } : {}} className={`tile reorder__tile ${tileClass(product.category)}`} tabIndex={-1} aria-hidden>
+        {image ? <img src={image} alt="" width={96} height={96} loading="lazy" decoding="async" /> : <CategoryIcon category={product.category} size={22} />}
+      </Link>
+      <div className="reorder__body">
+        <Link to="/shop/$id" params={{ id: product.id }} search={variant.id !== defaultVariant(product).id ? { v: variant.id } : {}} className="row__title reorder__name">
+          {product.name}
+        </Link>
+        <span className="row__sub">
+          {label ? `${label} · ` : ''}
+          {pick.qty > 1 ? `×${pick.qty} · ` : ''}ordered {pick.daysAgo} days ago
+        </span>
+        <button
+          type="button"
+          className="btn btn--ghost btn--sm reorder__btn"
+          disabled={soldOut}
+          onClick={() => {
+            addToCart(product.id, pick.qty, variant.id)
+            markAdded()
+          }}
+          aria-label={soldOut ? `${product.name} is sold out` : `Add ${pick.qty} ${product.name}${label ? ` (${label})` : ''} to cart`}
+        >
+          {soldOut ? (
+            'Sold out'
+          ) : added ? (
+            <>
+              <Check size={14} strokeWidth={2.25} /> Added
+            </>
+          ) : (
+            <>Reorder · <span className="num">{money(variant.price * pick.qty)}</span></>
+          )}
+        </button>
+      </div>
+    </article>
   )
 }
 

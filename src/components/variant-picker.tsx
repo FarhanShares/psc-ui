@@ -4,6 +4,7 @@ import { Check } from 'lucide-react'
 
 import { CategoryIcon, Price, Sheet, Stepper, tileClass } from './ui'
 import {
+  bestValueOption,
   defaultVariant,
   optionState,
   resolveVariant,
@@ -38,6 +39,7 @@ export function VariantPicker({
     <div className="vpick">
       {product.axes.map((axis) => {
         const current = axis.options.find((o) => o.id === value.options[axis.id])
+        const best = bestValueOption(product, value, axis.id)
         return (
           <fieldset key={axis.id} className="plain-fieldset">
             <legend className="vpick__legend">
@@ -60,12 +62,13 @@ export function VariantPicker({
                     role="radio"
                     aria-checked={on}
                     className={`vopt${state === 'soldout' ? ' vopt--soldout' : ''}${state === 'unavailable' ? ' vopt--other' : ''}`}
-                    aria-label={`${o.label}${state === 'soldout' ? ', sold out' : ''}${state === 'unavailable' ? `, not in this combination — switches to ${variantLabel(product, target)}` : ''}`}
+                    aria-label={`${o.label}${best === o.id ? ', best value' : ''}${state === 'soldout' ? ', sold out' : ''}${state === 'unavailable' ? `, not in this combination — switches to ${variantLabel(product, target)}` : ''}`}
                     title={state === 'unavailable' ? `Switches to ${variantLabel(product, target)}` : undefined}
                     onClick={() => onChange(target)}
                   >
                     <span className="vopt__label">{o.label}</span>
                     {hint && <span className="vopt__price num">{hint}</span>}
+                    {best === o.id && <span className="vopt__best">Best value</span>}
                   </button>
                 )
               })}

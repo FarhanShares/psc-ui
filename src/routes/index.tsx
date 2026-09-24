@@ -1,15 +1,15 @@
 import { useState } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { ChevronRight, HeartPulse, PawPrint, Plus, RefreshCw, Siren, Stethoscope, Store, Syringe } from 'lucide-react'
+import { ChevronRight, CircleAlert, Clock, HeartPulse, PawPrint, Plus, RefreshCw, Siren, Stethoscope, Store, Syringe } from 'lucide-react'
 
 import { AddPetSheet } from '../components/add-pet'
 import { Landing } from '../components/landing'
-import { BookingCard } from '../components/cards'
+import { BookingCard, ReorderCard, runningLow } from '../components/cards'
 import { ProductRail } from '../components/product-rail'
 import { PetGlyph } from '../components/ui'
 import { greeting, longDate, dateFromOffset } from '../lib/format'
 import { seo } from '../lib/seo'
-import { useAppState } from '../lib/store'
+import { markVaccineGiven, useAppState } from '../lib/store'
 
 export const Route = createFileRoute('/')({
   head: () => seo({ title: 'PetSafeCare', path: '/' }),
@@ -47,6 +47,7 @@ function HomePage() {
     .sort((a, b) => a.dayOffset - b.dayOffset)[0]
   const activeOrders = orders.filter((o) => o.status !== 'delivered').length
   const upcomingCount = bookings.filter((b) => b.status === 'upcoming').length
+  const lowOn = runningLow(orders)
 
   return (
     <div className="page home-grid">
@@ -74,27 +75,39 @@ function HomePage() {
             </span>
             <div style={{ minWidth: 0 }}>
               <h2 className="band__title">
-                {needsAttention.name}
-                {needsAttention.status === 'overdue' ? ' is overdue' : ' is due soon'}
+                {needsPet.name}’s {needsAttention.name}
               </h2>
               <p className="band__meta">
-                {needsPet.name} · {needsAttention.source}
+                {needsAttention.shieldsAgainst} · {needsAttention.source}
               </p>
             </div>
           </div>
-          <div className="split" style={{ marginTop: 'var(--space-sm)' }}>
-            <span className="tag">
+          <div className="urgent__foot">
+            <span className={`urgent__pill urgent__pill--${needsAttention.status === 'overdue' ? 'bad' : 'warn'}`}>
+              {needsAttention.status === 'overdue' ? (
+                <CircleAlert size={13} strokeWidth={2} aria-hidden />
+              ) : (
+                <Clock size={13} strokeWidth={2} aria-hidden />
+              )}
               {needsAttention.status === 'overdue'
                 ? `${Math.abs(needsAttention.dueInDays)} days overdue`
-                : `Due ${longDate(dateFromOffset(needsAttention.dueInDays)).toLowerCase()}`}
+                : needsAttention.dueInDays === 0
+                  ? 'Due today'
+                  : `Due ${longDate(dateFromOffset(needsAttention.dueInDays))}`}
             </span>
-            <Link
-              to="/clinics"
-              search={{ service: 'vaccination' }}
-              className="btn btn--primary btn--sm"
-            >
-              Book vaccination
-            </Link>
+            <div className="urgent__actions">
+              <button
+                type="button"
+                className="btn btn--ghost-dark btn--sm"
+                onClick={() => markVaccineGiven(needsAttention.id)}
+                aria-label={`${needsAttention.name} already given to ${needsPet.name}`}
+              >
+                Already done
+              </button>
+              <Link to="/clinics" search={{ service: 'vaccination' }} className="btn btn--primary btn--sm">
+                Book vaccination
+              </Link>
+            </div>
           </div>
         </section>
       )}
@@ -235,6 +248,22 @@ function HomePage() {
           </Link>
         )}
       </section>
+
+      {lowOn.length > 0 && (
+        <section className="rise span-hero" style={{ '--i': 5 } as React.CSSProperties} aria-labelledby="low-h">
+          <div className="section-head">
+            <h2 id="low-h" className="section-head__title">Running low?</h2>
+            <Link to="/orders" className="section-head__link">
+              All orders <ChevronRight size={13} strokeWidth={2} />
+            </Link>
+          </div>
+          <div className="reorder-grid">
+            {lowOn.map((pick) => (
+              <ReorderCard key={`${pick.productId}-${pick.variantId ?? ''}`} pick={pick} />
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="rise span-hero" style={{ '--i': 5 } as React.CSSProperties}>
         <div className="section-head">

@@ -3,7 +3,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { CalendarDays, Pencil, Plus, Scale, Syringe, Trash2 } from 'lucide-react'
 
 import { Crumbs, Stat } from '../components/blocks'
-import { BookingCard, VaccineRow } from '../components/cards'
+import { BookingCard, VaccineTimeline } from '../components/cards'
 import { AddRecordSheet, EditPetSheet, LogWeightSheet, WeightTrend } from '../components/pet-sheets'
 import { ProductRail } from '../components/product-rail'
 import { EmptyState, PetGlyph, Sheet } from '../components/ui'
@@ -127,25 +127,7 @@ function PetPage() {
               </button>
             </div>
             {records.length > 0 ? (
-              records.map((v) => (
-                <VaccineRow
-                  key={v.id}
-                  vax={v}
-                  showPet={false}
-                  action={
-                    (v.status === 'overdue' || v.status === 'due') && (
-                      <Link
-                        to="/clinics"
-                        search={{ service: 'vaccination' }}
-                        className="btn btn--primary btn--sm"
-                        aria-label={`Book ${v.name} for ${pet.name}`}
-                      >
-                        Book
-                      </Link>
-                    )
-                  }
-                />
-              ))
+              <VaccineTimeline records={records} petName={pet.name} />
             ) : (
               <p className="row__sub" style={{ paddingBlock: 'var(--space-sm)' }}>
                 No records yet. Add one from a certificate, or link a clinic to sync them.

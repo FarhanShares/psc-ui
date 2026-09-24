@@ -221,3 +221,23 @@ Auth screens and `/welcome` onboarding render without shop chrome (`BARE_ROUTES`
 - One graphite card, swipeable, auto-advancing every 6s with dots (and arrows on
   pointer devices); paused on hover/focus/touch/off-screen/reduced motion.
 - Dropdown pickers align to the trigger's right edge when it sits on the right.
+
+## Nudges and next steps
+
+- **Home urgent card**: the single most urgent vaccination (overdue first),
+  status as icon + words in a pill, two exits: *Already done*
+  (`markVaccineGiven`, undo toast, next due in a year) and *Book vaccination*.
+- **Running low?** (home): consumables (food, treats, health, grooming) from
+  delivered orders ≥ 10 days old, newest purchase per option, oldest first,
+  max four. One-tap *Reorder* adds the same option and quantity. Helper:
+  `runningLow()` in `components/cards.tsx`.
+- **Vaccine timeline** (`VaccineTimeline`): pet page and Health page. Node icon
+  + status words per state; due/overdue items carry *Book* and *Mark as given*.
+- **Best value**: `bestValueOption()` marks the cheapest-per-kg/L pack size on
+  a size axis when it is ≥ 5% cheaper than the dearest. Never on flavours.
+- **Free-delivery nudge** (product page): counts the cart *plus* the current
+  pick — "Add $X more…" with a meter, or "Free delivery with this in your basket".
+- **Widen search** (shop): under four results, a dashed card lists one-step
+  widenings (drop category, pet, brand, local filters or the query), each with
+  the count it would show; only moves that add results appear. Zero results
+  uses the same card plus *Clear everything*.
