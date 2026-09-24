@@ -5,7 +5,7 @@
  * page and the <head> can never disagree.
  */
 import { CATEGORIES, FREE_DELIVERY_THRESHOLD, PRODUCTS } from './data'
-import { money } from './format'
+import { wholeMoney } from './format'
 import type { ProductCategory, Species } from './types'
 
 export interface ShopScope {
@@ -56,7 +56,7 @@ export function shopLanding({ cat, pet, brands }: ShopScope) {
   ).length
 
   const title = brand || petWord || category ? `${h1} — shop online` : 'Pet supplies — food, treats, grooming & health'
-  const description = `${h1}: ${count} curated product${count === 1 ? '' : 's'} with honest reviews and per-option pricing. Free delivery over ${money(FREE_DELIVERY_THRESHOLD)}, 30-day returns.`
+  const description = `${h1}: ${count} curated product${count === 1 ? '' : 's'} with honest reviews and per-option pricing. Free delivery over ${wholeMoney(FREE_DELIVERY_THRESHOLD)}, 30-day returns.`
   const intro = category
     ? CATEGORY_INTRO[category.id as ProductCategory]
     : petWord

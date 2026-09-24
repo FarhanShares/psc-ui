@@ -11,7 +11,7 @@ export const Route = createFileRoute('/emergency')({
     seo({
       title: 'Pet emergency — what to do now',
       description:
-        'Signs your dog or cat needs emergency care, what to do on the way, and the nearest 24-hour veterinary hospital.',
+        'Signs your pet needs emergency care, what to do on the way, and the nearest 24-hour veterinary hospital.',
       path: '/emergency',
       jsonLd: breadcrumbLd([['Home', '/'], ['Emergency', '/emergency']]),
     }),

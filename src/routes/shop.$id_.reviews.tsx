@@ -3,6 +3,7 @@ import { createFileRoute, notFound } from '@tanstack/react-router'
 import { ReviewsPage } from '../components/reviews-page'
 import { getProduct } from '../lib/data'
 import { absoluteUrl, breadcrumbLd, seo } from '../lib/seo'
+import { speciesInfo } from '../lib/species'
 
 export const Route = createFileRoute('/shop/$id_/reviews')({
   beforeLoad: ({ params }) => {
@@ -12,7 +13,7 @@ export const Route = createFileRoute('/shop/$id_/reviews')({
     const p = getProduct(params.id)!
     return seo({
       title: `${p.name} reviews`,
-      description: `Read all ${p.reviews} reviews of ${p.name} by ${p.brand} — rated ${p.rating.toFixed(1)} out of 5 by dog and cat parents.`,
+      description: `Read all ${p.reviews} reviews of ${p.name} by ${p.brand} — rated ${p.rating.toFixed(1)} out of 5 by ${p.suits.map((sp) => speciesInfo(sp).one.toLowerCase()).join(' and ')} parents.`,
       path: `/shop/${p.id}/reviews`,
       jsonLd: [
         {

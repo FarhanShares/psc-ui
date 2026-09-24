@@ -24,6 +24,12 @@ export function speciesInfo(id: Species) {
   return SPECIES.find((s) => s.id === id) ?? SPECIES[0]
 }
 
+/** "cat, dog and bird" — for copy that names every animal we serve, in catalogue order */
+export function speciesList(): string {
+  const words = SPECIES.map((sp) => sp.one.toLowerCase())
+  return words.length > 1 ? `${words.slice(0, -1).join(', ')} and ${words[words.length - 1]}` : words[0]
+}
+
 export function isSpecies(v: unknown): v is Species {
   return SPECIES.some((s) => s.id === v)
 }

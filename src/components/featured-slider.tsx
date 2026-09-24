@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 import { CategoryIcon, tileClass } from './ui'
 import { FREE_DELIVERY_THRESHOLD } from '../lib/data'
-import { money } from '../lib/format'
+import { wholeMoney } from '../lib/format'
 import { prefersReducedMotion, useAutoAdvance } from '../lib/use-auto-advance'
 import type { ProductCategory } from '../lib/types'
 
@@ -26,7 +26,7 @@ const SLIDES: Slide[] = [
     id: 'flea',
     tag: 'Seasonal',
     title: 'Flea & tick season is here',
-    meta: `Spot-ons dosed by weight band, plus chews and powders — free delivery over ${money(FREE_DELIVERY_THRESHOLD)}.`,
+    meta: `Spot-ons dosed by weight band, plus chews and powders — free delivery over ${wholeMoney(FREE_DELIVERY_THRESHOLD)}.`,
     cta: 'Shop flea & tick',
     to: '/shop',
     search: { cat: 'health' },

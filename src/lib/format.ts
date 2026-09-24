@@ -7,6 +7,11 @@ export function money(n: number): string {
   return currency.format(n)
 }
 
+/** marketing copy: "$49", not "$49.00" — prices in carts and on products keep their cents */
+export function wholeMoney(n: number): string {
+  return Number.isInteger(n) ? `$${n}` : currency.format(n)
+}
+
 export function dateFromOffset(days: number, from: Date = new Date()): Date {
   const d = new Date(from)
   d.setDate(d.getDate() + days)

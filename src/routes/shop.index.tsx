@@ -7,7 +7,7 @@ import { OptionPicker, ResultRow, SearchControl } from '../components/pickers'
 import { PetGlyph, Sheet } from '../components/ui'
 import { ProductThumb } from '../components/product-media'
 import { CATEGORIES, FREE_DELIVERY_THRESHOLD, PRODUCTS } from '../lib/data'
-import { money } from '../lib/format'
+import { money, wholeMoney } from '../lib/format'
 import { absoluteUrl, breadcrumbLd, seo } from '../lib/seo'
 import { optionKeywords, variantForQuery, variantLabel } from '../lib/catalog'
 import type { ProductCategory, Species } from '../lib/types'
@@ -372,7 +372,7 @@ function ShopPage() {
       <ul className="value-strip rise" style={{ '--i': 1 } as React.CSSProperties} aria-label="Shop policies">
         <li>
           <Truck size={15} strokeWidth={1.75} aria-hidden />
-          Free delivery over {money(FREE_DELIVERY_THRESHOLD)}
+          Free delivery over {wholeMoney(FREE_DELIVERY_THRESHOLD)}
         </li>
         <li>
           <PackageCheck size={15} strokeWidth={1.75} aria-hidden />

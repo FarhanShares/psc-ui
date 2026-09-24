@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { LegalPage, type LegalSection } from '../components/legal'
 import { DELIVERY_FEE, FREE_DELIVERY_THRESHOLD } from '../lib/data'
-import { money } from '../lib/format'
+import { money, wholeMoney } from '../lib/format'
 import { breadcrumbLd, seo } from '../lib/seo'
 
 export const Route = createFileRoute('/terms')({
@@ -24,7 +24,7 @@ const SECTIONS: LegalSection[] = [
     id: 'orders',
     title: 'Orders and delivery',
     body: [
-      `Delivery is free on orders over ${money(FREE_DELIVERY_THRESHOLD)} and ${money(DELIVERY_FEE)} below that. Most orders arrive in 2–4 days.`,
+      `Delivery is free on orders over ${wholeMoney(FREE_DELIVERY_THRESHOLD)} and ${money(DELIVERY_FEE)} below that. Most orders arrive in 2–4 days.`,
       'Prices include tax. If an item sells out after you order, we refund it in full straight away.',
     ],
   },

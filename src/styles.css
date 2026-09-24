@@ -3928,7 +3928,8 @@ label.option-row {
 
 .cat-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+  /* auto-fit: five tiles stretch to fill the row instead of stopping at 60% */
+  grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
   gap: var(--space-2xs);
 }
 
@@ -5216,10 +5217,80 @@ html[data-session="in"] [data-guest-view] {
 
 .landing-hero {
   display: grid;
+  align-items: center;
+  gap: var(--space-xl);
+  padding-top: var(--space-xs);
+}
+
+.landing-hero__copy {
+  display: grid;
   justify-items: start;
   gap: var(--space-sm);
   max-width: 46rem;
-  padding-top: var(--space-xs);
+}
+
+/* phones and tablets keep the hero to words and buttons */
+.landing-hero__art {
+  display: none;
+}
+
+@media (min-width: 64rem) {
+  .landing-hero {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 27rem);
+  }
+
+  .landing-hero__art {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-sm);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+}
+
+.landing-hero__pick {
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: transform var(--dur-short) var(--ease-out);
+}
+
+.landing-hero__pick img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (hover: hover) {
+  .landing-hero__pick:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.landing-hero__label {
+  position: absolute;
+  left: var(--space-xs);
+  right: var(--space-xs);
+  bottom: var(--space-xs);
+  display: grid;
+  padding: var(--space-2xs) var(--space-xs);
+  border-radius: var(--radius-sm);
+  background: color-mix(in oklch, var(--color-card) 90%, transparent);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  line-height: 1.25;
+  color: var(--color-ink);
+}
+
+.landing-hero__label .num {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: var(--text-xs);
+  color: var(--color-muted);
 }
 
 .landing-hero .home-title {

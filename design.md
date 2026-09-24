@@ -132,6 +132,16 @@ Account, `noindex`: `/cart`, `/orders`, `/orders/$id`, `/bookings`, `/bookings/$
 `/search`, `/welcome`.
 Auth screens and `/welcome` onboarding render without shop chrome (`BARE_ROUTES` in `nav.tsx`).
 
+## Landing hero
+- Desktop (≥64rem) pairs the copy with four real products (a cat food, a dog
+  food, grooming, birds) as a 2×2 of pack shots — each links to its product with
+  name and price. Phones keep the hero to words and buttons.
+- Copy names every animal we serve from `SPECIES` (`speciesList()` → "cat, dog
+  and bird"); species chips derive from the catalogue. Marketing amounts use
+  `wholeMoney()` ("$49"); carts, products and receipts keep cents.
+- A dash that closes a phrase is glued to it with a non-breaking space, so a
+  balanced headline never starts a line with "—".
+
 ## Signed-out doctrine
 - Guests see the product, never someone's data: `/` is a public landing
   (value, categories, popular products, clinics, how it works, one-tap demo);

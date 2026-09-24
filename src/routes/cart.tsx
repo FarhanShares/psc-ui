@@ -7,7 +7,7 @@ import { CATEGORIES, FREE_DELIVERY_THRESHOLD, PRODUCTS, getProduct } from '../li
 import { ProductCard } from '../components/cards'
 import { CartLine } from '../components/cart-line'
 import { lineKey } from '../lib/catalog'
-import { money } from '../lib/format'
+import { money, wholeMoney } from '../lib/format'
 import { cartTotals, placeOrder, useAppState } from '../lib/store'
 import type { Order } from '../lib/types'
 import { seo } from '../lib/seo'
@@ -106,7 +106,7 @@ function CartPage() {
         <div className="rise" style={{ '--i': 1 } as React.CSSProperties}>
           <EmptyState
             title="Your cart is empty"
-            text={`Food, treats and everyday care, delivered in 2–4 days — free over ${money(FREE_DELIVERY_THRESHOLD)}.`}
+            text={`Food, treats and everyday care, delivered in 2–4 days — free over ${wholeMoney(FREE_DELIVERY_THRESHOLD)}.`}
             actionLabel="Browse the shop"
             actionTo="/shop"
             secondaryLabel={signedIn && orders.length > 0 ? 'Buy again from an order' : undefined}

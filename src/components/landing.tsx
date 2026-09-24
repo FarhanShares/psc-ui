@@ -16,10 +16,15 @@ import { GuideCard } from './guide-card'
 import { ProductRail } from './product-rail'
 import { CategoryIcon, PetGlyph, ServiceIcon, tileClass } from './ui'
 import { CATEGORIES, CLINICS, FREE_DELIVERY_THRESHOLD, PRODUCTS, SERVICE_TYPES } from '../lib/data'
-import { money } from '../lib/format'
+import { money, wholeMoney } from '../lib/format'
+import { priceRange } from '../lib/catalog'
 import { GUIDES } from '../lib/guides'
 import { signInDemo } from '../lib/store'
+import { SPECIES, speciesList } from '../lib/species'
 import type { ProductCategory, ServiceType } from '../lib/types'
+
+/** hero art: a cat food, a dog food, grooming and birds — the range at a glance */
+const HERO_PICKS = ['p02', 'p01', 'p06', 'p17']
 
 const QUICK = [
   { to: '/clinics', label: 'Book a vet', icon: Stethoscope },
@@ -62,8 +67,10 @@ export function Landing({ recentlyViewed }: { recentlyViewed: string[] }) {
   return (
     <div className="page landing" data-guest-view>
       <header className="landing-hero rise">
-        <p className="tag" style={{ color: 'var(--color-accent-deep)' }}>For dog and cat parents</p>
-        <h1 className="home-title">Supplies, vet visits and vaccine reminders — in one app.</h1>
+        <div className="landing-hero__copy">
+        <p className="tag" style={{ color: 'var(--color-accent-deep)' }}>For {speciesList()} parents</p>
+        {/* the non-breaking space keeps the dash on the line it closes */}
+        <h1 className="home-title">Supplies, vet visits and vaccine reminders{'\u00a0'}— in one app.</h1>
         <p className="lede">
           Reorder the food, book the booster, and stop keeping vaccination dates in your head. Free to use.
         </p>
@@ -84,7 +91,7 @@ export function Landing({ recentlyViewed }: { recentlyViewed: string[] }) {
         <ul className="value-strip" aria-label="Why PetSafeCare">
           <li>
             <Truck size={15} strokeWidth={1.75} aria-hidden />
-            Free delivery over {money(FREE_DELIVERY_THRESHOLD)}
+            Free delivery over {wholeMoney(FREE_DELIVERY_THRESHOLD)}
           </li>
           <li>
             <BadgeCheck size={15} strokeWidth={1.75} aria-hidden />
@@ -94,6 +101,28 @@ export function Landing({ recentlyViewed }: { recentlyViewed: string[] }) {
             <BellRing size={15} strokeWidth={1.75} aria-hidden />
             Reminders two weeks ahead
           </li>
+        </ul>
+        </div>
+        {/* desktop only: four real products, one per kind of shelf, each a way in */}
+        <ul className="landing-hero__art" aria-label="Popular products">
+          {HERO_PICKS.map((id) => {
+            const p = PRODUCTS.find((x) => x.id === id)
+            if (!p?.images?.length) return null
+            return (
+              <li key={id}>
+                <Link to="/shop/$id" params={{ id }} className={`landing-hero__pick tile ${tileClass(p.category)}`}>
+                  <img src={p.images[0]} alt="" width={400} height={400} loading="eager" decoding="async" />
+                  <span className="landing-hero__label">
+                    {p.name}
+                    <span className="num">
+                      {priceRange(p).min !== priceRange(p).max ? 'from ' : ''}
+                      {money(priceRange(p).min)}
+                    </span>
+                  </span>
+                </Link>
+              </li>
+            )
+          })}
         </ul>
       </header>
 
@@ -120,15 +149,11 @@ export function Landing({ recentlyViewed }: { recentlyViewed: string[] }) {
       <section className="rise" style={{ '--i': 2 } as React.CSSProperties} aria-labelledby="l-cats">
         <h2 id="l-cats" className="section-head__title section-head">Shop by category</h2>
         <div className="chips" style={{ marginBottom: 'var(--space-sm)' }}>
-          <Link to="/shop" search={{ for: 'dog' }} className="chip">
-            <PetGlyph species="dog" size={14} /> Everything for dogs
-          </Link>
-          <Link to="/shop" search={{ for: 'cat' }} className="chip">
-            <PetGlyph species="cat" size={14} /> Everything for cats
-          </Link>
-          <Link to="/shop" search={{ for: 'bird' }} className="chip">
-            <PetGlyph species="bird" size={14} /> Everything for birds
-          </Link>
+          {SPECIES.filter((sp) => PRODUCTS.some((p) => p.suits.includes(sp.id))).map((sp) => (
+            <Link key={sp.id} to="/shop" search={{ for: sp.id }} className="chip">
+              <PetGlyph species={sp.id} size={14} /> Everything for {sp.many.toLowerCase()}
+            </Link>
+          ))}
         </div>
         <div className="cat-grid">
           {CATEGORIES.filter((c) => c.id !== 'all').map((c) => (

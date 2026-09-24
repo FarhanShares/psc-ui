@@ -3,7 +3,7 @@ import { BadgeCheck, HeartPulse, Truck } from 'lucide-react'
 
 import { Crumbs } from '../components/blocks'
 import { CLINICS, FREE_DELIVERY_THRESHOLD, PRODUCTS } from '../lib/data'
-import { money } from '../lib/format'
+import { wholeMoney } from '../lib/format'
 import { breadcrumbLd, seo } from '../lib/seo'
 
 export const Route = createFileRoute('/about')({
@@ -11,7 +11,7 @@ export const Route = createFileRoute('/about')({
     seo({
       title: 'About us',
       description:
-        'PetSafeCare brings pet supplies, verified vet clinics and vaccination reminders into one calm app for dog and cat parents.',
+        'PetSafeCare brings pet supplies, verified vet clinics and vaccination reminders into one calm app for pet parents.',
       path: '/about',
       type: 'article',
       jsonLd: breadcrumbLd([['Home', '/'], ['About', '/about']]),
@@ -23,7 +23,7 @@ const PILLARS = [
   {
     icon: Truck,
     title: 'Supplies without the guesswork',
-    text: `A short, curated catalogue of ${PRODUCTS.length} everyday essentials — no fillers, no mystery brands, free delivery over ${money(FREE_DELIVERY_THRESHOLD)}.`,
+    text: `A short, curated catalogue of ${PRODUCTS.length} everyday essentials — no fillers, no mystery brands, free delivery over ${wholeMoney(FREE_DELIVERY_THRESHOLD)}.`,
   },
   {
     icon: BadgeCheck,

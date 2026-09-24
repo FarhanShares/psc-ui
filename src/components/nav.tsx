@@ -22,7 +22,7 @@ import {
 import { ProductThumb } from './product-media'
 import { CATEGORIES, FREE_DELIVERY_THRESHOLD } from '../lib/data'
 import { findVariant, lineKey, variantLabel } from '../lib/catalog'
-import { money } from '../lib/format'
+import { money, wholeMoney } from '../lib/format'
 import {
   cartCount,
   cartTotals,
@@ -523,7 +523,7 @@ export function SiteFooter() {
       </div>
       <div className="site-footer__baseline">
         <span className="mono-label">© 2026 PetSafeCare</span>
-        <span className="mono-label">Free delivery over {money(FREE_DELIVERY_THRESHOLD)} · 30-day returns</span>
+        <span className="mono-label">Free delivery over {wholeMoney(FREE_DELIVERY_THRESHOLD)} · 30-day returns</span>
       </div>
     </footer>
   )
