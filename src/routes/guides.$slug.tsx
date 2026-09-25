@@ -1,5 +1,5 @@
 import { createFileRoute, notFound, Link } from '@tanstack/react-router'
-import { BookOpen, CalendarDays, Clock, Info, Share2, Siren } from 'lucide-react'
+import { BookOpen, CalendarDays, ChevronRight, Clock, Info, Share2, Siren } from 'lucide-react'
 
 import { Crumbs } from '../components/blocks'
 import { GuideCard } from '../components/guide-card'
@@ -196,7 +196,9 @@ function GuidePage() {
         <section className="rise" style={{ '--i': 3 } as React.CSSProperties}>
           <div className="section-head">
             <h2 className="section-head__title">Keep reading</h2>
-            <Link to="/guides" className="section-head__link">All guides</Link>
+            <Link to="/guides" className="section-head__link">
+              All guides <ChevronRight size={13} strokeWidth={2} />
+            </Link>
           </div>
           <div className="guide-grid">
             {more.map((g, i) => (

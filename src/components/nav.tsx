@@ -35,7 +35,7 @@ import {
   useToasts,
   useUnreadCount,
 } from '../lib/store'
-import { CheckoutFields, useCheckout } from './checkout'
+import { CheckoutFields, CheckoutSummary, useCheckout } from './checkout'
 
 const NAV_ITEMS = [
   { to: '/', label: 'Home', icon: Home, exact: true },
@@ -391,15 +391,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
           <div className="drawer__body">
             <CheckoutFields co={co} prefix="dr" compact />
 
-            <div className="summary" style={{ padding: 'var(--space-sm)', marginTop: 'var(--space-sm)' }}>
-              <div className="summary__row">
-                <span>
-                  {cart.reduce((n, i) => n + i.qty, 0)} item
-                  {cart.reduce((n, i) => n + i.qty, 0) === 1 ? '' : 's'} · {co.addressLabel ?? 'no address'}
-                </span>
-                <span className="price">{money(total)}</span>
-              </div>
-            </div>
+            <CheckoutSummary cart={cart} co={co} style={{ padding: 'var(--space-sm)', marginTop: 'var(--space-sm)' }} />
           </div>
 
           <div className="drawer__foot">

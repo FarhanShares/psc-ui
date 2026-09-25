@@ -9,7 +9,7 @@ import { ProductThumb } from '../components/product-media'
 import { CATEGORIES, FREE_DELIVERY_THRESHOLD, PRODUCTS } from '../lib/data'
 import { money, wholeMoney } from '../lib/format'
 import { absoluteUrl, breadcrumbLd, seo } from '../lib/seo'
-import { optionKeywords, variantForQuery, variantLabel } from '../lib/catalog'
+import { matchesQuery, productSearchText, variantForQuery, variantLabel } from '../lib/catalog'
 import type { ProductCategory, Species } from '../lib/types'
 import { BRANDS, parseBrands, shopLanding } from '../lib/shop-landing'
 import { SPECIES, isSpecies, speciesInfo } from '../lib/species'
@@ -174,7 +174,7 @@ function ShopPage() {
     const q = query.trim().toLowerCase()
     let list = PRODUCTS.filter((p) => {
       if (!matchesFilters(p, { category, pet, brands }, filters)) return false
-      if (q && !`${p.name} ${p.brand} ${p.category} ${optionKeywords(p)}`.toLowerCase().includes(q)) return false
+      if (q && !matchesQuery(productSearchText(p), q)) return false
       return true
     })
     if (sort === 'price-asc') list = [...list].sort((a, b) => a.price - b.price)
@@ -192,7 +192,7 @@ function ShopPage() {
       PRODUCTS.filter(
         (p) =>
           matchesFilters(p, scope, f) &&
-          (!text || `${p.name} ${p.brand} ${p.category} ${optionKeywords(p)}`.toLowerCase().includes(text)),
+          (!text || matchesQuery(productSearchText(p), text)),
       ).length
     const scope = { category, pet, brands }
     const petWord = pet ? speciesInfo(pet).one.toLowerCase() : ''
@@ -384,7 +384,9 @@ function ShopPage() {
         </li>
       </ul>
 
-      <div className="rise" style={{ '--i': 1 } as React.CSSProperties}>
+      {/* a phone search puts results first; desktop keeps it, since the inline
+          search box sits under it and would jump on the first keystroke */}
+      <div className={`rise shop-promo${query ? ' shop-promo--searching' : ''}`} style={{ '--i': 1 } as React.CSSProperties}>
         <FeaturedSlider />
       </div>
 

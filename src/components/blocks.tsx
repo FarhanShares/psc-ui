@@ -1,10 +1,11 @@
 import { Link } from '@tanstack/react-router'
-import { Check, ChevronLeft, ChevronRight, Heart, ThumbsUp } from 'lucide-react'
+import { Check, ChevronLeft, ChevronRight, Heart, LayoutGrid, ThumbsUp } from 'lucide-react'
 
+import { CATEGORIES, PRODUCTS } from '../lib/data'
 import { daysAgoLabel } from '../lib/format'
 import { toggleSavedClinic, toggleSavedProduct, useAppState } from '../lib/store'
-import type { Review } from '../lib/types'
-import { Stars } from './ui'
+import type { ProductCategory, Review } from '../lib/types'
+import { CategoryIcon, Stars, tileClass } from './ui'
 
 /* ------------------------------------------------------------ breadcrumbs */
 
@@ -281,6 +282,37 @@ export function Stat({ label, value, hint }: { label: string; value: React.React
       <span className="tag">{label}</span>
       <span className="stat__value">{value}</span>
       {hint && <span className="row__sub">{hint}</span>}
+    </div>
+  )
+}
+
+/* ------------------------------------------------------- category tiles */
+
+/**
+ * The five shelves as tinted tiles, closed by an "All supplies" tile so the
+ * grid fills its last row: 3 + 3 on phones, 2 + 2 + 2 at 320px, one row wide.
+ */
+export function CategoryTiles({ counts = false }: { counts?: boolean }) {
+  const perCategory = new Map<string, number>()
+  for (const p of PRODUCTS) perCategory.set(p.category, (perCategory.get(p.category) ?? 0) + 1)
+  return (
+    <div className="cat-grid">
+      {CATEGORIES.filter((c) => c.id !== 'all').map((c) => (
+        <Link key={c.id} to="/shop" search={{ cat: c.id }} className={`cat-tile ${tileClass(c.id as ProductCategory)}`}>
+          <CategoryIcon category={c.id as ProductCategory} size={22} />
+          <span>
+            {c.label}
+            {counts && <span className="cat-tile__count num">{perCategory.get(c.id) ?? 0} items</span>}
+          </span>
+        </Link>
+      ))}
+      <Link to="/shop" className="cat-tile cat-tile--all">
+        <LayoutGrid size={22} strokeWidth={1.75} aria-hidden />
+        <span>
+          All supplies
+          {counts && <span className="cat-tile__count num">{PRODUCTS.length} items</span>}
+        </span>
+      </Link>
     </div>
   )
 }

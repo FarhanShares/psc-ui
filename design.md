@@ -22,6 +22,8 @@ modern-minimal (warmed). Minimal bones, maximal typographic contrast.
 - `--color-accent`    oklch(52% 0.2 260)     the one cobalt signal (#105fd9; white text 5.4:1, inside sRGB)
 - `--color-accent-deep` oklch(45% 0.19 262)
 - `--color-rule-field` oklch(66% 0.012 72)  form-field edges, 3:1 against card
+- `--color-accent-on-graphite` oklch(76% 0.11 258)  the cobalt lifted for icons on
+  the graphite bands (the 52% accent sat at ~2:1 on the band's icon tile)
 - Category tile tints: food oklch(93% 0.045 75) · treats oklch(93% 0.05 48) ·
   grooming oklch(92% 0.045 200) · toys oklch(93% 0.045 265) · health oklch(92% 0.05 150)
 
@@ -36,6 +38,11 @@ modern-minimal (warmed). Minimal bones, maximal typographic contrast.
 - Section heads (`.section-head__title`): 22px for page sections, 18px inside a
   card, sheet or band — the container carries the grouping, not a bigger heading.
 - Headings `text-wrap: balance`; paragraphs and list items `text-wrap: pretty`.
+- Line breaks never split a unit: product and guide titles go through
+  `KeepHyphens` ("Spot-On", "first-year" stay whole), "·"-joined summaries
+  through `KeepParts` ("3 weight bands ·" / "2 sizes"), and short phrases like
+  "2–4 days" or "#BK-2201" sit in `.nowrap`. Relative times read "12 min ago",
+  "3 hr ago", "2 wk ago".
 
 ## Spacing
 4-point named scale, tokens in `tokens.css`. Named tokens only.
@@ -95,6 +102,8 @@ per view where possible. Soft (`.btn--soft`, accent tint): the action repeated
 on every row of a list (Book on clinic cards and service rows, Book in the
 vaccine timeline). Secondary: hairline ghost. Tertiary: quiet text link.
 Sizes: 44px default; `.btn--sm` 36px, 40px on coarse pointers.
+Section links (`.section-head__link`: "All orders", "Book a visit") always end
+with a chevron. A count inside a chip rides in a small badge (`.chip__count`).
 
 ## Responsive contract (non-negotiable)
 - < 40rem: phone — top bar + bottom tab bar, 750px column, 2-up product grid.
@@ -197,6 +206,10 @@ Auth screens and `/welcome` onboarding render without shop chrome (`BARE_ROUTES`
 - Sheets become centred dialogs (max 32rem). Page-child sizing rules must skip
   `dialog` (`.page > :not(dialog)`), or dialogs inherit the 75rem content cap.
 - Sticky columns offset by `--header-h` so they clear the sticky header.
+- Sheet focus: React's `autoFocus` fires while the dialog is still closed, so a
+  field that should take focus on open carries `data-autofocus` (`Sheet` focuses
+  it on every open). Without one, focus starts on the sheet itself — never on
+  the drag handle, whose focus ring is drawn inset.
 - Catalogue pages: a results bar (count left, labelled Sort right) replaces the
   icon toolbar; phones keep the one-row icon toolbar.
 - Product page: media left, title/price/buy right, above the fold. The phone buy
@@ -246,7 +259,8 @@ Auth screens and `/welcome` onboarding render without shop chrome (`BARE_ROUTES`
 - `ProductThumb` is the one small product picture for lists (cart, drawer,
   orders, search, quick add, reviews, reorder) — pack shot or icon tile.
 - Card flags (Offer, Out of stock) sit top-left, opposite the save heart; image
-  dots stay bottom-centre.
+  dots sit bottom-right, as on the detail gallery (centred, they covered the
+  pack's own label band).
 - Cards (`CardMedia`): several images crossfade slowly while the card is on
   screen; paused on hover/focus, never for reduced motion; dots show position.
 - Detail (`ProductGallery`): swipeable snap track that also auto-advances,
@@ -267,8 +281,9 @@ Auth screens and `/welcome` onboarding render without shop chrome (`BARE_ROUTES`
   (`markVaccineGiven`, undo toast, next due in a year) and *Book vaccination*.
 - **Running low?** (home): consumables (food, treats, health, grooming) from
   delivered orders ≥ 10 days old, newest purchase per option, oldest first,
-  max four. One-tap *Reorder* adds the same option and quantity. Helper:
-  `runningLow()` in `components/cards.tsx`.
+  max three (the rest are in All orders); three across on desktop, and product
+  names are never cut short. One-tap *Reorder* adds the same option and
+  quantity. Helper: `runningLow()` in `components/cards.tsx`.
 - **Vaccine timeline** (`VaccineTimeline`): pet page and Health page. Node icon
   + status words per state; due/overdue items carry *Book* and *Mark as given*.
 - **Best value**: `bestValueOption()` marks the cheapest-per-kg/L pack size on
@@ -279,3 +294,34 @@ Auth screens and `/welcome` onboarding render without shop chrome (`BARE_ROUTES`
   widenings (drop category, pet, brand, local filters or the query), each with
   the count it would show; only moves that add results appear. Zero results
   uses the same card plus *Clear everything*.
+
+## Search
+
+- One matcher for every product search — shop grid, global search, header
+  search: `productSearchText(p)` (name, brand, shelf, pitch, options, animals)
+  with `matchesQuery`, which needs every word somewhere ("cat food", "dog
+  treats"). So "Filter in shop" never shows fewer hits than search did.
+- Clinics answer to name, area and the services they offer ("dental").
+- Searching on a phone hides the shop's promo slider so results start above the
+  fold; desktop keeps it, since the inline search box sits beneath it.
+
+## Forms and summaries
+
+- `.field__help` collapses when it has no text, so fields keep an even rhythm;
+  errors take the line when they appear. Inside a `.stack`, headings drop
+  their margin — the gap already spaces them.
+- Checkout summary (`CheckoutSummary`, page and drawer): *N items* → subtotal,
+  *Delivery to Home* → fee or Free, then *Total* — the figure on Place order.
+- A "Default" saved card or address wears the same info pill everywhere it is
+  managed (Profile, Settings); radio pickers keep a quiet inline label.
+
+## Landing and home tiles
+
+- Shop by category closes with an *All supplies* tile (neutral card, accent
+  icon), so the grid fills: 3 + 3 on phones, 2 + 2 + 2 at 320px, one row wide.
+  Pet chips read *For cats · For dogs · For birds*, like the footer.
+- Quick tiles are four across; under 360px they become 2 × 2 icon-and-label
+  rows, since "Emergency" no longer fits a quarter of the screen.
+- Landing clinics: four in a 2 × 2 from 48rem; phones show the first three.
+- The trust strip stays on the landing at every width (only the shop swaps it
+  for its desktop hero band).

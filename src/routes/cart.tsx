@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { Check, ChevronLeft, ShoppingCart } from 'lucide-react'
+import { Check, ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-react'
 
 import { EmptyState } from '../components/ui'
 import { CATEGORIES, FREE_DELIVERY_THRESHOLD, PRODUCTS, getProduct } from '../lib/data'
@@ -11,7 +11,7 @@ import { money, wholeMoney } from '../lib/format'
 import { cartTotals, placeOrder, useAppState } from '../lib/store'
 import type { Order } from '../lib/types'
 import { seo } from '../lib/seo'
-import { CheckoutFields, useCheckout } from '../components/checkout'
+import { CheckoutFields, CheckoutSummary, useCheckout } from '../components/checkout'
 
 export const Route = createFileRoute('/cart')({
   head: () => seo({ title: 'Cart', path: '/cart', noindex: true }),
@@ -106,7 +106,12 @@ function CartPage() {
         <div className="rise" style={{ '--i': 1 } as React.CSSProperties}>
           <EmptyState
             title="Your cart is empty"
-            text={`Food, treats and everyday care, delivered in 2–4 days — free over ${wholeMoney(FREE_DELIVERY_THRESHOLD)}.`}
+            text={
+              <>
+                Food, treats and everyday care, delivered in <span className="nowrap">2–4 days</span>
+                {'\u00a0'}— free over {wholeMoney(FREE_DELIVERY_THRESHOLD)}.
+              </>
+            }
             actionLabel="Browse the shop"
             actionTo="/shop"
             secondaryLabel={signedIn && orders.length > 0 ? 'Buy again from an order' : undefined}
@@ -127,7 +132,9 @@ function CartPage() {
           <section className="rise" style={{ '--i': 2 } as React.CSSProperties}>
             <div className="section-head">
               <h2 className="section-head__title">From your saved list</h2>
-              <Link to="/saved" className="section-head__link">All saved</Link>
+              <Link to="/saved" className="section-head__link">
+                All saved <ChevronRight size={13} strokeWidth={2} />
+              </Link>
             </div>
             <div className="grid-products">
               {savedInStock.slice(0, 4).map((id, i) => (
@@ -236,19 +243,7 @@ function CartPage() {
             <CheckoutFields co={co} prefix="co" />
 
             <div className="stack side-col">
-              <div className="summary">
-                <div className="summary__row">
-                  <span>
-                    {cart.reduce((n, i) => n + i.qty, 0)} item
-                    {cart.reduce((n, i) => n + i.qty, 0) === 1 ? '' : 's'} · {co.addressLabel ?? 'no address'}
-                  </span>
-                  <span className="price">{money(total)}</span>
-                </div>
-                <div className="summary__row">
-                  <span>Delivery</span>
-                  <span className="price">{delivery === 0 ? 'Free' : money(delivery)}</span>
-                </div>
-              </div>
+              <CheckoutSummary cart={cart} co={co} />
 
               <div>
                 {co.error && (

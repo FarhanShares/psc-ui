@@ -329,11 +329,13 @@ function ProductPage() {
               <span className="row__grow">
                 {toFree <= 0 ? (
                   <span>
-                    <strong className="pdp__ship-ok">Free delivery</strong> with this in your basket — arrives in 2–4 days
+                    <strong className="pdp__ship-ok">Free delivery</strong> with this in your basket — arrives in{' '}
+                    <span className="nowrap">2–4 days</span>
                   </span>
                 ) : (
                   <span>
-                    Add <strong className="num">{money(toFree)}</strong> more for free delivery — arrives in 2–4 days
+                    Add <strong className="num">{money(toFree)}</strong> more for free delivery — arrives in{' '}
+                    <span className="nowrap">2–4 days</span>
                   </span>
                 )}
                 {toFree > 0 && (

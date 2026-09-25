@@ -11,17 +11,18 @@ import {
   Truck,
 } from 'lucide-react'
 
+import { CategoryTiles } from './blocks'
 import { ClinicCard } from './cards'
 import { GuideCard } from './guide-card'
 import { ProductRail } from './product-rail'
-import { CategoryIcon, PetGlyph, ServiceIcon, tileClass } from './ui'
-import { CATEGORIES, CLINICS, FREE_DELIVERY_THRESHOLD, PRODUCTS, SERVICE_TYPES } from '../lib/data'
+import { PetGlyph, ServiceIcon, tileClass } from './ui'
+import { CLINICS, FREE_DELIVERY_THRESHOLD, PRODUCTS, SERVICE_TYPES } from '../lib/data'
 import { money, wholeMoney } from '../lib/format'
 import { priceRange } from '../lib/catalog'
 import { GUIDES } from '../lib/guides'
 import { signInDemo } from '../lib/store'
 import { SPECIES, speciesList } from '../lib/species'
-import type { ProductCategory, ServiceType } from '../lib/types'
+import type { ServiceType } from '../lib/types'
 
 /** hero art: a cat food, a dog food, grooming and birds — the range at a glance */
 const HERO_PICKS = ['p02', 'p01', 'p06', 'p17']
@@ -58,11 +59,10 @@ const STEPS = [
 export function Landing({ recentlyViewed }: { recentlyViewed: string[] }) {
   const navigate = useNavigate()
   const popular = [...PRODUCTS].sort((a, b) => b.reviews - a.reviews).slice(0, 10).map((p) => p.id)
+  // four fill a two-column grid; phones show the first three (see .clinic-grid--landing)
   const clinics = [...CLINICS]
     .sort((a, b) => Number(b.verified) - Number(a.verified) || b.rating - a.rating)
-    .slice(0, 3)
-  const counts = new Map<string, number>()
-  for (const p of PRODUCTS) counts.set(p.category, (counts.get(p.category) ?? 0) + 1)
+    .slice(0, 4)
 
   return (
     <div className="page landing" data-guest-view>
@@ -148,24 +148,15 @@ export function Landing({ recentlyViewed }: { recentlyViewed: string[] }) {
 
       <section className="rise" style={{ '--i': 2 } as React.CSSProperties} aria-labelledby="l-cats">
         <h2 id="l-cats" className="section-head__title section-head">Shop by category</h2>
+        {/* "For cats" matches the footer's shop links and fits one row on a phone */}
         <div className="chips" style={{ marginBottom: 'var(--space-sm)' }}>
           {SPECIES.filter((sp) => PRODUCTS.some((p) => p.suits.includes(sp.id))).map((sp) => (
             <Link key={sp.id} to="/shop" search={{ for: sp.id }} className="chip">
-              <PetGlyph species={sp.id} size={14} /> Everything for {sp.many.toLowerCase()}
+              <PetGlyph species={sp.id} size={14} /> For {sp.many.toLowerCase()}
             </Link>
           ))}
         </div>
-        <div className="cat-grid">
-          {CATEGORIES.filter((c) => c.id !== 'all').map((c) => (
-            <Link key={c.id} to="/shop" search={{ cat: c.id }} className={`cat-tile ${tileClass(c.id as ProductCategory)}`}>
-              <CategoryIcon category={c.id as ProductCategory} size={22} />
-              <span>
-                {c.label}
-                <span className="cat-tile__count num">{counts.get(c.id) ?? 0} items</span>
-              </span>
-            </Link>
-          ))}
-        </div>
+        <CategoryTiles counts />
       </section>
 
       <section className="rise" style={{ '--i': 3 } as React.CSSProperties}>
@@ -192,7 +183,7 @@ export function Landing({ recentlyViewed }: { recentlyViewed: string[] }) {
             </Link>
           ))}
         </div>
-        <div className="clinic-grid">
+        <div className="clinic-grid clinic-grid--landing">
           {clinics.map((c) => (
             <ClinicCard key={c.id} id={c.id} />
           ))}

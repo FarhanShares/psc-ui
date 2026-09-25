@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { CalendarDays, PawPrint, Pencil, Plus, Scale, Syringe, Trash2 } from 'lucide-react'
+import { CalendarDays, ChevronRight, PawPrint, Pencil, Plus, Scale, Syringe, Trash2 } from 'lucide-react'
 
 import { Crumbs, Stat } from '../components/blocks'
 import { BookingCard, VaccineTimeline } from '../components/cards'
@@ -98,7 +98,7 @@ function PetPage() {
       </div>
 
       {attention.length > 0 && (
-        <section className="band rise" style={{ '--i': 2 } as React.CSSProperties} aria-label="Needs attention">
+        <section className="band band--action rise" style={{ '--i': 2 } as React.CSSProperties} aria-label="Needs attention">
           <div className="band__row">
             <span className="band__icon">
               <Syringe size={18} strokeWidth={1.75} />
@@ -110,11 +110,9 @@ function PetPage() {
               <p className="band__meta">{attention.map((v) => v.name).join(' · ')}</p>
             </div>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'var(--space-sm)' }}>
-            <Link to="/clinics" search={{ service: 'vaccination' }} className="btn btn--primary btn--sm">
-              Book vaccination
-            </Link>
-          </div>
+          <Link to="/clinics" search={{ service: 'vaccination' }} className="btn btn--primary btn--sm band__cta">
+            Book vaccination
+          </Link>
         </section>
       )}
 
@@ -140,7 +138,7 @@ function PetPage() {
             <div className="section-head">
               <h2 className="section-head__title">Visits</h2>
               <Link to="/clinics" className="section-head__link">
-                Book a visit
+                Book a visit <ChevronRight size={13} strokeWidth={2} />
               </Link>
             </div>
             {visits.length > 0 ? (
@@ -203,7 +201,7 @@ function PetPage() {
           <div className="section-head">
             <h2 className="section-head__title">Picked for {pet.name}</h2>
             <Link to="/shop" className="section-head__link">
-              All supplies
+              All supplies <ChevronRight size={13} strokeWidth={2} />
             </Link>
           </div>
           <ProductRail
@@ -222,7 +220,7 @@ function PetPage() {
           <div className="section-head">
             <h2 className="section-head__title">Guides for {speciesInfo(pet.species).one.toLowerCase()} parents</h2>
             <Link to="/guides" search={{ for: pet.species }} className="section-head__link">
-              All guides
+              All guides <ChevronRight size={13} strokeWidth={2} />
             </Link>
           </div>
           <div className="guide-grid">

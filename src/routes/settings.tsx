@@ -161,14 +161,13 @@ function SettingsPage() {
                       <CreditCard size={16} strokeWidth={1.75} />
                     </span>
                     <span className="row__grow">
-                      <span className="row__title">
-                        {cardLabel(c)}
-                        {c.isDefault && <span className="addr-option__default">Default</span>}
-                      </span>
+                      <span className="row__title">{cardLabel(c)}</span>
                       <span className="row__sub num">
                         Expires {c.exp} · {c.name}
                       </span>
                     </span>
+                    {/* same Default pill as the address list on Profile */}
+                    {c.isDefault && <span className="pill pill--info">Default</span>}
                     {!c.isDefault && (
                       <button type="button" className="link-btn" onClick={() => setDefaultCard(c.id)}>
                         Make default
@@ -181,7 +180,9 @@ function SettingsPage() {
                 ))}
               </ul>
             )}
-            <p className="field__help">Demo — cards are stored on this device only and never charged.</p>
+            <p className="field__help" style={{ marginTop: 'var(--space-xs)' }}>
+              Demo — cards are stored on this device only and never charged.
+            </p>
           </section>
         </div>
 

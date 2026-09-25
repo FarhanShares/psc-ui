@@ -40,6 +40,8 @@
   --color-on-graphite: oklch(94% 0.008 85);
   --color-on-graphite-muted: oklch(79% 0.012 75);
   --color-graphite-rule: oklch(35% 0.014 265);
+  /* the cobalt, lifted for icons on graphite: 52% L sat at ~2:1 on the band tile */
+  --color-accent-on-graphite: oklch(76% 0.11 258);
 
   /* category tile tints — encode data, never decorate */
   --tint-food: oklch(93% 0.045 75);

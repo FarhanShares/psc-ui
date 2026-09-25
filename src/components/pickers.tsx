@@ -190,7 +190,7 @@ export function SearchControl({
               className="input"
               placeholder={placeholder}
               value={value}
-              autoFocus
+              data-autofocus
               onChange={(e) => onChange(e.target.value)}
               aria-label={placeholder}
             />

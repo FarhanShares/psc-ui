@@ -2,7 +2,7 @@ import { Link } from '@tanstack/react-router'
 import { BookOpen, Clock } from 'lucide-react'
 
 import { GUIDE_TOPICS, type Guide } from '../lib/guides'
-import { PetGlyph } from './ui'
+import { KeepHyphens, PetGlyph } from './ui'
 
 /** a guide teaser — topic, title, one line of why, reading time and who it's for */
 export function GuideCard({ guide, i = 0, featured = false }: { guide: Guide; i?: number; featured?: boolean }) {
@@ -19,7 +19,9 @@ export function GuideCard({ guide, i = 0, featured = false }: { guide: Guide; i?
       </span>
       <span className="guide-card__body">
         <span className="tag">{topic}</span>
-        <span className="guide-card__title">{guide.title}</span>
+        <span className="guide-card__title">
+          <KeepHyphens text={guide.title} />
+        </span>
         {featured && <span className="row__sub guide-card__desc">{guide.description}</span>}
         <span className="guide-card__meta">
           <span className="mono-label">

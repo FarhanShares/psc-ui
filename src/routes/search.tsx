@@ -2,16 +2,17 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { ChevronRight, Clock, HelpCircle, Search, SearchX, X } from 'lucide-react'
 
+import { CategoryTiles } from '../components/blocks'
 import { ProductCard } from '../components/cards'
 import { GuideCard } from '../components/guide-card'
 import { GUIDES } from '../lib/guides'
-import { CategoryIcon, EmptyState, ServiceIcon, Stars, tileClass } from '../components/ui'
-import { CATEGORIES, CLINICS, FAQS, PRODUCTS, SERVICE_TYPES } from '../lib/data'
+import { EmptyState, ServiceIcon, Stars } from '../components/ui'
+import { CLINICS, FAQS, PRODUCTS, SERVICE_TYPES } from '../lib/data'
 import { initials, money } from '../lib/format'
 import { seo } from '../lib/seo'
-import { optionKeywords, variantForQuery } from '../lib/catalog'
+import { matchesQuery, productSearchText, variantForQuery } from '../lib/catalog'
 import { clearRecentSearches, rememberSearch, useAppState } from '../lib/store'
-import type { ProductCategory, ServiceType } from '../lib/types'
+import type { ServiceType } from '../lib/types'
 
 export const Route = createFileRoute('/search')({
   validateSearch: (s: Record<string, unknown>): { q?: string } => ({
@@ -50,9 +51,9 @@ function SearchPage() {
   const term = q.trim().toLowerCase()
   const results = useMemo(() => {
     if (!term) return null
-    const has = (s: string) => s.toLowerCase().includes(term)
+    const has = (s: string) => matchesQuery(s, term)
     return {
-      products: PRODUCTS.filter((p) => has(`${p.name} ${p.brand} ${p.category} ${p.blurb} ${optionKeywords(p)}`)),
+      products: PRODUCTS.filter((p) => has(productSearchText(p))),
       clinics: CLINICS.filter((c) => has(`${c.name} ${c.area} ${c.services.map((s) => `${s.name} ${s.type}`).join(' ')}`)),
       services: SERVICE_TYPES.filter((s) => has(s.label)),
       help: FAQS.filter((f) => has(`${f.q} ${f.a}`)).slice(0, 3),
@@ -122,14 +123,7 @@ function SearchPage() {
           </section>
           <section className="rise" style={{ '--i': 3 } as React.CSSProperties}>
             <h2 className="section-head__title section-head">Shop by category</h2>
-            <div className="cat-grid">
-              {CATEGORIES.filter((c) => c.id !== 'all').map((c) => (
-                <Link key={c.id} to="/shop" search={{ cat: c.id }} className={`cat-tile ${tileClass(c.id as ProductCategory)}`}>
-                  <CategoryIcon category={c.id as ProductCategory} size={22} />
-                  {c.label}
-                </Link>
-              ))}
-            </div>
+            <CategoryTiles />
           </section>
           <section className="rise" style={{ '--i': 4 } as React.CSSProperties}>
             <h2 className="section-head__title section-head">Book a service</h2>

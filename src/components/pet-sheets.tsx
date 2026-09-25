@@ -160,7 +160,7 @@ export function LogWeightSheet({ pet, open, onClose }: { pet: Pet; open: boolean
           min={0}
           value={kg}
           onChange={(e) => setKg(e.target.value)}
-          autoFocus
+          data-autofocus
         />
         <p className="field__help">Weigh at the same time of day for a fair trend — before breakfast works well.</p>
       </div>

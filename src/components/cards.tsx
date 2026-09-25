@@ -10,7 +10,7 @@ import { SaveButton } from './blocks'
 import { QuickAddSheet } from './variant-picker'
 import { CardMedia, ProductThumb } from './product-media'
 import { defaultVariant, hasOptions, optionSummary, priceRange, variantLabel, variantsOf } from '../lib/catalog'
-import { OrderStatusLabel, PetGlyph, Pill, Price, ServiceIcon, Stars, useCopiedLabel } from './ui'
+import { KeepHyphens, KeepParts, OrderStatusLabel, PetGlyph, Pill, Price, ServiceIcon, Stars, useCopiedLabel } from './ui'
 
 /* ------------------------------------------------------------ product card */
 
@@ -47,9 +47,11 @@ export function ProductCard({ id, i = 0, variantId }: { id: string; i?: number; 
         </CardMedia>
         <span className="product-card__body">
           <span className="tag">{product.brand}</span>
-          <span className="product-card__name">{product.name}</span>
+          <span className="product-card__name">
+            <KeepHyphens text={product.name} />
+          </span>
           <span className="row__sub num" style={{ marginTop: 'calc(-1 * var(--space-3xs))' }}>
-            {matched ? variantLabel(product, matched) : options ? optionSummary(product) : product.unit}
+            <KeepParts text={matched ? variantLabel(product, matched) : options ? optionSummary(product) : product.unit} />
           </span>
           <span className="product-card__foot">
             <span className="product-card__price">
@@ -214,8 +216,12 @@ export function BookingCard({ booking }: { booking: Booking }) {
         <span className="price price--lg">{money(service.price)}</span>
       </div>
       <div className="split">
+        {/* on a narrow card the reference drops to its own line, never mid-id */}
         <span className="mono-label">
-          {shortDate(dateFromOffset(booking.dayOffset))} · {booking.time} · #{booking.id}
+          <span className="nowrap">
+            {shortDate(dateFromOffset(booking.dayOffset))} · {booking.time}
+          </span>{' '}
+          <span className="nowrap">· #{booking.id}</span>
         </span>
         {booking.status === 'upcoming' && <Pill tone="info">→ Upcoming</Pill>}
         {booking.status === 'completed' && <Pill tone="ok">Completed</Pill>}

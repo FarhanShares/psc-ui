@@ -4,6 +4,7 @@
  * callers never branch on "has variants".
  */
 import { getProduct } from './data'
+import { speciesInfo } from './species'
 import type { AxisId, Product, ProductVariant, Species } from './types'
 
 export function hasOptions(p: Product): boolean {
@@ -63,6 +64,23 @@ export function optionSummary(p: Product): string {
 /** all option labels — lets search match "kitten", "chicken", "XL" */
 export function optionKeywords(p: Product): string {
   return (p.axes ?? []).flatMap((a) => a.options.map((o) => o.label)).join(' ')
+}
+
+/**
+ * Everything a shopper might type to find a product: name, brand, shelf, the
+ * one-line pitch, its options and the animals it suits. The shop grid and
+ * global search both read this, so "Filter in shop" never shows fewer hits.
+ */
+export function productSearchText(p: Product): string {
+  const animals = p.suits.flatMap((sp) => [speciesInfo(sp).one, speciesInfo(sp).many])
+  return `${p.name} ${p.brand} ${p.category} ${p.blurb} ${optionKeywords(p)} ${animals.join(' ')}`.toLowerCase()
+}
+
+/** every word of the query appears somewhere: "cat food" finds cat kibble shelved under food */
+export function matchesQuery(text: string, query: string): boolean {
+  const terms = query.toLowerCase().split(/\s+/).filter(Boolean)
+  const hay = text.toLowerCase()
+  return terms.every((t) => hay.includes(t))
 }
 
 /** "$4.50 / kg" for weighed goods */

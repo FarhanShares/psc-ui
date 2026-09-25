@@ -47,7 +47,8 @@ function HomePage() {
     .sort((a, b) => a.dayOffset - b.dayOffset)[0]
   const activeOrders = orders.filter((o) => o.status !== 'delivered').length
   const upcomingCount = bookings.filter((b) => b.status === 'upcoming').length
-  const lowOn = runningLow(orders)
+  // three is a nudge; the rest are one tap away in All orders
+  const lowOn = runningLow(orders, 3)
 
   return (
     <div className="page home-grid">

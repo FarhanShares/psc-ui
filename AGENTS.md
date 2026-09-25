@@ -61,13 +61,17 @@ Read `design.md` before touching any style. Core rules:
 - Sheets: `Sheet` component (native `<dialog>`, bottom sheet on mobile, centred
   dialog on desktop; the cart drawer is a panel anchored under the cart button). Never set `display` on a closed `<dialog>` — author
   display overrides the UA's `display: none` (caused an always-open drawer).
+  A field that should take focus when a sheet opens gets `data-autofocus`, not
+  `autoFocus` — React's autoFocus runs while the dialog is closed and misses.
 - Empty states are designed moments (zero pets → onboarding card with the
   shared `AddPetSheet`). Derived counts only count records whose pet exists.
 - Cart: `/cart` page is canonical (mobile); desktop additionally has the header
   cart drawer with complete inline checkout.
 - Shop search, category, pet and brand live in the URL
   (`/shop?q=…&cat=…&for=cat|dog|bird&brand=…`); landing copy comes from
-  `src/lib/shop-landing.ts`.
+  `src/lib/shop-landing.ts`. Every product search (shop, `/search`, header)
+  matches through `productSearchText` + `matchesQuery` in `src/lib/catalog.ts`
+  — all words must match — so the surfaces never disagree.
 - Variants: see design.md "Product variants". Use `src/lib/catalog.ts`
   (`resolveVariant`, `variantLabel`, `priceRange`…) — cart/order lines are
   keyed by productId + variantId; the product page's option is `?v=`.

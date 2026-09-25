@@ -7,6 +7,13 @@ import { OptionPicker, ResultRow, SearchControl } from '../components/pickers'
 import { EmptyState, Sheet } from '../components/ui'
 import { CLINICS, SERVICE_TYPES } from '../lib/data'
 import { absoluteUrl, seo } from '../lib/seo'
+import { matchesQuery } from '../lib/catalog'
+import type { Clinic } from '../lib/types'
+
+/** a clinic answers to its name, its area and what it offers ("dental", "grooming") */
+function clinicSearchText(c: Clinic): string {
+  return `${c.name} ${c.area} ${c.services.map((s) => `${s.name} ${s.type}`).join(' ')}`
+}
 
 type Filters = {
   service: string // service type id or 'all'
@@ -237,7 +244,7 @@ function ClinicsPage() {
       if (applied.priceBand > 0 && c.priceBand !== applied.priceBand) return false
       if (applied.openNow && !c.openNow) return false
       if (applied.verifiedOnly && !c.verified) return false
-      if (q && !`${c.name} ${c.area}`.toLowerCase().includes(q)) return false
+      if (q && !matchesQuery(clinicSearchText(c), q)) return false
       return true
     })
     if (sort === 'distance') list = [...list].sort((a, b) => a.distanceKm - b.distanceKm)
@@ -256,7 +263,7 @@ function ClinicsPage() {
   const searchResults = useMemo(() => {
     const q = query.trim().toLowerCase()
     if (!q) return []
-    return CLINICS.filter((c) => `${c.name} ${c.area}`.toLowerCase().includes(q)).slice(0, 8)
+    return CLINICS.filter((c) => matchesQuery(clinicSearchText(c), q)).slice(0, 8)
   }, [query])
 
   return (
@@ -290,7 +297,7 @@ function ClinicsPage() {
 
         <div className="clinic-content">
           <div className="toolbar">
-        <SearchControl placeholder="Search clinics or areas" value={query} onChange={setQuery}>
+        <SearchControl placeholder="Search clinics, areas, services" value={query} onChange={setQuery}>
           {(close) =>
             query.trim() ? (
               searchResults.length > 0 ? (

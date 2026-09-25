@@ -108,30 +108,21 @@ export function ReviewsPage({ kind, id }: { kind: ReviewKind; id: string }) {
 
       <div className="detail-grid rise" style={{ '--i': 1 } as React.CSSProperties}>
         <div className="stack">
-          <div className="toolbar reviews-toolbar">
-            <div className="chips" role="group" aria-label="Filter by rating">
-              <button type="button" className="chip" aria-pressed={!stars && !topic} onClick={resetPaging(() => { setStars(0); setTopic('') })}>
-                All
+          <div className="chips reviews-stars" role="group" aria-label="Filter by rating">
+            <button type="button" className="chip" aria-pressed={!stars && !topic} onClick={resetPaging(() => { setStars(0); setTopic('') })}>
+              All
+            </button>
+            {[5, 4, 3, 2, 1].map((n) => (
+              <button
+                key={n}
+                type="button"
+                className="chip"
+                aria-pressed={stars === n}
+                onClick={resetPaging(() => setStars(stars === n ? 0 : n))}
+              >
+                {n} <Star size={12} strokeWidth={2} fill="currentColor" aria-hidden />
               </button>
-              {[5, 4, 3, 2, 1].map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  className="chip"
-                  aria-pressed={stars === n}
-                  onClick={resetPaging(() => setStars(stars === n ? 0 : n))}
-                >
-                  {n} <Star size={12} strokeWidth={2} fill="currentColor" aria-hidden />
-                </button>
-              ))}
-            </div>
-            <OptionPicker
-              icon={ArrowUpDown}
-              title="Sort reviews"
-              value={sort}
-              options={SORTS}
-              onChange={resetPaging((v: string) => setSort(v as SortId))}
-            />
+            ))}
           </div>
 
           {topics.length > 1 && (
@@ -144,11 +135,22 @@ export function ReviewsPage({ kind, id }: { kind: ReviewKind; id: string }) {
             </div>
           )}
 
-          <p className="mono-label" aria-live="polite">
-            Showing {Math.min(shown, list.length)} of {list.length}
-            {stars ? ` · ${stars}-star` : ''}
-            {topic ? ` · ${topic}` : ''} — a sample of {total} reviews
-          </p>
+          {/* sort rides with the count, so the star filters get the full row */}
+          <div className="reviews-count">
+            <p className="mono-label" aria-live="polite">
+              Showing {Math.min(shown, list.length)} of {list.length}
+              {stars ? ` · ${stars}-star` : ''}
+              {topic ? ` · ${topic}` : ''} — a sample of {total} reviews
+            </p>
+            <OptionPicker
+              icon={ArrowUpDown}
+              title="Sort reviews"
+              value={sort}
+              options={SORTS}
+              onChange={resetPaging((v: string) => setSort(v as SortId))}
+              align="end"
+            />
+          </div>
 
           {list.length === 0 ? (
             <EmptyState

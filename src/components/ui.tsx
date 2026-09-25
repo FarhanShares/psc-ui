@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import {
   Bath,
   Bone,
   Check,
+  ClipboardCheck,
   Inbox,
   Cookie,
   HeartPulse,
@@ -11,6 +12,7 @@ import {
   Scissors,
   Stethoscope,
   Syringe,
+  Toothbrush,
   ToyBrick,
   X,
 } from 'lucide-react'
@@ -28,13 +30,14 @@ const CATEGORY_ICONS: Record<ProductCategory, typeof Bone> = {
   health: PillIcon,
 }
 
+// one icon per service, so a row of service chips never repeats itself
 const SERVICE_ICONS: Record<ServiceType, typeof Bone> = {
   consultation: Stethoscope,
   vaccination: Syringe,
   grooming: Scissors,
-  dental: PillIcon,
+  dental: Toothbrush,
   surgery: HeartPulse,
-  checkup: Stethoscope,
+  checkup: ClipboardCheck,
 }
 
 export function CategoryIcon({ category, size = 22 }: { category: ProductCategory; size?: number }) {
@@ -80,6 +83,47 @@ export function PetGlyph({ species, size = 18 }: { species: Species; size?: numb
 }
 
 /* ---------------------------------------------------------------- pieces */
+
+/**
+ * A "·"-joined summary breaks between its parts, never inside one:
+ * "3 weight bands ·" / "2 sizes", not "3 weight bands · 2" / "sizes".
+ */
+export function KeepParts({ text }: { text: string }) {
+  const parts = text.split(' · ')
+  if (parts.length < 2) return <>{text}</>
+  // the space between parts stays outside the nowrap spans: it is the break
+  return (
+    <>
+      {parts.map((part, i) => (
+        <Fragment key={i}>
+          {i > 0 && ' '}
+          <span className="nowrap">
+            {part}
+            {i < parts.length - 1 ? '\u00a0·' : ''}
+          </span>
+        </Fragment>
+      ))}
+    </>
+  )
+}
+
+/** a wrapping title keeps its hyphenated words whole: "Spot-On", never "Spot-" / "On" */
+export function KeepHyphens({ text }: { text: string }) {
+  const parts = text.split(/(\S+-\S+)/)
+  return (
+    <>
+      {parts.map((part, i) =>
+        i % 2 ? (
+          <span key={i} className="nowrap">
+            {part}
+          </span>
+        ) : (
+          part
+        ),
+      )}
+    </>
+  )
+}
 
 export function Stars({ rating }: { rating: number }) {
   return (
@@ -150,7 +194,7 @@ export function EmptyState({
   children,
 }: {
   title: string
-  text: string
+  text: React.ReactNode
   icon?: React.ReactNode
   actionLabel?: string
   actionTo?: string
@@ -271,6 +315,12 @@ export function Sheet({
     if (open && !el.open) {
       setTall(false)
       el.showModal()
+      // React's autoFocus runs at mount, while the dialog is still closed, so it
+      // never lands. A field marked data-autofocus gets focus on every open;
+      // otherwise start on the sheet itself, not the drag handle the browser picks.
+      const field = el.querySelector<HTMLElement>('[data-autofocus]')
+      if (field) field.focus({ preventScroll: true })
+      else if (document.activeElement?.classList.contains('sheet__handle-btn')) el.focus({ preventScroll: true })
     }
     if (!open && el.open) el.close()
   }, [open])
@@ -278,6 +328,7 @@ export function Sheet({
   return (
     <dialog
       ref={ref}
+      tabIndex={-1}
       className={`sheet${tall ? ' sheet--tall' : ''}${className ? ` ${className}` : ''}`}
       aria-label={title}
       onClose={onClose}
@@ -336,7 +387,6 @@ export function Field({
       >
         {error ?? help ?? ''}
       </p>
-      <style>{``}</style>
     </div>
   )
 }

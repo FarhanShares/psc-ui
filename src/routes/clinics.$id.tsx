@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { createFileRoute, notFound, Link, useNavigate } from '@tanstack/react-router'
-import { BadgeCheck, Clock, MapPin, Navigation, Phone, Share2 } from 'lucide-react'
+import { BadgeCheck, ChevronRight, Clock, MapPin, Navigation, Phone, Share2 } from 'lucide-react'
 
 import { Crumbs, RatingSummary, ReviewList, SaveButton, SuccessMark } from '../components/blocks'
 import { AddPetSheet } from '../components/add-pet'
@@ -240,7 +240,7 @@ function ClinicPage() {
                       {service.note ? ` · ${service.note}` : ''}
                     </span>
                   </span>
-                  <span style={{ display: 'grid', justifyItems: 'end', gap: 'var(--space-3xs)' }}>
+                  <span className="svc-buy">
                     <span className="price price--lg">{money(service.price)}</span>
                     <button type="button" className="btn btn--soft btn--sm" onClick={() => openBooking(service)} aria-label={`Book ${service.name}, ${money(service.price)}`}>
                       Book
@@ -274,7 +274,9 @@ function ClinicPage() {
         <section className="rise" style={{ '--i': 3 } as React.CSSProperties}>
           <div className="section-head">
             <h2 className="section-head__title">Other clinics nearby</h2>
-            <Link to="/clinics" className="section-head__link">All clinics</Link>
+            <Link to="/clinics" className="section-head__link">
+              All clinics <ChevronRight size={13} strokeWidth={2} />
+            </Link>
           </div>
           <div className="clinic-grid">
             {nearby.map((c) => (

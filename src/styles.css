@@ -473,6 +473,7 @@ img, svg {
   }
 
   .site-footer__baseline {
+    position: relative;
     max-width: var(--shell-wide);
     margin-inline: auto;
     padding: var(--space-sm) var(--space-xl);
@@ -480,6 +481,14 @@ img, svg {
     justify-content: space-between;
     gap: var(--space-md);
     flex-wrap: wrap;
+  }
+
+  /* the rule spans the content, not the side padding, so it lines up with the columns above */
+  .site-footer__baseline::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    inset-inline: var(--space-xl);
     border-top: 1px solid var(--color-rule);
   }
 }
@@ -583,6 +592,12 @@ img, svg {
   justify-content: space-between;
   gap: var(--space-sm);
   margin-bottom: var(--space-sm);
+}
+
+/* inside a .stack the gap already spaces the heading; a margin would double it */
+.stack > .section-head,
+.stack > .checkout__h {
+  margin-bottom: 0;
 }
 
 /* page sections speak at 22px; inside a card or sheet the same class steps
@@ -1311,15 +1326,24 @@ img, svg {
 
 /* chips that wrap instead of scroll — inside sheets and the sidebar */
 
+/* a count rides in a small badge: bare 11px digits beside 13px text read as
+   a superscript, since the chip centres them rather than sharing a baseline */
 .chip__count {
+  min-width: 1.25rem;
+  padding: 0 0.3125rem;
+  border-radius: 999px;
+  background: var(--color-paper-2);
   font-family: var(--font-mono);
   font-size: var(--text-xs);
+  line-height: 1.25rem;
+  text-align: center;
   color: var(--color-muted);
   font-variant-numeric: tabular-nums;
 }
 
 .chip[aria-pressed="true"] .chip__count,
 .chip[aria-checked="true"] .chip__count {
+  background: var(--color-card);
   color: var(--color-accent-deep);
 }
 
@@ -1354,6 +1378,13 @@ img, svg {
   .filter-btn,
   .shop-content .search-trigger,
   .shop-content .search--inline {
+    display: none;
+  }
+}
+
+/* searching on a phone: the promo slider steps aside so results start above the fold */
+@media (max-width: 63.9375rem) {
+  .shop-promo--searching {
     display: none;
   }
 }
@@ -1589,8 +1620,41 @@ img, svg {
   place-items: center;
   border-radius: var(--radius-sm);
   background: var(--color-graphite-2);
-  color: var(--color-accent);
+  color: var(--color-accent-on-graphite);
   flex: none;
+}
+
+/* clinic service row: price over Book on phones, side by side once there's room */
+.svc-buy {
+  display: grid;
+  justify-items: end;
+  gap: var(--space-3xs);
+  flex: none;
+}
+
+@media (min-width: 48rem) {
+  .svc-buy {
+    grid-auto-flow: column;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+}
+
+/* a band with one action: beside the words when there's room, under them on phones */
+.band--action {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.band--action .band__row {
+  flex: 1 1 18rem;
+  min-width: 0;
+}
+
+.band--action .band__cta {
+  margin-left: auto;
 }
 
 /* ------------------------------------------------------------------- rails */
@@ -1814,6 +1878,13 @@ img, svg {
   }
 }
 
+/* landing: four clinics make a full 2 × 2; a phone's single column stops at three */
+@media (max-width: 47.9375rem) {
+  .clinic-grid--landing > :nth-child(n + 4) {
+    display: none;
+  }
+}
+
 .history-grid {
   display: grid;
   gap: var(--space-sm);
@@ -1967,7 +2038,11 @@ img, svg {
 .field__help {
   font-size: var(--text-sm);
   color: var(--color-muted);
-  min-height: 1lh;
+}
+
+/* no help and no error: no reserved line, so fields keep an even rhythm */
+.field__help:empty {
+  display: none;
 }
 
 .field__help--error {
@@ -2233,7 +2308,8 @@ img, svg {
 .sheet__handle-btn {
   display: grid;
   place-items: center;
-  width: 100%;
+  /* edge to edge across the sheet's padding (a button won't stretch on its own) */
+  width: calc(100% + 2 * var(--gutter));
   min-height: 2.25rem;
   margin-inline: calc(var(--gutter) * -1);
   padding: 0;
@@ -2245,6 +2321,12 @@ img, svg {
 
 .sheet__handle-btn:active .sheet__handle {
   transform: scaleY(0.75);
+}
+
+/* drawn inside the sheet's rounded top, where the scroll box can't clip it */
+.sheet__handle-btn:focus-visible {
+  outline-offset: -4px;
+  border-radius: var(--radius-lg) var(--radius-lg) var(--radius-sm) var(--radius-sm);
 }
 
 .sheet__handle {
@@ -2727,6 +2809,11 @@ details > summary::-webkit-details-marker {
   white-space: nowrap;
 }
 
+/* a phrase that must not split across lines: "2–4 days", "Spot-On", "#BK-2201" */
+.nowrap {
+  white-space: nowrap;
+}
+
 /* ------------------------------------------------------------ breadcrumbs */
 
 .crumbs {
@@ -3102,6 +3189,8 @@ details > summary::-webkit-details-marker {
 
 .stat {
   display: grid;
+  /* tiles in a row share one height; the readouts stay on the same line */
+  align-content: start;
   gap: 2px;
   padding: var(--space-sm);
   background: var(--color-paper);
@@ -3949,6 +4038,17 @@ label.option-row {
   transform: translateY(1px);
 }
 
+/* the closing "everything" tile is no one category, so it takes no category tint */
+.cat-tile--all {
+  background: var(--color-card);
+  border: 1px solid var(--color-rule);
+  color: var(--color-ink);
+}
+
+.cat-tile--all svg {
+  color: var(--color-accent-deep);
+}
+
 @media (hover: hover) {
   .cat-tile:hover {
     transform: translateY(-2px);
@@ -4166,7 +4266,10 @@ label.option-row {
   line-height: 0.9;
   letter-spacing: -0.05em;
   color: var(--color-accent-tint);
-  -webkit-text-stroke: 2px var(--color-accent);
+  /* the display face is variable: its glyphs overlap inside, and a plain stroke
+     draws those seams. Stroke first, fill over it — only the outline shows */
+  -webkit-text-stroke: 4px var(--color-accent);
+  paint-order: stroke fill;
 }
 
 .status-page__links {
@@ -4214,6 +4317,11 @@ label.option-row {
 
 .auth__form {
   margin-top: var(--space-lg);
+}
+
+/* the demo hint under Sign in is a note, not part of the button */
+form + .auth__hint {
+  margin-top: var(--space-sm);
 }
 
 .auth__foot {
@@ -4331,6 +4439,26 @@ label.option-row {
     align-items: center;
     padding: var(--space-sm);
     font-size: var(--text-body);
+  }
+}
+
+/* under 360px four columns can't hold "Emergency": two rows of icon-and-label */
+@media (max-width: 22.4375rem) {
+  .quick-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .quick {
+    grid-auto-flow: column;
+    justify-content: start;
+    align-items: center;
+    padding: var(--space-xs);
+    text-align: start;
+  }
+
+  .quick__icon {
+    width: 2rem;
+    height: 2rem;
   }
 }
 
@@ -4498,6 +4626,7 @@ button.action-tile {
 .auth__hint {
   margin: 0;
   padding: var(--space-2xs) var(--space-sm);
+  overflow-wrap: anywhere;
   background: var(--color-paper-2);
   border: 1px dashed var(--color-rule-2);
   border-radius: var(--radius-sm);
@@ -5304,8 +5433,32 @@ html[data-session="in"] [data-guest-view] {
   margin-top: var(--space-2xs);
 }
 
+/* phones: the pair shares the row, and full-width rows when it has to stack */
+@media (max-width: 29.9375rem) {
+  .landing-hero__cta {
+    justify-self: stretch;
+  }
+
+  .landing-hero__cta > .btn {
+    flex: 1 1 auto;
+  }
+}
+
 .landing-hero .value-strip {
   margin-top: var(--space-xs);
+}
+
+/* a readable measure: two even lines on desktop, not a long line and a stub */
+.landing-hero .lede {
+  max-width: 36rem;
+}
+
+/* the shop swaps its trust strip for the hero band on desktop; the landing
+   has no band, so its strip stays */
+@media (min-width: 64rem) {
+  .landing-hero .value-strip {
+    display: flex;
+  }
 }
 
 .cat-tile__count {
@@ -5697,12 +5850,16 @@ html[data-session="in"] [data-guest-view] {
   font-size: var(--text-xl);
 }
 
-.reviews-toolbar {
-  align-items: flex-start;
+/* six star filters fit one row at 320px with slimmer sides */
+.reviews-stars .chip {
+  padding-inline: var(--space-xs);
 }
 
-.reviews-toolbar .chips {
-  flex: 1;
+.reviews-count {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
 }
 
 .reviews-card {
@@ -5916,11 +6073,12 @@ html[data-session="in"] [data-guest-view] {
   }
 }
 
+/* bottom-right, as on the detail gallery: centred, the dots sat on the
+   pack's own label band ("CAT KIBBLE", "ADULT DOG") */
 .media-dots {
   position: absolute;
-  left: 50%;
+  right: var(--space-xs);
   bottom: var(--space-xs);
-  translate: -50% 0;
   z-index: 1;
   display: flex;
   gap: 4px;
@@ -6304,11 +6462,9 @@ html[data-session="in"] [data-guest-view] {
   min-height: 2.75rem;
 }
 
-/* detail gallery: option tag owns bottom-left, so the dots sit bottom-right */
+/* detail gallery: option tag owns bottom-left, the dots bottom-right */
 .gallery .media-dots--lg {
-  left: auto;
   right: var(--space-sm);
-  translate: none;
 }
 
 /* --------------------------------------------- widen search (thin results) */
@@ -6503,9 +6659,11 @@ html[data-session="in"] [data-guest-view] {
   gap: var(--space-xs);
 }
 
-@media (min-width: 40rem) {
+/* up to three picks share the row evenly (auto-fit: two picks fill it too),
+   wide enough that a product name never needs cutting */
+@media (min-width: 64rem) {
   .reorder-grid {
-    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
   }
 }
 
@@ -6539,9 +6697,6 @@ html[data-session="in"] [data-guest-view] {
 .reorder__name {
   color: inherit;
   text-decoration: none;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .reorder__btn {

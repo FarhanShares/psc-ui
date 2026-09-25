@@ -3,8 +3,9 @@ import { Link } from '@tanstack/react-router'
 import { Check, CreditCard, MapPin, Plus } from 'lucide-react'
 
 import { AddressPicker } from './address-picker'
-import { cardProblem, formatCardNumber, formatExpiry } from '../lib/format'
-import { addCard, cardLabel, saveAddress, updateProfile, useAppState } from '../lib/store'
+import { cardProblem, formatCardNumber, formatExpiry, money } from '../lib/format'
+import { addCard, cardLabel, cartTotals, saveAddress, updateProfile, useAppState } from '../lib/store'
+import type { CartItem } from '../lib/types'
 
 /* ------------------------------------------------------------ the hook */
 
@@ -119,6 +120,37 @@ export function useCheckout() {
 }
 
 export type Checkout = ReturnType<typeof useCheckout>
+
+/* ------------------------------------------------------ the summary */
+
+/**
+ * What the order costs, line by line, so the total on the Place order button
+ * adds up: items, delivery to the chosen address, then the total.
+ */
+export function CheckoutSummary({ cart, co, style }: { cart: CartItem[]; co: Checkout; style?: React.CSSProperties }) {
+  const { subtotal, delivery, total } = cartTotals(cart)
+  const count = cart.reduce((n, i) => n + i.qty, 0)
+  // "Delivery to Work" names a saved address; a new one is still being typed
+  const where = co.addressId && co.addressId !== 'new' ? co.addressLabel : undefined
+  return (
+    <div className="summary" style={style}>
+      <div className="summary__row">
+        <span>
+          {count} item{count === 1 ? '' : 's'}
+        </span>
+        <span className="price">{money(subtotal)}</span>
+      </div>
+      <div className="summary__row">
+        <span>{where ? `Delivery to ${where}` : 'Delivery'}</span>
+        <span className="price">{delivery === 0 ? 'Free' : money(delivery)}</span>
+      </div>
+      <div className="summary__row summary__row--total">
+        <span>Total</span>
+        <span className="price">{money(total)}</span>
+      </div>
+    </div>
+  )
+}
 
 /* -------------------------------------------------------- the fields */
 

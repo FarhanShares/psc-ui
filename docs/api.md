@@ -27,16 +27,21 @@ swap can happen one function at a time.
 
 | Endpoint | Used by | Replaces |
 |---|---|---|
-| `GET /products?cat=&for=&brand=&q=&sort=&price=&rating=&inStock=` | Shop grid, landings, search | `PRODUCTS` + `matchesFilters` |
+| `GET /products?cat=&for=&brand=&q=&sort=&price=&rating=&inStock=` | Shop grid, landings, search | `PRODUCTS` + `matchesFilters`, `matchesQuery` |
 | `GET /products/:id` → product, axes, variants (price, stock, unit, netQty, compareAt), images, description, highlights | Product page, quick add | `getProduct`, `VARIANTS`, `COPY`, `IMAGES` |
 | `GET /products/:id/related?limit=8` | "More for cats" rail | ranking in `shop.$id.tsx` |
 | `GET /products/:id/reviews?stars=&cursor=` + rating breakdown | Reviews sections and pages | `allReviews`, `ratingBreakdown` |
 | `GET /facets?cat=&for=&brand=` → counts per category, pet, brand, price band | Filter sidebar counts, "widen search" card | computed counts |
-| `GET /clinics?service=&openNow=&verified=&maxKm=&minRating=&sort=&lat=&lng=` | Clinics list | `CLINICS` + filters |
+| `GET /clinics?q=&service=&openNow=&verified=&maxKm=&minRating=&sort=&lat=&lng=` | Clinics list | `CLINICS` + filters |
 | `GET /clinics/:id` (services, hours, about, rating) | Clinic page | `getClinic` |
 | `GET /clinics/:id/reviews` | Clinic reviews | `allReviews('clinic')` |
 | `GET /clinics/:id/availability?serviceId=&from=&days=7` → slots per day | Slot picker, reschedule | `BOOKING_SLOTS`, `slotAvailable` |
 | `GET /search?q=` → products, clinics, services, guides, help | Global search | `search.tsx` matching |
+
+`q` means the same thing everywhere: every word must appear. A product matches
+on name, brand, category, blurb, option labels and the animals it suits
+(`productSearchText`); a clinic on name, area and service names. The shop grid
+and global search must return the same products for the same `q`.
 | `GET /guides`, `GET /guides/:slug` | Care guides | `GUIDES` (or a headless CMS) |
 | `GET /faqs`, `GET /support` (hours, email, phone) | Help centre | `FAQS`, `SUPPORT` |
 

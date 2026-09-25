@@ -45,7 +45,7 @@ export function AddPetSheet({ open, onClose }: { open: boolean; onClose: () => v
             value={draft.name}
             onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
             placeholder={speciesInfo(draft.species).namePlaceholder}
-            autoFocus
+            data-autofocus
           />
         </div>
         <fieldset className="plain-fieldset">
