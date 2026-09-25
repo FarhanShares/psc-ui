@@ -1,0 +1,318 @@
+import { Link } from '@tanstack/react-router'
+import { Check, ChevronLeft, ChevronRight, Heart, LayoutGrid, ThumbsUp } from 'lucide-react'
+
+import { CATEGORIES, PRODUCTS } from '../lib/data'
+import { daysAgoLabel } from '../lib/format'
+import { toggleSavedClinic, toggleSavedProduct, useAppState } from '../lib/store'
+import type { ProductCategory, Review } from '../lib/types'
+import { CategoryIcon, Stars, tileClass } from './ui'
+
+/* ------------------------------------------------------------ breadcrumbs */
+
+export interface Crumb {
+  label: string
+  to?: string
+  params?: Record<string, string>
+  search?: Record<string, string>
+}
+
+/**
+ * Full trail on tablet/desktop; on phones it collapses to a single
+ * "‹ Parent" back link so detail screens read like a native app.
+ */
+export function Crumbs({ items }: { items: Crumb[] }) {
+  const parent = [...items].reverse().find((c) => c.to)
+  return (
+    <nav className="crumbs rise" aria-label="Breadcrumb">
+      {parent?.to && (
+        <Link
+          to={parent.to}
+          params={parent.params as never}
+          search={parent.search as never}
+          className="crumbs__back"
+        >
+          <ChevronLeft size={15} strokeWidth={2} aria-hidden />
+          {parent.label}
+        </Link>
+      )}
+      <ol className="crumbs__trail">
+        {items.map((c, i) => (
+          <li key={`${c.label}-${i}`}>
+            {c.to && i < items.length - 1 ? (
+              <Link to={c.to} params={c.params as never} search={c.search as never}>
+                {c.label}
+              </Link>
+            ) : (
+              <span aria-current="page">{c.label}</span>
+            )}
+            {i < items.length - 1 && <ChevronRight size={12} strokeWidth={2} aria-hidden />}
+          </li>
+        ))}
+      </ol>
+    </nav>
+  )
+}
+
+/* ------------------------------------------------------------ save toggle */
+
+export function SaveButton({
+  kind,
+  id,
+  name,
+  variant = 'icon',
+}: {
+  kind: 'product' | 'clinic'
+  id: string
+  name: string
+  variant?: 'icon' | 'overlay' | 'labeled' | 'tile'
+}) {
+  const { savedProducts, savedClinics } = useAppState()
+  const on = (kind === 'product' ? savedProducts : savedClinics).includes(id)
+  const toggle = kind === 'product' ? toggleSavedProduct : toggleSavedClinic
+
+  return (
+    <button
+      type="button"
+      className={variant === 'tile' ? 'action-tile save-tile' : `save-btn save-btn--${variant}`}
+      aria-pressed={on}
+      aria-label={on ? `Remove ${name} from saved` : `Save ${name}`}
+      onClick={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        toggle(id)
+      }}
+    >
+      <Heart size={variant === 'overlay' ? 16 : 18} strokeWidth={1.9} fill={on ? 'currentColor' : 'none'} aria-hidden />
+      {(variant === 'labeled' || variant === 'tile') && <span>{on ? 'Saved' : 'Save'}</span>}
+    </button>
+  )
+}
+
+/* --------------------------------------------------------------- reviews */
+
+export function RatingSummary({
+  rating,
+  total,
+  breakdown,
+  selected,
+  onPick,
+}: {
+  rating: number
+  total: number
+  breakdown: number[]
+  /** when given, each bar becomes a filter button */
+  selected?: number
+  onPick?: (stars: number) => void
+}) {
+  const max = Math.max(...breakdown, 1)
+  return (
+    <div className="rating-summary">
+      <div className="rating-summary__score">
+        <span className="rating-summary__big">{rating.toFixed(1)}</span>
+        <span className="row__sub num">out of 5 · {total} reviews</span>
+      </div>
+      <ul className="rating-bars" aria-label="Rating breakdown">
+        {breakdown.map((n, i) => {
+          const stars = 5 - i
+          const inner = (
+            <>
+              <span className="num">{stars}</span>
+              <span className="rating-bars__track" aria-hidden>
+                <span className="rating-bars__fill" style={{ width: `${(n / max) * 100}%` }} />
+              </span>
+              <span className="num muted">{n}</span>
+            </>
+          )
+          return (
+            <li key={i}>
+              {onPick ? (
+                <button
+                  type="button"
+                  className="rating-bars__btn"
+                  aria-pressed={selected === stars}
+                  aria-label={`Show ${stars}-star reviews (${n})`}
+                  onClick={() => onPick(stars)}
+                >
+                  {inner}
+                </button>
+              ) : (
+                inner
+              )}
+            </li>
+          )
+        })}
+      </ul>
+    </div>
+  )
+}
+
+export function ReviewList({
+  reviews,
+  kind = 'product',
+  votes,
+  onHelpful,
+}: {
+  reviews: Review[]
+  kind?: 'product' | 'clinic'
+  /** ids this device marked helpful — enables the Helpful button */
+  votes?: string[]
+  onHelpful?: (id: string) => void
+}) {
+  return (
+    <ul className="review-list">
+      {reviews.map((r) => {
+        const voted = votes?.includes(r.id) ?? false
+        return (
+          <li key={r.id} className="review">
+            <div className="split">
+              <span className="review__who">
+                <span className="review__ava" aria-hidden>
+                  {r.author.charAt(0)}
+                </span>
+                <span>
+                  <span className="row__title" style={{ display: 'block' }}>{r.author}</span>
+                  <span className="row__sub">
+                    {r.pet ? `${r.pet} · ` : ''}
+                    {daysAgoLabel(r.daysAgo)}
+                  </span>
+                </span>
+              </span>
+              <Stars rating={r.rating} />
+            </div>
+            {(r.verified || r.topic) && (
+              <p className="review__meta">
+                {r.verified && (
+                  <span className="review__verified">
+                    <Check size={11} strokeWidth={3} aria-hidden /> {kind === 'clinic' ? 'Verified visit' : 'Verified purchase'}
+                  </span>
+                )}
+                {r.topic && <span className="muted">{r.topic}</span>}
+              </p>
+            )}
+            <p className="review__text">{r.text}</p>
+            {onHelpful && (
+              <button type="button" className="review__helpful" aria-pressed={voted} onClick={() => onHelpful(r.id)}>
+                <ThumbsUp size={13} strokeWidth={1.75} fill={voted ? 'currentColor' : 'none'} aria-hidden />
+                Helpful{(r.helpful ?? 0) + (voted ? 1 : 0) > 0 ? ` · ${(r.helpful ?? 0) + (voted ? 1 : 0)}` : ''}
+              </button>
+            )}
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
+/* --------------------------------------------------------------- timeline */
+
+export interface TimelineStep {
+  label: string
+  detail?: string
+  state: 'done' | 'current' | 'todo'
+}
+
+export function Timeline({ steps }: { steps: TimelineStep[] }) {
+  return (
+    <ol className="timeline">
+      {steps.map((s) => (
+        <li key={s.label} className={`timeline__step timeline__step--${s.state}`}>
+          <span className="timeline__dot" aria-hidden>
+            {s.state === 'done' && <Check size={11} strokeWidth={3} />}
+          </span>
+          <span>
+            <span className="row__title" style={{ display: 'block' }}>
+              {s.label}
+              {s.state === 'current' && <span className="visually-hidden"> (current)</span>}
+            </span>
+            {s.detail && <span className="row__sub">{s.detail}</span>}
+          </span>
+        </li>
+      ))}
+    </ol>
+  )
+}
+
+/* -------------------------------------------------------------- menu rows */
+
+export function MenuRow({
+  to,
+  search,
+  icon,
+  title,
+  sub,
+  badge,
+}: {
+  to: string
+  search?: Record<string, string>
+  icon: React.ReactNode
+  title: string
+  sub?: string
+  badge?: number
+}) {
+  return (
+    <Link to={to} search={search as never} className="menu-row">
+      <span className="menu-row__icon" aria-hidden>
+        {icon}
+      </span>
+      <span className="row__grow">
+        <span className="row__title">{title}</span>
+        {sub && <span className="row__sub">{sub}</span>}
+      </span>
+      {badge ? <span className="count-badge num">{badge}</span> : null}
+      <ChevronRight size={16} strokeWidth={1.75} className="muted" aria-hidden />
+    </Link>
+  )
+}
+
+/* ---------------------------------------------------------- success mark */
+
+export function SuccessMark() {
+  return (
+    <span className="success-mark" aria-hidden>
+      <Check size={26} strokeWidth={2.25} />
+    </span>
+  )
+}
+
+/* ---------------------------------------------------------- stat readout */
+
+export function Stat({ label, value, hint }: { label: string; value: React.ReactNode; hint?: string }) {
+  return (
+    <div className="stat">
+      <span className="tag">{label}</span>
+      <span className="stat__value">{value}</span>
+      {hint && <span className="row__sub">{hint}</span>}
+    </div>
+  )
+}
+
+/* ------------------------------------------------------- category tiles */
+
+/**
+ * The five shelves as tinted tiles, closed by an "All supplies" tile so the
+ * grid fills its last row: 3 + 3 on phones, 2 + 2 + 2 at 320px, one row wide.
+ */
+export function CategoryTiles({ counts = false }: { counts?: boolean }) {
+  const perCategory = new Map<string, number>()
+  for (const p of PRODUCTS) perCategory.set(p.category, (perCategory.get(p.category) ?? 0) + 1)
+  return (
+    <div className="cat-grid">
+      {CATEGORIES.filter((c) => c.id !== 'all').map((c) => (
+        <Link key={c.id} to="/shop" search={{ cat: c.id }} className={`cat-tile ${tileClass(c.id as ProductCategory)}`}>
+          <CategoryIcon category={c.id as ProductCategory} size={22} />
+          <span>
+            {c.label}
+            {counts && <span className="cat-tile__count num">{perCategory.get(c.id) ?? 0} items</span>}
+          </span>
+        </Link>
+      ))}
+      <Link to="/shop" className="cat-tile cat-tile--all">
+        <LayoutGrid size={22} strokeWidth={1.75} aria-hidden />
+        <span>
+          All supplies
+          {counts && <span className="cat-tile__count num">{PRODUCTS.length} items</span>}
+        </span>
+      </Link>
+    </div>
+  )
+}

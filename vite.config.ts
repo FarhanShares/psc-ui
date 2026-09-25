@@ -9,7 +9,8 @@ const config = defineConfig({
   resolve: { tsconfigPaths: true },
   server: {
     host: true,          // listen on all interfaces — reachable from the LAN
-    port: 3000,
+    // PORT lets preview tools pick a free port; plain `npm run dev` stays on 3000
+    port: Number(process.env.PORT) || 3000,
     allowedHosts: true,  // accept IP and .local mDNS hostnames alike
   },
   plugins: [nitro(), tanstackStart(), viteReact()],

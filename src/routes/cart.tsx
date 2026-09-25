@@ -1,56 +1,66 @@
 import { useState } from 'react'
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { Check, ChevronLeft, MapPin, ShoppingCart, Trash2 } from 'lucide-react'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { Check, ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-react'
 
-import { CategoryIcon, EmptyState, Stepper, tileClass } from '../components/ui'
-import { FREE_DELIVERY_THRESHOLD, getProduct } from '../lib/data'
-import { money } from '../lib/format'
-import { cartTotals, placeOrder, removeFromCart, setCartQty, useAppState } from '../lib/store'
+import { EmptyState } from '../components/ui'
+import { CATEGORIES, FREE_DELIVERY_THRESHOLD, PRODUCTS, getProduct } from '../lib/data'
+import { ProductCard } from '../components/cards'
+import { CartLine } from '../components/cart-line'
+import { lineKey } from '../lib/catalog'
+import { money, wholeMoney } from '../lib/format'
+import { cartTotals, placeOrder, useAppState } from '../lib/store'
 import type { Order } from '../lib/types'
+import { seo } from '../lib/seo'
+import { CheckoutFields, CheckoutSummary, useCheckout } from '../components/checkout'
 
 export const Route = createFileRoute('/cart')({
-  head: () => ({ meta: [{ title: 'Cart · PetSafeCare' }] }),
+  head: () => seo({ title: 'Cart', path: '/cart', noindex: true }),
   component: CartPage,
 })
 
 function CartPage() {
-  const { cart, profile } = useAppState()
+  const { cart, savedProducts, signedIn, orders } = useAppState()
+  const navigate = useNavigate()
+  const savedInStock = savedProducts.filter((id) => (getProduct(id)?.stock ?? 0) > 0)
   const { subtotal, delivery, total } = cartTotals(cart)
 
   const [stage, setStage] = useState<'cart' | 'checkout' | 'placed'>('cart')
-  const [addressId, setAddressId] = useState(
-    () => profile.addresses.find((a) => a.isDefault)?.id ?? profile.addresses[0]?.id ?? '',
-  )
-  const [name, setName] = useState(profile.name)
-  const [phone, setPhone] = useState(profile.phone)
-  const [card, setCard] = useState('')
-  const [expiry, setExpiry] = useState('')
-  const [cvc, setCvc] = useState('')
+  const co = useCheckout()
   const [placing, setPlacing] = useState(false)
-  const [error, setError] = useState('')
   const [placedOrder, setPlacedOrder] = useState<Order | null>(null)
 
-  const address = profile.addresses.find((a) => a.id === addressId)
-  const missing = subtotal - FREE_DELIVERY_THRESHOLD
+  const missing = FREE_DELIVERY_THRESHOLD - subtotal
+  // cheapest in-stock items that close the free-delivery gap, then top-rated fillers
+  const topUps = PRODUCTS.filter((p) => p.stock > 0 && !cart.some((i) => i.productId === p.id))
+    .sort((a, b) => {
+      const aFits = a.price >= missing ? 0 : 1
+      const bFits = b.price >= missing ? 0 : 1
+      return aFits - bFits || (aFits === 0 ? a.price - b.price : b.rating - a.rating)
+    })
+    .slice(0, 4)
 
   function handlePlaceOrder() {
-    if (!address) {
-      setError('Choose a delivery address before placing the order.')
-      return
-    }
-    if (card.replace(/\s/g, '').length < 12) {
-      setError('That card number looks too short. Enter all digits, or try another card.')
-      return
-    }
-    setError('')
+    const details = co.submit()
+    if (!details) return
     setPlacing(true)
     window.setTimeout(() => {
-      const order = placeOrder(address.line)
+      const order = placeOrder(details.addressLine, details.paidWith)
       setPlacedOrder(order)
       setPlacing(false)
       setStage('placed')
     }, 900)
   }
+
+  function goToCheckout() {
+    // guests keep their cart through sign-in — it merges into the account
+    if (!signedIn) {
+      navigate({ to: '/login', search: { redirect: '/cart' } })
+      return
+    }
+    co.start()
+    setStage('checkout')
+  }
+
 
   /* ------------------------------------------------------------ placed */
   if (stage === 'placed' && placedOrder) {
@@ -75,8 +85,8 @@ function CartPage() {
           {placedOrder.addressLine}
         </p>
         <div style={{ display: 'grid', gap: 'var(--space-2xs)', marginTop: 'var(--space-md)' }}>
-          <Link to="/orders" className="btn btn--primary">
-            View order
+          <Link to="/orders/$id" params={{ id: placedOrder.id }} className="btn btn--primary">
+            Track order
           </Link>
           <Link to="/shop" className="btn btn--ghost">
             Keep shopping
@@ -96,12 +106,43 @@ function CartPage() {
         <div className="rise" style={{ '--i': 1 } as React.CSSProperties}>
           <EmptyState
             title="Your cart is empty"
-            text="Food, treats, grooming — the shop has the everyday things pets run out of."
+            text={
+              <>
+                Food, treats and everyday care, delivered in <span className="nowrap">2–4 days</span>
+                {'\u00a0'}— free over {wholeMoney(FREE_DELIVERY_THRESHOLD)}.
+              </>
+            }
             actionLabel="Browse the shop"
             actionTo="/shop"
+            secondaryLabel={signedIn && orders.length > 0 ? 'Buy again from an order' : undefined}
+            secondaryTo={signedIn && orders.length > 0 ? '/orders' : undefined}
             icon={<ShoppingCart size={20} strokeWidth={1.75} />}
-          />
+          >
+            <span className="tag">Shop by category</span>
+            <div className="chips">
+              {CATEGORIES.filter((c) => c.id !== 'all').map((c) => (
+                <Link key={c.id} to="/shop" search={{ cat: c.id }} className="chip">
+                  {c.label}
+                </Link>
+              ))}
+            </div>
+          </EmptyState>
         </div>
+        {savedInStock.length > 0 && (
+          <section className="rise" style={{ '--i': 2 } as React.CSSProperties}>
+            <div className="section-head">
+              <h2 className="section-head__title">From your saved list</h2>
+              <Link to="/saved" className="section-head__link">
+                All saved <ChevronRight size={13} strokeWidth={2} />
+              </Link>
+            </div>
+            <div className="grid-products">
+              {savedInStock.slice(0, 4).map((id, i) => (
+                <ProductCard key={id} id={id} i={i} />
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     )
   }
@@ -132,38 +173,9 @@ function CartPage() {
             style={{ '--i': 1, alignItems: 'start' } as React.CSSProperties}
           >
             <div className="grid-list">
-              {cart.map((item) => {
-                const p = getProduct(item.productId)
-                if (!p) return null
-                return (
-                  <div key={item.productId} className="card row">
-                    <span className={`tile ${tileClass(p.category)}`} style={{ width: '2.75rem', height: '2.75rem' }}>
-                      <CategoryIcon category={p.category} size={19} />
-                    </span>
-                    <span className="row__grow" style={{ minWidth: 0 }}>
-                      <span className="row__title">{p.name}</span>
-                      <span className="row__sub">
-                        {p.unit} · {money(p.price)} each
-                      </span>
-                      <Stepper
-                        value={item.qty}
-                        onChange={(v) => setCartQty(p.id, v)}
-                        label={`Quantity of ${p.name}`}
-                      />
-                    </span>
-                    <span style={{ display: 'grid', justifyItems: 'end', gap: 'var(--space-2xs)' }}>
-                      <span className="price price--lg">{money(p.price * item.qty)}</span>
-                      <button
-                        type="button"
-                        className="btn btn--quiet btn--sm"
-                        onClick={() => removeFromCart(p.id)}
-                      >
-                        <Trash2 size={14} strokeWidth={1.75} /> Remove
-                      </button>
-                    </span>
-                  </div>
-                )
-              })}
+              {cart.map((item) => (
+                <CartLine key={lineKey(item.productId, item.variantId)} item={item} />
+              ))}
             </div>
 
             <div className="stack side-col">
@@ -176,10 +188,13 @@ function CartPage() {
                   <span>Delivery</span>
                   <span className="price">{delivery === 0 ? 'Free' : money(delivery)}</span>
                 </div>
-                {missing > 0 && missing + delivery <= FREE_DELIVERY_THRESHOLD && (
-                  <p className="row__sub">
-                    Add {money(missing)} more for free delivery.
-                  </p>
+                {missing > 0 && (
+                  <div className="free-meter">
+                    <span className="free-meter__track" aria-hidden>
+                      <span style={{ width: `${Math.min(100, (subtotal / FREE_DELIVERY_THRESHOLD) * 100)}%` }} />
+                    </span>
+                    <p className="row__sub">Add {money(missing)} more for free delivery.</p>
+                  </div>
                 )}
                 <div className="summary__row summary__row--total">
                   <span>Total</span>
@@ -187,11 +202,34 @@ function CartPage() {
                 </div>
               </div>
 
-              <button type="button" className="btn btn--primary btn--block" onClick={() => setStage('checkout')}>
-                Checkout · {money(total)}
+              <button type="button" className="btn btn--primary btn--block" onClick={goToCheckout}>
+                {signedIn ? `Checkout · ${money(total)}` : 'Sign in to check out'}
               </button>
+              {!signedIn && (
+                <p className="row__sub" style={{ textAlign: 'center' }}>
+                  Your cart comes with you when you sign in.
+                </p>
+              )}
+              <Link to="/shop" className="btn btn--quiet" style={{ justifySelf: 'center' }}>
+                Continue shopping
+              </Link>
             </div>
           </div>
+
+          {topUps.length > 0 && (
+            <section className="rise" style={{ '--i': 2 } as React.CSSProperties}>
+              <div className="section-head">
+                <h2 className="section-head__title">
+                  {missing > 0 ? 'Top up for free delivery' : 'Often added'}
+                </h2>
+              </div>
+              <div className="grid-products">
+                {topUps.map((p, i) => (
+                  <ProductCard key={p.id} id={p.id} i={i} />
+                ))}
+              </div>
+            </section>
+          )}
         </>
       )}
 
@@ -202,141 +240,15 @@ function CartPage() {
           </h1>
 
           <div className="detail-grid rise" style={{ '--i': 1, alignItems: 'start' } as React.CSSProperties}>
-            <div className="stack">
-              <section>
-                <div className="section-head">
-                  <h2 className="section-head__title">Delivery address</h2>
-                  <Link to="/profile" className="section-head__link">
-                    Manage
-                  </Link>
-                </div>
-                <div className="chips" role="radiogroup" aria-label="Delivery address">
-                  {profile.addresses.map((a) => (
-                    <button
-                      key={a.id}
-                      type="button"
-                      role="radio"
-                      aria-checked={addressId === a.id}
-                      className="chip"
-                      onClick={() => setAddressId(a.id)}
-                    >
-                      <MapPin size={13} strokeWidth={1.75} />
-                      {a.label} — {a.line}
-                    </button>
-                  ))}
-                </div>
-              </section>
-
-              <section className="stack">
-                <div className="section-head">
-                  <h2 className="section-head__title">Contact</h2>
-                </div>
-                <div className="field">
-                  <label className="field__label" htmlFor="co-name">
-                    Full name
-                  </label>
-                  <input
-                    id="co-name"
-                    className="input"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    autoComplete="name"
-                  />
-                </div>
-                <div className="field">
-                  <label className="field__label" htmlFor="co-phone">
-                    Phone number
-                  </label>
-                  <input
-                    id="co-phone"
-                    className="input"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    autoComplete="tel"
-                    inputMode="tel"
-                  />
-                  <p className="field__help">The courier calls this number on arrival.</p>
-                </div>
-              </section>
-
-              <section className="stack">
-                <div className="section-head">
-                  <h2 className="section-head__title">Payment</h2>
-                  <span className="tag">Demo — no charge</span>
-                </div>
-                <div className="field">
-                  <label className="field__label" htmlFor="co-card">
-                    Card number
-                  </label>
-                  <input
-                    id="co-card"
-                    className="input"
-                    value={card}
-                    onChange={(e) =>
-                      setCard(
-                        e.target.value
-                          .replace(/[^\d]/g, '')
-                          .slice(0, 16)
-                          .replace(/(\d{4})(?=\d)/g, '$1 '),
-                      )
-                    }
-                    inputMode="numeric"
-                    placeholder="4242 4242 4242 4242"
-                    autoComplete="cc-number"
-                  />
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-sm)' }}>
-                  <div className="field">
-                    <label className="field__label" htmlFor="co-exp">
-                      Expiry
-                    </label>
-                    <input
-                      id="co-exp"
-                      className="input"
-                      value={expiry}
-                      onChange={(e) => setExpiry(e.target.value.slice(0, 5))}
-                      inputMode="numeric"
-                      placeholder="09 / 29"
-                      autoComplete="cc-exp"
-                    />
-                  </div>
-                  <div className="field">
-                    <label className="field__label" htmlFor="co-cvc">
-                      CVC
-                    </label>
-                    <input
-                      id="co-cvc"
-                      className="input"
-                      value={cvc}
-                      onChange={(e) => setCvc(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                      inputMode="numeric"
-                      placeholder="123"
-                      autoComplete="cc-csc"
-                    />
-                  </div>
-                </div>
-              </section>
-            </div>
+            <CheckoutFields co={co} prefix="co" />
 
             <div className="stack side-col">
-              <div className="summary">
-                <div className="summary__row">
-                  <span>
-                    {cart.reduce((n, i) => n + i.qty, 0)} item
-                    {cart.reduce((n, i) => n + i.qty, 0) === 1 ? '' : 's'} · {address?.label ?? 'no address'}
-                  </span>
-                  <span className="price">{money(total)}</span>
-                </div>
-                <div className="summary__row">
-                  <span>Delivery</span>
-                  <span className="price">{delivery === 0 ? 'Free' : money(delivery)}</span>
-                </div>
-              </div>
+              <CheckoutSummary cart={cart} co={co} />
 
               <div>
-                {error && (
+                {co.error && (
                   <p className="field__help field__help--error" role="alert" style={{ marginBottom: 'var(--space-2xs)' }}>
-                    {error}
+                    {co.error}
                   </p>
                 )}
                 <button

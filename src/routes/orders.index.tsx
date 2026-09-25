@@ -4,10 +4,16 @@ import { Package } from 'lucide-react'
 import { OrderCard } from '../components/cards'
 import { EmptyState } from '../components/ui'
 import { useAppState } from '../lib/store'
+import { seo } from '../lib/seo'
+import { RequireAccount } from '../components/gate'
 
-export const Route = createFileRoute('/orders')({
-  head: () => ({ meta: [{ title: 'Orders · PetSafeCare' }] }),
-  component: OrdersPage,
+export const Route = createFileRoute('/orders/')({
+  head: () => seo({ title: 'Orders', path: '/orders', noindex: true }),
+  component: () => (
+    <RequireAccount kind="orders">
+      <OrdersPage />
+    </RequireAccount>
+  ),
 })
 
 function OrdersPage() {
@@ -32,9 +38,11 @@ function OrdersPage() {
         <div className="rise" style={{ '--i': 1 } as React.CSSProperties}>
           <EmptyState
             title="No orders yet"
-            text="Your first delivery is one shop tab away."
+            text="When you order, tracking, receipts and one-tap reorders live here."
             actionLabel="Browse the shop"
             actionTo="/shop"
+            secondaryLabel="How delivery works"
+            secondaryTo="/delivery"
             icon={<Package size={20} strokeWidth={1.75} />}
           />
         </div>

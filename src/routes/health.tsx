@@ -1,28 +1,39 @@
 import { useState } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { RefreshCw } from 'lucide-react'
+import { ChevronRight, Plus, RefreshCw } from 'lucide-react'
 
 import { AddPetSheet } from '../components/add-pet'
-import { VaccineRow } from '../components/cards'
+import { AddRecordSheet } from '../components/pet-sheets'
+import { VaccineTimeline } from '../components/cards'
 import { PetGlyph } from '../components/ui'
 import { pushToast, syncClinicRecords, useAppState } from '../lib/store'
+import { seo } from '../lib/seo'
+import { RequireAccount } from '../components/gate'
+import { formatWeight } from '../lib/species'
 
 export const Route = createFileRoute('/health')({
-  head: () => ({ meta: [{ title: 'Health · PetSafeCare' }] }),
-  component: HealthPage,
+  head: () => seo({ title: 'Health', path: '/health', noindex: true }),
+  component: () => (
+    <RequireAccount kind="health">
+      <HealthPage />
+    </RequireAccount>
+  ),
 })
 
 function HealthPage() {
-  const { pets, vaccines, lastSyncLabel } = useAppState()
+  const { pets, vaccines, lastSyncLabel, clinicLinked } = useAppState()
   const [petId, setPetId] = useState(pets[0]?.id ?? '')
   const [syncing, setSyncing] = useState(false)
   const [addPetOpen, setAddPetOpen] = useState(false)
+  const [recordOpen, setRecordOpen] = useState(false)
 
   const pet = pets.find((p) => p.id === petId) ?? pets[0]
   const petVaccines = vaccines
     .filter((v) => v.petId === pet?.id)
     .sort((a, b) => a.dueInDays - b.dueInDays)
-  const needsCount = vaccines.filter((v) => v.status === 'overdue' || v.status === 'due').length
+  // records only count when their pet still exists
+  const liveVaccines = vaccines.filter((v) => pets.some((p) => p.id === v.petId))
+  const needsCount = liveVaccines.filter((v) => v.status === 'overdue' || v.status === 'due').length
 
   function handleSync() {
     if (syncing) return
@@ -80,54 +91,65 @@ function HealthPage() {
 
       <div className="detail-grid rise" style={{ '--i': 2, alignItems: 'start' } as React.CSSProperties}>
         <section className="card card--pad">
-          <h2 className="section-head__title" style={{ marginBottom: 'var(--space-2xs)' }}>
-            {pet.name}
-          </h2>
+          <div className="section-head" style={{ marginBottom: 'var(--space-3xs)' }}>
+            <Link to="/pets/$id" params={{ id: pet.id }} className="section-head__title pet-link">
+              {pet.name} <ChevronRight size={15} strokeWidth={2} aria-hidden />
+            </Link>
+            <button type="button" className="link-btn" onClick={() => setRecordOpen(true)}>
+              <Plus size={14} strokeWidth={2} /> Add record
+            </button>
+          </div>
           <p className="row__sub" style={{ marginBottom: 'var(--space-2xs)' }}>
-            {pet.breed} · {pet.ageYears} yr · {pet.weightKg.toFixed(1)} kg
+            {pet.breed} · {pet.ageYears} yr · {formatWeight(pet.weightKg)}
           </p>
-          {petVaccines.map((v) => (
-            <div key={v.id}>
-              <VaccineRow vax={v} />
-              {(v.status === 'overdue' || v.status === 'due') && (
-                <div style={{ display: 'flex', justifyContent: 'flex-end', paddingBlock: 'var(--space-2xs)' }}>
-                  <Link
-                    to="/clinics"
-                    search={{ service: 'vaccination' }}
-                    className="btn btn--primary btn--sm"
-                  >
-                    Book {v.name.toLowerCase()}
-                  </Link>
-                </div>
-              )}
-            </div>
-          ))}
+          {petVaccines.length === 0 && (
+            <p className="row__sub" style={{ paddingBlock: 'var(--space-sm)' }}>
+              No records for {pet.name} yet — add one from a certificate or the pet passport.
+            </p>
+          )}
+          {petVaccines.length > 0 && <VaccineTimeline records={petVaccines} petName={pet.name} />}
         </section>
 
         <div className="stack side-col">
-          <section className="card card--pad">
-            <div className="split">
+          {clinicLinked ? (
+            <section className="card card--pad">
+              <div className="split">
+                <span className="thead">
+                  <span className="sync-dot" data-busy={syncing || undefined} aria-hidden />
+                  <span className="tag">Clinic sync</span>
+                </span>
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--sm"
+                  onClick={handleSync}
+                  disabled={syncing}
+                >
+                  <RefreshCw size={14} strokeWidth={1.75} />
+                  {syncing ? 'Syncing…' : 'Sync now'}
+                </button>
+              </div>
+              <p className="row__title" style={{ marginTop: 'var(--space-2xs)' }}>
+                Green Valley Veterinary
+              </p>
+              <p className="row__sub">
+                Last synced {lastSyncLabel} · {liveVaccines.length} records linked to your pets
+              </p>
+            </section>
+          ) : (
+            <section className="card card--pad">
               <span className="thead">
-                <span className="sync-dot" data-busy={syncing || undefined} aria-hidden />
-                <span className="tag">Clinic sync</span>
+                <span className="sync-dot sync-dot--off" aria-hidden />
+                <span className="tag">No clinic linked</span>
               </span>
-              <button
-                type="button"
-                className="btn btn--ghost btn--sm"
-                onClick={handleSync}
-                disabled={syncing}
-              >
-                <RefreshCw size={14} strokeWidth={1.75} />
-                {syncing ? 'Syncing…' : 'Sync now'}
-              </button>
-            </div>
-            <p className="row__title" style={{ marginTop: 'var(--space-2xs)' }}>
-              Green Valley Veterinary
-            </p>
-            <p className="row__sub">
-              Last synced {lastSyncLabel} · {vaccines.length} records linked to your pets
-            </p>
-          </section>
+              <p className="row__sub" style={{ marginTop: 'var(--space-2xs)' }}>
+                Book a visit through PetSafeCare and that clinic starts sharing records here. Until
+                then, add records yourself from a certificate or pet passport.
+              </p>
+              <Link to="/clinics" className="btn btn--ghost btn--sm" style={{ marginTop: 'var(--space-sm)', width: 'fit-content' }}>
+                Find a clinic
+              </Link>
+            </section>
+          )}
 
           <section className="card card--pad">
             <span className="tag">How sync works</span>
@@ -138,6 +160,7 @@ function HealthPage() {
           </section>
         </div>
       </div>
+      <AddRecordSheet pets={pets} petId={pet.id} open={recordOpen} onClose={() => setRecordOpen(false)} />
     </div>
   )
 }

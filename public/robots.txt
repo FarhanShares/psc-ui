@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Disallow: /cart
+Disallow: /orders
+Disallow: /bookings
+Disallow: /profile
+Disallow: /pets
+Disallow: /saved
+Disallow: /notifications
+Disallow: /search
+Disallow: /settings
+Disallow: /welcome
+
+Sitemap: https://petsafecare.app/sitemap.xml

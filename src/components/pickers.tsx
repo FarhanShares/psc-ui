@@ -56,6 +56,7 @@ export function OptionPicker({
   onChange,
   variant = 'icon',
   prefix = '',
+  align = 'auto',
 }: {
   icon: React.ComponentType<{ size?: number; strokeWidth?: number }>
   title: string
@@ -64,6 +65,8 @@ export function OptionPicker({
   onChange: (id: string) => void
   variant?: 'icon' | 'labeled'
   prefix?: string
+  /** dropdown edge to line up with the button; auto = end when the button is on the right */
+  align?: 'start' | 'end' | 'auto'
 }) {
   const [sheetOpen, setSheetOpen] = useState(false)
   const popRef = useRef<HTMLDivElement>(null)
@@ -74,16 +77,22 @@ export function OptionPicker({
     const pop = popRef.current
     if (window.matchMedia(WIDE).matches && pop && typeof pop.showPopover === 'function') {
       const r = btnRef.current?.getBoundingClientRect()
-      if (r) {
-        pop.style.top = `${Math.round(r.bottom + 6)}px`
-        pop.style.left = `${Math.max(8, Math.min(Math.round(r.left), window.innerWidth - 244))}px`
-      }
       try {
         pop.showPopover()
-        return
       } catch {
-        /* fall through to the sheet */
+        setSheetOpen(true)
+        return
       }
+      if (r) {
+        // measure after opening; a control on the right half opens leftwards so
+        // the menu's right edge lines up with the button's right edge
+        const w = pop.offsetWidth
+        const alignEnd = align === 'end' || (align === 'auto' && r.left + r.width / 2 > window.innerWidth / 2)
+        const left = alignEnd ? r.right - w : r.left
+        pop.style.top = `${Math.round(r.bottom + 6)}px`
+        pop.style.left = `${Math.round(Math.max(8, Math.min(left, window.innerWidth - w - 8)))}px`
+      }
+      return
     }
     setSheetOpen(true)
   }
@@ -181,7 +190,7 @@ export function SearchControl({
               className="input"
               placeholder={placeholder}
               value={value}
-              autoFocus
+              data-autofocus
               onChange={(e) => onChange(e.target.value)}
               aria-label={placeholder}
             />
@@ -206,16 +215,18 @@ export function ResultRow({
   title,
   meta,
   onClose,
+  search,
 }: {
   to: '/shop/$id' | '/clinics/$id'
   params: { id: string }
+  search?: Record<string, string>
   tile: React.ReactNode
   title: string
   meta: string
   onClose: () => void
 }) {
   return (
-    <Link to={to} params={params} onClick={onClose} className="card card--press row">
+    <Link to={to} params={params} search={search as never} onClick={onClose} className="card card--press row">
       {tile}
       <span className="row__grow" style={{ minWidth: 0 }}>
         <span className="row__title">{title}</span>

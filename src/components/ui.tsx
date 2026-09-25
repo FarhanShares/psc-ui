@@ -1,16 +1,18 @@
-import { useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import {
   Bath,
   Bone,
   Check,
-  CircleAlert,
+  ClipboardCheck,
+  Inbox,
   Cookie,
   HeartPulse,
   Pill as PillIcon,
   Scissors,
   Stethoscope,
   Syringe,
+  Toothbrush,
   ToyBrick,
   X,
 } from 'lucide-react'
@@ -28,13 +30,14 @@ const CATEGORY_ICONS: Record<ProductCategory, typeof Bone> = {
   health: PillIcon,
 }
 
+// one icon per service, so a row of service chips never repeats itself
 const SERVICE_ICONS: Record<ServiceType, typeof Bone> = {
   consultation: Stethoscope,
   vaccination: Syringe,
   grooming: Scissors,
-  dental: PillIcon,
+  dental: Toothbrush,
   surgery: HeartPulse,
-  checkup: Stethoscope,
+  checkup: ClipboardCheck,
 }
 
 export function CategoryIcon({ category, size = 22 }: { category: ProductCategory; size?: number }) {
@@ -53,6 +56,16 @@ export function ServiceIcon({ type, size = 18 }: { type: ServiceType; size?: num
 }
 
 export function PetGlyph({ species, size = 18 }: { species: Species; size?: number }) {
+  if (species === 'bird') {
+    return (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M16 7h.01" />
+        <path d="M3.5 20 11 13" />
+        <path d="M11 13c-1.6-4.6.4-9 5-9 2.2 0 3.6 1.3 4 3l1.5.5L20 9c0 5-3.6 9-9 9H7" />
+        <path d="M11 13c2 .3 4-.3 5.5-2" />
+      </svg>
+    )
+  }
   return species === 'cat' ? (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d="M4 9.5 4.5 4l4 3h7l4-3 .5 5.5" />
@@ -70,6 +83,47 @@ export function PetGlyph({ species, size = 18 }: { species: Species; size?: numb
 }
 
 /* ---------------------------------------------------------------- pieces */
+
+/**
+ * A "·"-joined summary breaks between its parts, never inside one:
+ * "3 weight bands ·" / "2 sizes", not "3 weight bands · 2" / "sizes".
+ */
+export function KeepParts({ text }: { text: string }) {
+  const parts = text.split(' · ')
+  if (parts.length < 2) return <>{text}</>
+  // the space between parts stays outside the nowrap spans: it is the break
+  return (
+    <>
+      {parts.map((part, i) => (
+        <Fragment key={i}>
+          {i > 0 && ' '}
+          <span className="nowrap">
+            {part}
+            {i < parts.length - 1 ? '\u00a0·' : ''}
+          </span>
+        </Fragment>
+      ))}
+    </>
+  )
+}
+
+/** a wrapping title keeps its hyphenated words whole: "Spot-On", never "Spot-" / "On" */
+export function KeepHyphens({ text }: { text: string }) {
+  const parts = text.split(/(\S+-\S+)/)
+  return (
+    <>
+      {parts.map((part, i) =>
+        i % 2 ? (
+          <span key={i} className="nowrap">
+            {part}
+          </span>
+        ) : (
+          part
+        ),
+      )}
+    </>
+  )
+}
 
 export function Stars({ rating }: { rating: number }) {
   return (
@@ -117,36 +171,78 @@ export function OrderStatusLabel({ status }: { status: string }) {
   )
 }
 
+/**
+ * An empty list is a moment, not a hole: say what will live here, then give
+ * one clear way forward (plus an optional second). `children` holds extras
+ * such as suggestion chips. `level` sets the heading so it nests correctly
+ * under the section it sits in.
+ */
 export function EmptyState({
   title,
   text,
+  icon,
   actionLabel,
   actionTo,
+  actionSearch,
   onClick,
-  icon,
+  secondaryLabel,
+  secondaryTo,
+  secondarySearch,
+  onSecondary,
+  level = 2,
+  compact = false,
+  children,
 }: {
   title: string
-  text: string
+  text: React.ReactNode
+  icon?: React.ReactNode
   actionLabel?: string
   actionTo?: string
+  actionSearch?: Record<string, string>
   onClick?: () => void
-  icon?: React.ReactNode
+  secondaryLabel?: string
+  secondaryTo?: string
+  secondarySearch?: Record<string, string>
+  onSecondary?: () => void
+  level?: 2 | 3
+  compact?: boolean
+  children?: React.ReactNode
 }) {
+  const Heading = level === 3 ? 'h3' : 'h2'
+  const primary =
+    actionLabel && actionTo ? (
+      <Link to={actionTo} search={actionSearch as never} className="btn btn--primary">
+        {actionLabel}
+      </Link>
+    ) : actionLabel && onClick ? (
+      <button type="button" className="btn btn--primary" onClick={onClick}>
+        {actionLabel}
+      </button>
+    ) : null
+  const secondary =
+    secondaryLabel && secondaryTo ? (
+      <Link to={secondaryTo} search={secondarySearch as never} className="btn btn--ghost">
+        {secondaryLabel}
+      </Link>
+    ) : secondaryLabel && onSecondary ? (
+      <button type="button" className="btn btn--ghost" onClick={onSecondary}>
+        {secondaryLabel}
+      </button>
+    ) : null
   return (
-    <div className="empty">
-      <span className="empty__icon">{icon ?? <CircleAlert size={20} strokeWidth={1.75} />}</span>
-      <p className="empty__title">{title}</p>
+    <div className={`empty${compact ? ' empty--compact' : ''}`}>
+      <span className="empty__icon" aria-hidden>
+        {icon ?? <Inbox size={22} strokeWidth={1.75} />}
+      </span>
+      <Heading className="empty__title">{title}</Heading>
       <p className="empty__text">{text}</p>
-      {actionLabel && actionTo && (
-        <Link to={actionTo} className="btn btn--primary btn--sm">
-          {actionLabel}
-        </Link>
+      {(primary || secondary) && (
+        <div className="empty__actions">
+          {primary}
+          {secondary}
+        </div>
       )}
-      {actionLabel && !actionTo && onClick && (
-        <button type="button" className="btn btn--primary btn--sm" onClick={onClick}>
-          {actionLabel}
-        </button>
-      )}
+      {children && <div className="empty__extra">{children}</div>}
     </div>
   )
 }
@@ -219,6 +315,12 @@ export function Sheet({
     if (open && !el.open) {
       setTall(false)
       el.showModal()
+      // React's autoFocus runs at mount, while the dialog is still closed, so it
+      // never lands. A field marked data-autofocus gets focus on every open;
+      // otherwise start on the sheet itself, not the drag handle the browser picks.
+      const field = el.querySelector<HTMLElement>('[data-autofocus]')
+      if (field) field.focus({ preventScroll: true })
+      else if (document.activeElement?.classList.contains('sheet__handle-btn')) el.focus({ preventScroll: true })
     }
     if (!open && el.open) el.close()
   }, [open])
@@ -226,6 +328,7 @@ export function Sheet({
   return (
     <dialog
       ref={ref}
+      tabIndex={-1}
       className={`sheet${tall ? ' sheet--tall' : ''}${className ? ` ${className}` : ''}`}
       aria-label={title}
       onClose={onClose}
@@ -284,7 +387,6 @@ export function Field({
       >
         {error ?? help ?? ''}
       </p>
-      <style>{``}</style>
     </div>
   )
 }

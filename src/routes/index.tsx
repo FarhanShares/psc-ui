@@ -1,20 +1,38 @@
 import { useState } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { ChevronRight, PawPrint, Plus, RefreshCw, Syringe } from 'lucide-react'
+import { ChevronRight, CircleAlert, Clock, HeartPulse, PawPrint, Plus, RefreshCw, Siren, Stethoscope, Store, Syringe } from 'lucide-react'
 
 import { AddPetSheet } from '../components/add-pet'
-import { BookingCard } from '../components/cards'
+import { Landing } from '../components/landing'
+import { BookingCard, ReorderCard, runningLow } from '../components/cards'
 import { ProductRail } from '../components/product-rail'
 import { PetGlyph } from '../components/ui'
 import { greeting, longDate, dateFromOffset } from '../lib/format'
-import { useAppState } from '../lib/store'
+import { seo } from '../lib/seo'
+import { markVaccineGiven, useAppState } from '../lib/store'
 
-export const Route = createFileRoute('/')({ component: HomePage })
+export const Route = createFileRoute('/')({
+  head: () => seo({ title: 'PetSafeCare', path: '/' }),
+  component: Home,
+})
 
-const PICKS = ['p04', 'p11', 'p06', 'p09', 'p02', 'p12', 'p01', 'p08']
+/** members get their dashboard; visitors (and the server render) get the landing */
+function Home() {
+  const { signedIn, recentlyViewed } = useAppState()
+  return signedIn ? <HomePage /> : <Landing recentlyViewed={recentlyViewed} />
+}
+
+const QUICK = [
+  { to: '/clinics', label: 'Book a vet', icon: Stethoscope },
+  { to: '/shop', label: 'Shop', icon: Store },
+  { to: '/health', label: 'Vaccines', icon: HeartPulse },
+  { to: '/emergency', label: 'Emergency', icon: Siren },
+] as const
+
+const PICKS = ['p04', 'p14', 'p11', 'p15', 'p06', 'p09', 'p02', 'p12', 'p01', 'p16']
 
 function HomePage() {
-  const { profile, pets, vaccines, bookings, orders, lastSyncLabel } = useAppState()
+  const { profile, pets, vaccines, bookings, orders, lastSyncLabel, clinicLinked, recentlyViewed } = useAppState()
   const [addPetOpen, setAddPetOpen] = useState(false)
 
   // records only count when their pet still exists
@@ -29,13 +47,26 @@ function HomePage() {
     .sort((a, b) => a.dayOffset - b.dayOffset)[0]
   const activeOrders = orders.filter((o) => o.status !== 'delivered').length
   const upcomingCount = bookings.filter((b) => b.status === 'upcoming').length
+  // three is a nudge; the rest are one tap away in All orders
+  const lowOn = runningLow(orders, 3)
 
   return (
     <div className="page home-grid">
       <header className="rise span-hero">
         <p className="tag" style={{ color: 'var(--color-accent-deep)' }}>{greeting()}</p>
-        <h1 className="home-title">Hi, {profile.name}</h1>
+        <h1 className="home-title">Hi, {profile.name.split(' ')[0] || 'there'}</h1>
       </header>
+
+      <nav className="quick-grid rise span-hero" style={{ '--i': 1 } as React.CSSProperties} aria-label="Quick actions">
+        {QUICK.map((q) => (
+          <Link key={q.to} to={q.to} className={`quick${q.to === '/emergency' ? ' quick--sos' : ''}`}>
+            <span className="quick__icon" aria-hidden>
+              <q.icon size={20} strokeWidth={1.75} />
+            </span>
+            {q.label}
+          </Link>
+        ))}
+      </nav>
 
       {needsAttention && needsPet && (
         <section className="band rise span-8" style={{ '--i': 1 } as React.CSSProperties} aria-label="Vaccination due">
@@ -45,27 +76,39 @@ function HomePage() {
             </span>
             <div style={{ minWidth: 0 }}>
               <h2 className="band__title">
-                {needsAttention.name}
-                {needsAttention.status === 'overdue' ? ' is overdue' : ' is due soon'}
+                {needsPet.name}’s {needsAttention.name}
               </h2>
               <p className="band__meta">
-                {needsPet.name} · {needsAttention.source}
+                {needsAttention.shieldsAgainst} · {needsAttention.source}
               </p>
             </div>
           </div>
-          <div className="split" style={{ marginTop: 'var(--space-sm)' }}>
-            <span className="tag">
+          <div className="urgent__foot">
+            <span className={`urgent__pill urgent__pill--${needsAttention.status === 'overdue' ? 'bad' : 'warn'}`}>
+              {needsAttention.status === 'overdue' ? (
+                <CircleAlert size={13} strokeWidth={2} aria-hidden />
+              ) : (
+                <Clock size={13} strokeWidth={2} aria-hidden />
+              )}
               {needsAttention.status === 'overdue'
                 ? `${Math.abs(needsAttention.dueInDays)} days overdue`
-                : `Due ${longDate(dateFromOffset(needsAttention.dueInDays)).toLowerCase()}`}
+                : needsAttention.dueInDays === 0
+                  ? 'Due today'
+                  : `Due ${longDate(dateFromOffset(needsAttention.dueInDays))}`}
             </span>
-            <Link
-              to="/clinics"
-              search={{ service: 'vaccination' }}
-              className="btn btn--primary btn--sm"
-            >
-              Book vaccination
-            </Link>
+            <div className="urgent__actions">
+              <button
+                type="button"
+                className="btn btn--ghost-dark btn--sm"
+                onClick={() => markVaccineGiven(needsAttention.id)}
+                aria-label={`${needsAttention.name} already given to ${needsPet.name}`}
+              >
+                Already done
+              </button>
+              <Link to="/clinics" search={{ service: 'vaccination' }} className="btn btn--primary btn--sm">
+                Book vaccination
+              </Link>
+            </div>
           </div>
         </section>
       )}
@@ -92,7 +135,7 @@ function HomePage() {
       </section>
 
       {pets.length === 0 ? (
-        <section className="card card--pad span-8 rise" style={{ '--i': 2 } as React.CSSProperties} aria-label="Add your first pet">
+        <section className="card card--pad span-hero rise" style={{ '--i': 2 } as React.CSSProperties} aria-label="Add your first pet">
           <div className="split" style={{ flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', minWidth: 0 }}>
               <span className="band__icon" aria-hidden>
@@ -115,21 +158,33 @@ function HomePage() {
           </div>
         </section>
       ) : (
-        <section className="pet-strip rise span-7" style={{ '--i': 3 } as React.CSSProperties} aria-label="Your pets">
-          {pets.slice(0, 2).map((pet) => (
-            <Link key={pet.id} to="/health" className="card card--press pet-card">
-              <span className={`pet-card__ava pet-card__ava--${pet.species}`}>
-                <PetGlyph species={pet.species} size={17} />
-              </span>
-              <span style={{ minWidth: 0 }}>
-                <span className="pet-card__name">{pet.name}</span>
-                <span className="row__sub" style={{ display: 'block' }}>
-                  {pet.breed}
+        <section className="pet-strip rise span-hero" style={{ '--i': 3 } as React.CSSProperties} aria-label="Your pets">
+          {pets.slice(0, 2).map((pet) => {
+            const recs = liveVaccines.filter((v) => v.petId === pet.id)
+            const overdue = recs.filter((v) => v.status === 'overdue')
+            const due = recs.filter((v) => v.status === 'due')
+            const tone = overdue.length ? 'bad' : due.length ? 'warn' : 'ok'
+            const status = overdue.length
+              ? `${overdue[0].name} overdue`
+              : due.length
+                ? `${due.length} due soon`
+                : recs.length
+                  ? 'Vaccines current'
+                  : 'No records yet'
+            return (
+              <Link key={pet.id} to="/pets/$id" params={{ id: pet.id }} className="card card--press pet-card">
+                <span className={`pet-card__ava pet-card__ava--${pet.species}`}>
+                  <PetGlyph species={pet.species} size={17} />
                 </span>
-              </span>
-            </Link>
-          ))}
-          <Link to="/profile" className="card card--press pet-card pet-card--more" aria-label="Manage pets">
+                <span style={{ minWidth: 0 }}>
+                  <span className="pet-card__name">{pet.name}</span>
+                  <span className="row__sub pet-card__breed">{pet.breed}</span>
+                  <span className={`pet-card__status pet-card__status--${tone}`}>{status}</span>
+                </span>
+              </Link>
+            )
+          })}
+          <Link to="/pets" className="card card--press pet-card pet-card--more" aria-label="Manage pets">
             <span className="pet-card__ava" aria-hidden>
               {pets.length > 2 ? <span className="pet-card__plus num">+{pets.length - 2}</span> : <PawPrint size={16} strokeWidth={1.75} />}
             </span>
@@ -143,14 +198,16 @@ function HomePage() {
         </section>
       )}
 
-      <section className="stack rise span-5" style={{ '--i': 4, gap: 'var(--space-sm)' } as React.CSSProperties} aria-label="Records">
+      <section className="records-row rise span-hero" style={{ '--i': 4 } as React.CSSProperties} aria-label="Records">
         <Link to="/orders" className="card card--press row">
           <span className="row__grow">
             <span className="row__title">Orders</span>
             <span className="row__sub">
               {activeOrders > 0
                 ? `${activeOrders} order${activeOrders === 1 ? '' : 's'} on the way`
-                : 'Everything delivered'}
+                : orders.length > 0
+                  ? 'Everything delivered'
+                  : 'No orders yet'}
             </span>
           </span>
           <ChevronRight size={16} strokeWidth={1.75} className="muted" />
@@ -166,22 +223,48 @@ function HomePage() {
           </span>
           <ChevronRight size={16} strokeWidth={1.75} className="muted" />
         </Link>
-        <Link to="/health" className="card card--press card--pad">
-          <div className="split">
-            <span className="thead">
-              <span className="sync-dot" aria-hidden />
-              <span className="tag">Clinic sync</span>
-            </span>
-            <RefreshCw size={14} strokeWidth={1.75} className="muted" />
-          </div>
-          <p className="row__title" style={{ marginTop: 'var(--space-2xs)' }}>
-            Green Valley Veterinary
-          </p>
-          <p className="row__sub">
-            Records last synced {lastSyncLabel} · {liveVaccines.length} vaccination records
-          </p>
-        </Link>
+        {clinicLinked ? (
+          <Link to="/health" className="card card--press card--pad">
+            <div className="split">
+              <span className="thead">
+                <span className="sync-dot" aria-hidden />
+                <span className="tag">Clinic sync</span>
+              </span>
+              <RefreshCw size={14} strokeWidth={1.75} className="muted" />
+            </div>
+            <p className="row__title" style={{ marginTop: 'var(--space-2xs)' }}>
+              Green Valley Veterinary
+            </p>
+            <p className="row__sub">
+              Records last synced {lastSyncLabel} · {liveVaccines.length} vaccination records
+            </p>
+          </Link>
+        ) : (
+          <Link to="/health" className="card card--press card--pad">
+            <span className="tag">Health records</span>
+            <p className="row__title" style={{ marginTop: 'var(--space-2xs)' }}>
+              {liveVaccines.length > 0 ? `${liveVaccines.length} vaccination records` : 'Add vaccination records'}
+            </p>
+            <p className="row__sub">No clinic linked yet — records sync after your first booked visit</p>
+          </Link>
+        )}
       </section>
+
+      {lowOn.length > 0 && (
+        <section className="rise span-hero" style={{ '--i': 5 } as React.CSSProperties} aria-labelledby="low-h">
+          <div className="section-head">
+            <h2 id="low-h" className="section-head__title">Running low?</h2>
+            <Link to="/orders" className="section-head__link">
+              All orders <ChevronRight size={13} strokeWidth={2} />
+            </Link>
+          </div>
+          <div className="reorder-grid">
+            {lowOn.map((pick) => (
+              <ReorderCard key={`${pick.productId}-${pick.variantId ?? ''}`} pick={pick} />
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="rise span-hero" style={{ '--i': 5 } as React.CSSProperties}>
         <div className="section-head">
@@ -192,6 +275,15 @@ function HomePage() {
         </div>
         <ProductRail ids={PICKS} />
       </section>
+
+      {recentlyViewed.length > 1 && (
+        <section className="rise span-hero" style={{ '--i': 6 } as React.CSSProperties}>
+          <div className="section-head">
+            <h2 className="section-head__title">Recently viewed</h2>
+          </div>
+          <ProductRail ids={recentlyViewed} label="Recently viewed" />
+        </section>
+      )}
 
       <AddPetSheet open={addPetOpen} onClose={() => setAddPetOpen(false)} />
     </div>

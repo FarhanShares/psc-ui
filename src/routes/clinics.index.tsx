@@ -1,11 +1,19 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
-import { ArrowUpDown, Check, SlidersHorizontal } from 'lucide-react'
+import { ArrowUpDown, MapPinOff, SlidersHorizontal } from 'lucide-react'
 
 import { ClinicCard } from '../components/cards'
 import { OptionPicker, ResultRow, SearchControl } from '../components/pickers'
 import { EmptyState, Sheet } from '../components/ui'
 import { CLINICS, SERVICE_TYPES } from '../lib/data'
+import { absoluteUrl, seo } from '../lib/seo'
+import { matchesQuery } from '../lib/catalog'
+import type { Clinic } from '../lib/types'
+
+/** a clinic answers to its name, its area and what it offers ("dental", "grooming") */
+function clinicSearchText(c: Clinic): string {
+  return `${c.name} ${c.area} ${c.services.map((s) => `${s.name} ${s.type}`).join(' ')}`
+}
 
 type Filters = {
   service: string // service type id or 'all'
@@ -27,9 +35,44 @@ const DEFAULT_FILTERS: Filters = {
 
 type SortId = 'recommended' | 'distance' | 'rating'
 
+const SERVICE_INTRO: Record<string, string> = {
+  consultation: 'General and extended consultations for new symptoms, second opinions and ongoing conditions. Compare prices and book a slot today.',
+  vaccination: 'Core and booster vaccinations for dogs and cats. Booking here marks the matching reminder on your Health tab as scheduled.',
+  grooming: 'Baths, trims, nails and de-shedding from vet clinics and mobile groomers — calm handling for nervous pets.',
+  dental: 'Dental checks and scale-and-polish under a vet’s care. Most need fasting from the night before.',
+  surgery: 'Soft-tissue and emergency surgery with pre-op bloodwork. Call the clinic to talk through recovery before you book.',
+  checkup: 'Annual wellness exams and critical-care checks — weight, heart, teeth and a full once-over.',
+}
+
+const CLINIC_SORTS = [
+  { id: 'recommended', label: 'Recommended' },
+  { id: 'distance', label: 'Nearest' },
+  { id: 'rating', label: 'Top rated' },
+]
+
 
 export const Route = createFileRoute('/clinics/')({
-  head: () => ({ meta: [{ title: 'Clinics · PetSafeCare' }] }),
+  head: ({ match }) => {
+    const svc = SERVICE_TYPES.find((t) => t.id === (match.search as { service?: string }).service)
+    const title = svc ? `${svc.label} — vet clinics near you` : 'Vet clinics near you — book online'
+    return seo({
+      title,
+      description: svc
+        ? `Compare ${CLINICS.filter((c) => c.services.some((s) => s.type === svc.id)).length} clinics offering ${svc.label.toLowerCase()}: prices, ratings, opening hours and live availability. Book in under a minute.`
+        : `Compare ${CLINICS.length} local vet clinics — consultations, vaccinations, grooming, dental and surgery. See prices and ratings, then book online.`,
+      path: svc ? `/clinics?service=${svc.id}` : '/clinics',
+      jsonLd: {
+        '@type': 'ItemList',
+        name: title,
+        itemListElement: CLINICS.filter((c) => !svc || c.services.some((s) => s.type === svc.id)).map((c, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          url: absoluteUrl(`/clinics/${c.id}`),
+          name: c.name,
+        })),
+      },
+    })
+  },
   validateSearch: (search: Record<string, unknown>): { service?: string } => ({
     service: typeof search.service === 'string' ? search.service : undefined,
   }),
@@ -57,11 +100,13 @@ function FilterFacets({
                 type="button"
                 role="radio"
                 aria-checked={value.service === o.id}
-                className={`option-row${value.service === o.id ? ' is-selected' : ''}`}
+                className={`option-row facet-row${value.service === o.id ? ' is-selected' : ''}`}
                 onClick={() => onChange({ service: o.id })}
               >
                 <span className="option-row__label">{o.label}</span>
-                {value.service === o.id && <Check size={15} strokeWidth={2.25} aria-hidden />}
+                <span className="option-row__hint">
+                  {o.id === 'all' ? CLINICS.length : CLINICS.filter((c) => c.services.some((s) => s.type === o.id)).length}
+                </span>
               </button>
             ),
           )}
@@ -176,6 +221,12 @@ function ClinicsPage() {
   })
   const [draft, setDraft] = useState<Filters>(applied)
 
+  // footer / home links change ?service= while this page is mounted
+  useEffect(() => {
+    const next = urlService && SERVICE_TYPES.some((s) => s.id === urlService) ? urlService : 'all'
+    setApplied((f) => (f.service === next ? f : { ...f, service: next }))
+  }, [urlService])
+
   const activeCount =
     (applied.service !== 'all' ? 1 : 0) +
     (applied.maxDistance > 0 ? 1 : 0) +
@@ -193,7 +244,7 @@ function ClinicsPage() {
       if (applied.priceBand > 0 && c.priceBand !== applied.priceBand) return false
       if (applied.openNow && !c.openNow) return false
       if (applied.verifiedOnly && !c.verified) return false
-      if (q && !`${c.name} ${c.area}`.toLowerCase().includes(q)) return false
+      if (q && !matchesQuery(clinicSearchText(c), q)) return false
       return true
     })
     if (sort === 'distance') list = [...list].sort((a, b) => a.distanceKm - b.distanceKm)
@@ -212,15 +263,19 @@ function ClinicsPage() {
   const searchResults = useMemo(() => {
     const q = query.trim().toLowerCase()
     if (!q) return []
-    return CLINICS.filter((c) => `${c.name} ${c.area}`.toLowerCase().includes(q)).slice(0, 8)
+    return CLINICS.filter((c) => matchesQuery(clinicSearchText(c), q)).slice(0, 8)
   }, [query])
 
   return (
     <div className="page">
       <header className="rise" style={{ '--i': 0 } as React.CSSProperties}>
-        <h1 className="page-title">Clinics</h1>
-        <p className="muted" style={{ fontSize: 'var(--text-sm)', marginTop: 2 }}>
-          Consultations, vaccinations and grooming — booked in under a minute.
+        <h1 className="page-title">
+          {applied.service !== 'all'
+            ? `${SERVICE_TYPES.find((t) => t.id === applied.service)?.label ?? ''} clinics`
+            : 'Clinics'}
+        </h1>
+        <p className="shop-intro">
+          {SERVICE_INTRO[applied.service] ?? 'Consultations, vaccinations and grooming — booked in under a minute.'}
         </p>
       </header>
 
@@ -242,7 +297,7 @@ function ClinicsPage() {
 
         <div className="clinic-content">
           <div className="toolbar">
-        <SearchControl placeholder="Search clinics or areas" value={query} onChange={setQuery}>
+        <SearchControl placeholder="Search clinics, areas, services" value={query} onChange={setQuery}>
           {(close) =>
             query.trim() ? (
               searchResults.length > 0 ? (
@@ -274,17 +329,15 @@ function ClinicsPage() {
             )
           }
         </SearchControl>
-        <OptionPicker
-          icon={ArrowUpDown}
-          title="Sort by"
-          value={sort}
-          options={[
-            { id: 'recommended', label: 'Recommended' },
-            { id: 'distance', label: 'Nearest' },
-            { id: 'rating', label: 'Top rated' },
-          ]}
-          onChange={(id) => setSort(id as SortId)}
-        />
+        <span className="toolbar__sort">
+          <OptionPicker
+            icon={ArrowUpDown}
+            title="Sort by"
+            value={sort}
+            options={CLINIC_SORTS}
+            onChange={(id) => setSort(id as SortId)}
+          />
+        </span>
         <button
           type="button"
           className="picker-btn filter-btn"
@@ -299,10 +352,24 @@ function ClinicsPage() {
         </button>
       </div>
 
-      <p className="mono-label rise" style={{ '--i': 2 } as React.CSSProperties} aria-live="polite">
-        {results.length} clinic{results.length === 1 ? '' : 's'}
-        {activeCount > 0 && ` · ${activeCount} filter${activeCount === 1 ? '' : 's'} on`}
-      </p>
+      <div className="results-bar">
+        <p className="mono-label" aria-live="polite">
+          {results.length} clinic{results.length === 1 ? '' : 's'}
+          {activeCount > 0 && ` · ${activeCount} filter${activeCount === 1 ? '' : 's'} on`}
+        </p>
+        <span className="results-bar__sort">
+          <OptionPicker
+            icon={ArrowUpDown}
+            title="Sort by"
+            variant="labeled"
+            prefix="Sort"
+            align="end"
+            value={sort}
+            options={CLINIC_SORTS}
+            onChange={(id) => setSort(id as SortId)}
+          />
+        </span>
+      </div>
 
       {results.length > 0 ? (
         <div className="clinic-grid rise" style={{ '--i': 3 } as React.CSSProperties}>
@@ -314,9 +381,12 @@ function ClinicsPage() {
         <div className="rise" style={{ '--i': 4 } as React.CSSProperties}>
           <EmptyState
             title="No clinics match these filters"
-            text="Widen the distance, or turn off a filter or two."
+            text="Widen the distance or turn off a filter. In an emergency, the 24-hour hospital is always listed on the emergency page."
             actionLabel="Reset filters"
             onClick={() => setApplied(DEFAULT_FILTERS)}
+            secondaryLabel="Emergency help"
+            secondaryTo="/emergency"
+            icon={<MapPinOff size={20} strokeWidth={1.75} />}
           />
         </div>
         )}

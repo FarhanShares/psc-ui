@@ -2,10 +2,13 @@ import { useState } from 'react'
 
 import { PetGlyph, Sheet } from './ui'
 import { addPet, pushToast } from '../lib/store'
+import { DEFAULT_SPECIES, SPECIES, speciesInfo } from '../lib/species'
+import type { Species } from '../lib/types'
 
 /** shared add-pet flow — used from Home, Health, and Profile */
 export function AddPetSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [draft, setDraft] = useState({ name: '', species: 'dog' as 'dog' | 'cat', breed: '' })
+  const EMPTY = { name: '', species: DEFAULT_SPECIES as Species, breed: '', age: '', sex: undefined as 'male' | 'female' | undefined }
+  const [draft, setDraft] = useState(EMPTY)
 
   function submit() {
     const name = draft.name.trim()
@@ -13,9 +16,11 @@ export function AddPetSheet({ open, onClose }: { open: boolean; onClose: () => v
     addPet({
       name,
       species: draft.species,
-      breed: draft.breed.trim() || (draft.species === 'cat' ? 'Domestic cat' : 'Mixed breed'),
+      breed: draft.breed.trim() || speciesInfo(draft.species).defaultBreed,
+      ageYears: draft.age ? Math.max(0, Number(draft.age)) : undefined,
+      sex: draft.sex,
     })
-    setDraft({ name: '', species: 'dog', breed: '' })
+    setDraft(EMPTY)
     onClose()
     pushToast(`${name} joined the family`)
   }
@@ -39,23 +44,24 @@ export function AddPetSheet({ open, onClose }: { open: boolean; onClose: () => v
             className="input"
             value={draft.name}
             onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
-            placeholder="Mochi"
-            autoFocus
+            placeholder={speciesInfo(draft.species).namePlaceholder}
+            data-autofocus
           />
         </div>
-        <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
-          <legend className="tag" style={{ marginBottom: 'var(--space-2xs)' }}>Species</legend>
-          <div className="chips">
-            {(['dog', 'cat'] as const).map((s) => (
+        <fieldset className="plain-fieldset">
+          <legend className="field__label">Species</legend>
+          <div className="segmented species-toggle" role="radiogroup" aria-label="Species">
+            {SPECIES.map((sp) => (
               <button
-                key={s}
+                key={sp.id}
                 type="button"
-                className="chip"
-                aria-pressed={draft.species === s}
-                onClick={() => setDraft((d) => ({ ...d, species: s }))}
+                role="radio"
+                aria-checked={draft.species === sp.id}
+                aria-pressed={draft.species === sp.id}
+                onClick={() => setDraft((d) => ({ ...d, species: sp.id }))}
               >
-                <PetGlyph species={s} size={14} />
-                {s === 'dog' ? 'Dog' : 'Cat'}
+                <PetGlyph species={sp.id} size={15} />
+                {sp.one}
               </button>
             ))}
           </div>
@@ -67,8 +73,39 @@ export function AddPetSheet({ open, onClose }: { open: boolean; onClose: () => v
             className="input"
             value={draft.breed}
             onChange={(e) => setDraft((d) => ({ ...d, breed: e.target.value }))}
-            placeholder="Leave blank if unsure"
+            placeholder={`Leave blank if unsure — e.g. ${speciesInfo(draft.species).defaultBreed}`}
           />
+        </div>
+        <div className="two-col">
+          <div className="field">
+            <label className="field__label" htmlFor="np-age">Age (years)</label>
+            <input
+              id="np-age"
+              className="input"
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={30}
+              value={draft.age}
+              onChange={(e) => setDraft((d) => ({ ...d, age: e.target.value }))}
+              placeholder="1"
+            />
+          </div>
+          <fieldset className="plain-fieldset">
+            <legend className="field__label">Sex</legend>
+            <div className="segmented">
+              {(['female', 'male'] as const).map((sx) => (
+                <button
+                  key={sx}
+                  type="button"
+                  aria-pressed={draft.sex === sx}
+                  onClick={() => setDraft((d) => ({ ...d, sex: sx }))}
+                >
+                  {sx === 'female' ? 'Female' : 'Male'}
+                </button>
+              ))}
+            </div>
+          </fieldset>
         </div>
       </div>
     </Sheet>

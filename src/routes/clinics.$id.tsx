@@ -1,39 +1,110 @@
-import { useMemo, useState } from 'react'
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { BadgeCheck, Check, ChevronLeft, Clock, MapPin, Phone } from 'lucide-react'
+import { useState } from 'react'
+import { createFileRoute, notFound, Link, useNavigate } from '@tanstack/react-router'
+import { BadgeCheck, ChevronRight, Clock, MapPin, Navigation, Phone, Share2 } from 'lucide-react'
 
+import { Crumbs, RatingSummary, ReviewList, SaveButton, SuccessMark } from '../components/blocks'
+import { AddPetSheet } from '../components/add-pet'
+import { ClinicCard } from '../components/cards'
+import { SlotPicker } from '../components/slot-picker'
 import { PetGlyph, ServiceIcon, Sheet, Stars } from '../components/ui'
-import { BOOKING_SLOTS, getClinic, slotAvailable } from '../lib/data'
-import { dateFromOffset, isoDay, longDate, money, shortDate } from '../lib/format'
+import { CLINICS, clinicReviews, getClinic, ratingBreakdown } from '../lib/data'
+import { dateFromOffset, initials, longDate, money, shortDate } from '../lib/format'
+import { absoluteUrl, breadcrumbLd, seo } from '../lib/seo'
 import { bookService, pushToast, useAppState } from '../lib/store'
 import type { ClinicService } from '../lib/types'
 
+const SERVICE_WORD: Record<string, string> = {
+  consultation: 'consults',
+  vaccination: 'vaccines',
+  grooming: 'grooming',
+  dental: 'dental care',
+  surgery: 'surgery',
+  checkup: 'check-ups',
+}
+
+/** "a, b and c" without repeats */
+function listWords(words: string[]): string {
+  const w = [...new Set(words)]
+  return w.length > 1 ? `${w.slice(0, -1).join(', ')} and ${w[w.length - 1]}` : (w[0] ?? '')
+}
+
+const dollars = (n: number) => (Number.isInteger(n) ? `$${n}` : money(n))
+
+const DAY: Record<string, string> = { Mon: 'Mo', Tue: 'Tu', Wed: 'We', Thu: 'Th', Fri: 'Fr', Sat: 'Sa', Sun: 'Su' }
+
+/** "Mon–Sat · 9:00–19:00" → "Mo-Sa 09:00-19:00", the form schema.org openingHours expects */
+function schemaHours(hours: string): string {
+  if (/24 hours/i.test(hours)) return 'Mo-Su 00:00-23:59'
+  const m = hours.match(/^(Daily|(\w{3})–(\w{3}))\s*·\s*(\d{1,2}):(\d{2})–(\d{1,2}):(\d{2})$/)
+  if (!m) return hours
+  const days = m[1] === 'Daily' ? 'Mo-Su' : `${DAY[m[2]] ?? m[2]}-${DAY[m[3]] ?? m[3]}`
+  const pad = (h: string) => h.padStart(2, '0')
+  return `${days} ${pad(m[4])}:${m[5]}-${pad(m[6])}:${m[7]}`
+}
+
 export const Route = createFileRoute('/clinics/$id')({
-  head: ({ params }) => ({ meta: [{ title: `${getClinic(params.id)?.name ?? 'Clinic'} · PetSafeCare` }] }),
+  // unknown ids are real 404s (status + noindex), not soft "not found" pages
+  beforeLoad: ({ params }) => {
+    if (!getClinic(params.id)) throw notFound()
+  },
+  head: ({ params }) => {
+    const c = getClinic(params.id)
+    if (!c) return seo({ title: 'Clinic not found', noindex: true })
+    const from = Math.min(...c.services.map((s) => s.price))
+    return seo({
+      title: `${c.name} — vet in ${c.area}`,
+      description: [
+        `Rated ${c.rating.toFixed(1)} by ${c.reviews} pet parents: ${listWords(c.services.map((s) => SERVICE_WORD[s.type] ?? s.type))} in ${c.area}, from ${dollars(from)}. ${c.hours.replace(' · ', ' ')}. Book online.`,
+        `Rated ${c.rating.toFixed(1)} by ${c.reviews} pet parents: vet care in ${c.area} from ${dollars(from)}. ${c.hours.replace(' · ', ' ')}. Book online in a minute.`,
+      ].find((d) => d.length <= 158),
+      path: `/clinics/${c.id}`,
+      jsonLd: [
+        {
+          '@type': 'VeterinaryCare',
+          name: c.name,
+          description: c.about,
+          url: absoluteUrl(`/clinics/${c.id}`),
+          telephone: c.phone,
+          priceRange: '$'.repeat(c.priceBand),
+          address: { '@type': 'PostalAddress', addressLocality: c.area },
+          openingHours: schemaHours(c.hours),
+          aggregateRating: { '@type': 'AggregateRating', ratingValue: c.rating, reviewCount: c.reviews },
+          makesOffer: c.services.map((s) => ({
+            '@type': 'Offer',
+            price: s.price.toFixed(2),
+            priceCurrency: 'USD',
+            itemOffered: { '@type': 'Service', name: s.name },
+          })),
+        },
+        breadcrumbLd([
+          ['Clinics', '/clinics'],
+          [c.name, `/clinics/${c.id}`],
+        ]),
+      ],
+    })
+  },
   component: ClinicPage,
 })
 
 function ClinicPage() {
   const { id } = Route.useParams()
   const clinic = getClinic(id)
-  const { pets } = useAppState()
+  const { pets, signedIn } = useAppState()
+  const [addPetOpen, setAddPetOpen] = useState(false)
   const navigate = useNavigate()
 
   const [bookingService, setBookingService] = useState<ClinicService | null>(null)
   const [petId, setPetId] = useState(pets[0]?.id ?? '')
-  const [dayIdx, setDayIdx] = useState(0)
+  const [day, setDay] = useState(0)
   const [slot, setSlot] = useState<string | null>(null)
+  const [note, setNote] = useState('')
   const [confirming, setConfirming] = useState(false)
-  const [done, setDone] = useState(false)
-
-  const days = useMemo(
-    () => Array.from({ length: 7 }, (_, i) => dateFromOffset(i)),
-    [],
-  )
+  const [doneId, setDoneId] = useState<string | null>(null)
 
   if (!clinic) {
     return (
       <div className="page">
+        <Crumbs items={[{ label: 'Clinics', to: '/clinics' }, { label: 'Not found' }]} />
         <p className="muted">This clinic is no longer listed.</p>
         <Link to="/clinics" className="btn btn--ghost btn--sm" style={{ width: 'fit-content' }}>
           Back to clinics
@@ -42,132 +113,208 @@ function ClinicPage() {
     )
   }
 
-  const initials = clinic.name
-    .split(' ')
-    .filter((w) => /^[A-Z]/.test(w))
+  // a pet added from inside the sheet becomes the choice straight away
+  const pet = pets.find((p) => p.id === petId) ?? pets[0]
+  const nearby = CLINICS.filter((c) => c.id !== clinic.id)
+    .sort((a, b) => Math.abs(a.distanceKm - clinic.distanceKm) - Math.abs(b.distanceKm - clinic.distanceKm))
     .slice(0, 2)
-    .map((w) => w[0])
-    .join('')
-  const selectedDayIso = isoDay(days[dayIdx])
+  const mapsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${clinic.name} ${clinic.area}`)}`
 
   function openBooking(service: ClinicService) {
     setBookingService(service)
     setPetId(pets[0]?.id ?? '')
-    setDayIdx(0)
+    // the last slot is 17:15 — after about 16:45 today is gone, start on tomorrow
+    const now = new Date()
+    setDay(now.getHours() * 60 + now.getMinutes() > 16 * 60 + 45 ? 1 : 0)
     setSlot(null)
-    setDone(false)
+    setNote('')
+    setDoneId(null)
   }
 
   function confirmBooking() {
-    if (!bookingService || !slot) return
+    if (!bookingService || !slot || !pet) return
     setConfirming(true)
     window.setTimeout(() => {
       const booking = bookService({
         clinicId: clinic!.id,
         serviceId: bookingService.id,
-        petId,
-        dayOffset: dayIdx,
+        petId: pet.id,
+        dayOffset: day,
         time: slot,
       })
       setConfirming(false)
-      setDone(true)
-      pushToast(`Booked — ${booking.id}`)
-      window.setTimeout(() => {
-        setBookingService(null)
-        navigate({ to: '/bookings' })
-      }, 1100)
+      setDoneId(booking.id)
     }, 800)
+  }
+
+  async function share() {
+    const url = window.location.href
+    try {
+      if (navigator.share) await navigator.share({ title: clinic!.name, url })
+      else {
+        await navigator.clipboard.writeText(url)
+        pushToast('Link copied')
+      }
+    } catch {
+      /* share sheet dismissed */
+    }
   }
 
   return (
     <div className="page">
-      <Link to="/clinics" className="thead rise" style={{ '--i': 0 } as React.CSSProperties}>
-        <ChevronLeft size={15} strokeWidth={2} />
-        <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>Clinics</span>
-      </Link>
+      <Crumbs items={[{ label: 'Clinics', to: '/clinics' }, { label: clinic.name }]} />
 
-      <section className="card card--pad rise" style={{ '--i': 1 } as React.CSSProperties}>
-        <div className="split">
-          <span className="clinic-card__mono" style={{ width: '3rem', height: '3rem' }} aria-hidden>
-            {initials}
-          </span>
-          <span style={{ marginInline: 'var(--space-xs) 0', minWidth: 0 }}>
-            <h1 className="page-title" style={{ fontSize: 'var(--text-xl)' }}>
-              {clinic.name}
-            </h1>
-            <span className="clinic-card__meta">
-              <MapPin size={13} strokeWidth={1.75} />
-              {clinic.area} · {clinic.distanceKm.toFixed(1)} km
-            </span>
-          </span>
-          <Stars rating={clinic.rating} />
-        </div>
-        <hr className="hr" style={{ marginBlock: 'var(--space-sm)' }} />
-        <div className="grid-list" style={{ gap: 'var(--space-2xs)' }}>
-          <span className="row__sub" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Clock size={14} strokeWidth={1.75} />
-            {clinic.hours}
-            {clinic.verified && (
-              <>
-                ·{' '}
-                <span className="verified">
-                  <BadgeCheck size={13} strokeWidth={1.75} /> Verified
-                </span>
-              </>
-            )}
-          </span>
-          <a href={`tel:${clinic.phone.replace(/\D/g, '')}`} className="row__sub" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Phone size={14} strokeWidth={1.75} />
-            {clinic.phone}
-          </a>
-        </div>
-      </section>
-
-      <section className="card card--pad rise" style={{ '--i': 2 } as React.CSSProperties}>
-        <span className="tag">About this clinic</span>
-        <p style={{ marginTop: 'var(--space-2xs)', fontSize: 'var(--text-body)', color: 'var(--color-ink-2)' }}>
-          {clinic.about}
-        </p>
-      </section>
-
-      <section className="rise" style={{ '--i': 3 } as React.CSSProperties}>
-        <div className="section-head">
-          <h2 className="section-head__title">Services</h2>
-          <span className="mono-label">{clinic.services.length} available</span>
-        </div>
-        <div className="grid-list">
-          {clinic.services.map((service) => (
-            <div key={service.id} className="card row">
-              <span className="tile" style={{ width: '2.5rem', height: '2.5rem' }}>
-                <ServiceIcon type={service.type} size={16} />
+      <div className="detail-grid rise" style={{ '--i': 1 } as React.CSSProperties}>
+        <div className="stack">
+          <section className="card card--pad">
+            <div className="clinic-hero">
+              <span className="clinic-card__mono" style={{ width: '3.5rem', height: '3.5rem', fontSize: 'var(--text-md)' }} aria-hidden>
+                {initials(clinic.name)}
               </span>
-              <span className="row__grow" style={{ minWidth: 0 }}>
-                <span className="row__title">{service.name}</span>
-                <span className="row__sub">
-                  {service.durationMin} min
-                  {service.note ? ` · ${service.note}` : ''}
+              <span style={{ minWidth: 0, flex: 1 }}>
+                <h1 className="page-title" style={{ fontSize: 'var(--text-xl)' }}>{clinic.name}</h1>
+                <span className="clinic-card__meta">
+                  <MapPin size={13} strokeWidth={1.75} />
+                  {clinic.area} · {clinic.distanceKm.toFixed(1)} km
                 </span>
-              </span>
-              <span style={{ display: 'grid', justifyItems: 'end', gap: 'var(--space-3xs)' }}>
-                <span className="price price--lg">{money(service.price)}</span>
-                <button type="button" className="btn btn--primary btn--sm" onClick={() => openBooking(service)}>
-                  Book
-                </button>
+                <span className="clinic-card__meta" style={{ marginTop: 2 }}>
+                  <Stars rating={clinic.rating} />
+                  <a href="#reviews" className="num">{clinic.reviews} reviews</a>
+                  <span>· {'$'.repeat(clinic.priceBand)}</span>
+                </span>
               </span>
             </div>
-          ))}
+            <hr className="hr" style={{ marginBlock: 'var(--space-sm)' }} />
+            <div className="grid-list" style={{ gap: 'var(--space-2xs)' }}>
+              <span className="row__sub icon-line">
+                <Clock size={14} strokeWidth={1.75} />
+                <span>
+                  {clinic.hours} ·{' '}
+                  <span style={{ color: clinic.openNow ? 'var(--color-ok)' : 'var(--color-bad)', fontWeight: 600 }}>
+                    {clinic.openNow ? 'Open now' : 'Closed now'}
+                  </span>
+                  {clinic.verified && (
+                    <>
+                      {' '}·{' '}
+                      <span className="verified">
+                        <BadgeCheck size={13} strokeWidth={1.75} /> Verified
+                      </span>
+                    </>
+                  )}
+                </span>
+              </span>
+            </div>
+            <p style={{ marginTop: 'var(--space-sm)', fontSize: 'var(--text-body)', color: 'var(--color-ink-2)' }}>
+              {clinic.about}
+            </p>
+          </section>
+
+          <div className="action-grid action-grid--4">
+            <a href={`tel:${clinic.phone.replace(/\D/g, '')}`} className="action-tile">
+              <Phone size={18} strokeWidth={1.75} aria-hidden /> Call
+            </a>
+            <a href={mapsHref} target="_blank" rel="noopener noreferrer" className="action-tile">
+              <Navigation size={18} strokeWidth={1.75} aria-hidden /> Directions
+            </a>
+            <button type="button" className="action-tile" onClick={share}>
+              <Share2 size={18} strokeWidth={1.75} aria-hidden /> Share
+            </button>
+            <SaveButton kind="clinic" id={clinic.id} name={clinic.name} variant="tile" />
+          </div>
+
+          <section aria-labelledby="services-h">
+            <div className="section-head">
+              <h2 id="services-h" className="section-head__title">Services</h2>
+              <span className="mono-label">{clinic.services.length} available</span>
+            </div>
+            <div className="grid-list">
+              {clinic.services.map((service) => (
+                <div key={service.id} className="card row">
+                  <span className="tile" style={{ width: '2.5rem', height: '2.5rem' }}>
+                    <ServiceIcon type={service.type} size={16} />
+                  </span>
+                  <span className="row__grow">
+                    <span className="row__title">{service.name}</span>
+                    <span className="row__sub">
+                      {service.durationMin} min
+                      {service.note ? ` · ${service.note}` : ''}
+                    </span>
+                  </span>
+                  <span className="svc-buy">
+                    <span className="price price--lg">{money(service.price)}</span>
+                    <button type="button" className="btn btn--soft btn--sm" onClick={() => openBooking(service)} aria-label={`Book ${service.name}, ${money(service.price)}`}>
+                      Book
+                    </button>
+                  </span>
+                </div>
+              ))}
+            </div>
+            <p className="row__sub" style={{ marginTop: 'var(--space-xs)' }}>
+              Pay the clinic after your visit. Free to cancel up to 24 hours before.
+            </p>
+          </section>
+
         </div>
-      </section>
+
+        <div className="stack">
+          <section id="reviews" className="card card--pad" style={{ scrollMarginTop: '5rem' }}>
+            <h2 className="section-head__title section-head">What pet parents say</h2>
+            <RatingSummary rating={clinic.rating} total={clinic.reviews} breakdown={ratingBreakdown(clinic.rating, clinic.reviews)} />
+            <div style={{ marginTop: 'var(--space-md)' }}>
+              <ReviewList reviews={clinicReviews(clinic.id)} kind="clinic" />
+            </div>
+            <Link to="/clinics/$id/reviews" params={{ id: clinic.id }} className="btn btn--ghost btn--block" style={{ marginTop: 'var(--space-sm)' }}>
+              See all {clinic.reviews} reviews
+            </Link>
+          </section>
+        </div>
+      </div>
+
+      {nearby.length > 0 && (
+        <section className="rise" style={{ '--i': 3 } as React.CSSProperties}>
+          <div className="section-head">
+            <h2 className="section-head__title">Other clinics nearby</h2>
+            <Link to="/clinics" className="section-head__link">
+              All clinics <ChevronRight size={13} strokeWidth={2} />
+            </Link>
+          </div>
+          <div className="clinic-grid">
+            {nearby.map((c) => (
+              <ClinicCard key={c.id} id={c.id} />
+            ))}
+          </div>
+        </section>
+      )}
 
       <Sheet
         open={bookingService !== null}
         onClose={() => setBookingService(null)}
-        title={done ? 'Booked' : `Book — ${bookingService?.name ?? ''}`}
+        title={doneId ? 'Booked' : `Book — ${bookingService?.name ?? ''}`}
         footer={
-          done ? (
-            <Link to="/bookings" className="btn btn--primary btn--block">
-              View bookings
+          doneId ? (
+            <div className="btn-pair">
+              <button type="button" className="btn btn--ghost" onClick={() => setBookingService(null)}>
+                Done
+              </button>
+              <button
+                type="button"
+                className="btn btn--primary"
+                onClick={() => {
+                  setBookingService(null)
+                  navigate({ to: '/bookings/$id', params: { id: doneId } })
+                }}
+              >
+                View booking
+              </button>
+            </div>
+          ) : !signedIn ? (
+            <Link to="/login" search={{ redirect: `/clinics/${clinic.id}` }} className="btn btn--primary btn--block">
+              Sign in to book
             </Link>
+          ) : pets.length === 0 ? (
+            <button type="button" className="btn btn--primary btn--block" onClick={() => setAddPetOpen(true)}>
+              Add your pet to book
+            </button>
           ) : (
             <button
               type="button"
@@ -177,101 +324,84 @@ function ClinicPage() {
               onClick={confirmBooking}
             >
               {slot
-                ? `Confirm — ${shortDate(days[dayIdx])}, ${slot} · ${money(bookingService?.price ?? 0)}`
+                ? `Confirm — ${shortDate(dateFromOffset(day))}, ${slot} · ${money(bookingService?.price ?? 0)}`
                 : 'Pick a time slot'}
             </button>
           )
         }
       >
-        {done ? (
+        {doneId ? (
           <div style={{ textAlign: 'center', paddingBlock: 'var(--space-lg)' }}>
-            <span
-              className="tile"
-              style={{
-                width: '3.5rem',
-                height: '3.5rem',
-                margin: '0 auto var(--space-sm)',
-                borderRadius: '50%',
-                background: 'var(--color-ok-tint)',
-                color: 'var(--color-ok)',
-              }}
-            >
-              <Check size={26} strokeWidth={2.25} />
-            </span>
+            <SuccessMark />
             <p className="row__title" style={{ fontSize: 'var(--text-md)' }}>
               {bookingService?.name} booked
             </p>
             <p className="row__sub">
-              {longDate(days[dayIdx])} at {slot} — take {pets.find((p) => p.id === petId)?.name} 10 minutes early.
+              {longDate(dateFromOffset(day))} at {slot} — bring {pet?.name} ten minutes early. We’ll remind you the day before.
             </p>
           </div>
         ) : (
           bookingService && (
             <div className="stack">
-              <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
-                <legend className="tag" style={{ marginBottom: 'var(--space-2xs)' }}>Pet</legend>
-                <div className="chips">
-                  {pets.map((pet) => (
-                    <button
-                      key={pet.id}
-                      type="button"
-                      className="chip"
-                      aria-pressed={petId === pet.id}
-                      onClick={() => setPetId(pet.id)}
-                    >
-                      <PetGlyph species={pet.species} size={14} />
-                      {pet.name}
-                    </button>
-                  ))}
-                </div>
-              </fieldset>
-
-              <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
-                <legend className="tag" style={{ marginBottom: 'var(--space-2xs)' }}>Day</legend>
-                <div className="chips">
-                  {days.map((d, i) => (
-                    <button
-                      key={isoDay(d)}
-                      type="button"
-                      className="chip"
-                      aria-pressed={dayIdx === i}
-                      onClick={() => {
-                        setDayIdx(i)
-                        setSlot(null)
-                      }}
-                    >
-                      {i === 0 ? 'Today' : shortDate(d)}
-                    </button>
-                  ))}
-                </div>
-              </fieldset>
-
-              <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
-                <legend className="tag" style={{ marginBottom: 'var(--space-2xs)' }}>
-                  Time — {longDate(days[dayIdx])}
-                </legend>
-                <div className="slots" role="group" aria-label="Time slots">
-                  {BOOKING_SLOTS.map((s) => {
-                    const available = slotAvailable(clinic.id, selectedDayIso, s)
-                    return (
+              {!signedIn ? (
+                <p className="row__sub" style={{ fontSize: 'var(--text-body)' }}>
+                  Check the times below, then sign in to confirm — it takes a few seconds and you’ll
+                  come straight back here.
+                </p>
+              ) : pets.length === 0 ? (
+                <p className="row__sub" style={{ fontSize: 'var(--text-body)' }}>
+                  Add your pet so the clinic knows who’s coming — it takes ten seconds.
+                </p>
+              ) : (
+                <fieldset className="plain-fieldset">
+                  <legend className="tag">Pet</legend>
+                  <div className="chips">
+                    {pets.map((p) => (
                       <button
-                        key={s}
+                        key={p.id}
                         type="button"
-                        className="slot"
-                        aria-pressed={slot === s}
-                        disabled={!available}
-                        onClick={() => setSlot(s)}
+                        className="chip"
+                        aria-pressed={pet?.id === p.id}
+                        onClick={() => setPetId(p.id)}
                       >
-                        {s}
+                        <PetGlyph species={p.species} size={14} />
+                        {p.name}
                       </button>
-                    )
-                  })}
-                </div>
-              </fieldset>
+                    ))}
+                  </div>
+                  {pet?.allergies && <p className="row__sub">Shared with the clinic: {pet.allergies}</p>}
+                </fieldset>
+              )}
+
+              <SlotPicker
+                clinicId={clinic.id}
+                dayOffset={day}
+                onDay={(d) => {
+                  setDay(d)
+                  setSlot(null)
+                }}
+                slot={slot}
+                onSlot={setSlot}
+              />
+
+              <div className="field">
+                <label className="field__label" htmlFor="bk-note">
+                  Note for the clinic <span className="muted">(optional)</span>
+                </label>
+                <textarea
+                  id="bk-note"
+                  className="input textarea"
+                  rows={2}
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="Symptoms, nervous around other dogs…"
+                />
+              </div>
             </div>
           )
         )}
       </Sheet>
+      <AddPetSheet open={addPetOpen} onClose={() => setAddPetOpen(false)} />
     </div>
   )
 }

@@ -1,4 +1,4 @@
-export type Species = 'dog' | 'cat'
+export type Species = 'dog' | 'cat' | 'bird'
 
 export type ProductCategory = 'food' | 'treats' | 'grooming' | 'toys' | 'health'
 
@@ -13,6 +13,39 @@ export interface Product {
   reviews: number
   stock: number
   blurb: string
+  /** which species the product suits — drives per-pet recommendations */
+  suits: Species[]
+  /** long-form description paragraphs for the product page (falls back to blurb) */
+  description?: string[]
+  /** short scannable points shown with the description */
+  highlights?: string[]
+  /** image URLs, first is the hero; absent → the category icon tile is used */
+  images?: string[]
+  /** option axes (size, flavour, life stage…) — absent for single-SKU products */
+  axes?: VariantAxis[]
+  /** purchasable combinations of the axes; `price`/`stock`/`unit` above summarise them */
+  variants?: ProductVariant[]
+}
+
+export type AxisId = 'size' | 'flavour' | 'lifeStage' | 'petWeight'
+
+export interface VariantAxis {
+  id: AxisId
+  label: string
+  options: { id: string; label: string }[]
+}
+
+export interface ProductVariant {
+  id: string
+  /** axis id → option id */
+  options: Partial<Record<AxisId, string>>
+  price: number
+  /** was-price, shown struck through when higher than `price` */
+  compareAt?: number
+  stock: number
+  unit: string
+  /** net weight in kg or volume in litres — enables a per-kg / per-L price */
+  netQty?: { amount: number; per: 'kg' | 'L' }
 }
 
 export type ServiceType =
@@ -55,6 +88,12 @@ export interface Pet {
   breed: string
   ageYears: number
   weightKg: number
+  sex?: 'male' | 'female'
+  neutered?: boolean
+  microchip?: string
+  allergies?: string
+  /** weight history, oldest first — `daysAgo` relative to today */
+  weightLog?: { daysAgo: number; kg: number }[]
 }
 
 export type VaxStatus = 'ok' | 'due' | 'overdue' | 'scheduled'
@@ -72,6 +111,8 @@ export interface VaccineRecord {
 
 export interface CartItem {
   productId: string
+  /** absent on single-SKU products (and on carts saved before variants existed) */
+  variantId?: string
   qty: number
 }
 
@@ -79,6 +120,9 @@ export type OrderStatus = 'placed' | 'transit' | 'delivered'
 
 export interface OrderItem {
   productId: string
+  variantId?: string
+  /** human label frozen at purchase, e.g. "Chicken & rice · 6 kg" */
+  variantLabel?: string
   qty: number
   priceAtPurchase: number
 }
@@ -92,6 +136,8 @@ export interface Order {
   total: number
   status: OrderStatus
   addressLine: string
+  /** "Visa ending 4242" — frozen at purchase; absent on older orders */
+  paidWith?: string
 }
 
 export type BookingStatus = 'upcoming' | 'completed' | 'cancelled'
@@ -113,6 +159,16 @@ export interface Address {
   isDefault: boolean
 }
 
+export interface PaymentCard {
+  id: string
+  brand: 'Visa' | 'Mastercard' | 'Amex' | 'Card'
+  last4: string
+  /** MM / YY */
+  exp: string
+  name: string
+  isDefault: boolean
+}
+
 export interface Profile {
   name: string
   phone: string
@@ -127,4 +183,46 @@ export interface ClinicLink {
   clinicId: string
   syncedAgoLabel: string
   records: number
+}
+
+export interface Review {
+  id: string
+  author: string
+  rating: number
+  daysAgo: number
+  text: string
+  pet?: string
+  /** "Verified purchase" / "Verified visit" */
+  verified?: boolean
+  helpful?: number
+  /** clinic reviews: which service the visit was for */
+  topic?: string
+}
+
+export type ReviewKind = 'product' | 'clinic'
+
+export interface UserReview extends Review {
+  kind: ReviewKind
+  targetId: string
+}
+
+export type NoticeKind = 'vaccine' | 'order' | 'booking' | 'offer' | 'sync'
+
+export interface Notice {
+  id: string
+  kind: NoticeKind
+  title: string
+  body: string
+  /** smaller = more recent; used for sorting and the relative time label */
+  minutesAgo: number
+  to: string
+  params?: Record<string, string>
+  search?: Record<string, string>
+  urgent?: boolean
+}
+
+export interface Faq {
+  q: string
+  a: string
+  topic: 'orders' | 'bookings' | 'health' | 'account'
 }

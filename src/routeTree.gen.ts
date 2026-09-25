@@ -10,24 +10,47 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as BookingsRouteImport } from './routes/bookings'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as CartRouteImport } from './routes/cart'
+import { Route as DeliveryRouteImport } from './routes/delivery'
+import { Route as EmergencyRouteImport } from './routes/emergency'
 import { Route as HealthRouteImport } from './routes/health'
-import { Route as OrdersRouteImport } from './routes/orders'
+import { Route as HelpRouteImport } from './routes/help'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as NotificationsRouteImport } from './routes/notifications'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as RefundRouteImport } from './routes/refund'
+import { Route as SavedRouteImport } from './routes/saved'
+import { Route as SearchRouteImport } from './routes/search'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as WelcomeRouteImport } from './routes/welcome'
+import { Route as BookingsIndexRouteImport } from './routes/bookings.index'
+import { Route as BookingsIdRouteImport } from './routes/bookings.$id'
 import { Route as ClinicsIndexRouteImport } from './routes/clinics.index'
 import { Route as ClinicsIdRouteImport } from './routes/clinics.$id'
+import { Route as GuidesIndexRouteImport } from './routes/guides.index'
+import { Route as GuidesSlugRouteImport } from './routes/guides.$slug'
+import { Route as OrdersIndexRouteImport } from './routes/orders.index'
+import { Route as OrdersIdRouteImport } from './routes/orders.$id'
+import { Route as PetsIndexRouteImport } from './routes/pets.index'
+import { Route as PetsIdRouteImport } from './routes/pets.$id'
 import { Route as ShopIndexRouteImport } from './routes/shop.index'
 import { Route as ShopIdRouteImport } from './routes/shop.$id'
+import { Route as ClinicsIdReviewsRouteImport } from './routes/clinics.$id_.reviews'
+import { Route as ShopIdReviewsRouteImport } from './routes/shop.$id_.reviews'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BookingsRoute = BookingsRouteImport.update({
-  id: '/bookings',
-  path: '/bookings',
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CartRoute = CartRouteImport.update({
@@ -35,19 +58,94 @@ const CartRoute = CartRouteImport.update({
   path: '/cart',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DeliveryRoute = DeliveryRouteImport.update({
+  id: '/delivery',
+  path: '/delivery',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmergencyRoute = EmergencyRouteImport.update({
+  id: '/emergency',
+  path: '/emergency',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HealthRoute = HealthRouteImport.update({
   id: '/health',
   path: '/health',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OrdersRoute = OrdersRouteImport.update({
-  id: '/orders',
-  path: '/orders',
+const HelpRoute = HelpRouteImport.update({
+  id: '/help',
+  path: '/help',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RefundRoute = RefundRouteImport.update({
+  id: '/refund',
+  path: '/refund',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SavedRoute = SavedRouteImport.update({
+  id: '/saved',
+  path: '/saved',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WelcomeRoute = WelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BookingsIndexRoute = BookingsIndexRouteImport.update({
+  id: '/bookings/',
+  path: '/bookings/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BookingsIdRoute = BookingsIdRouteImport.update({
+  id: '/bookings/$id',
+  path: '/bookings/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClinicsIndexRoute = ClinicsIndexRouteImport.update({
@@ -60,6 +158,36 @@ const ClinicsIdRoute = ClinicsIdRouteImport.update({
   path: '/clinics/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GuidesIndexRoute = GuidesIndexRouteImport.update({
+  id: '/guides/',
+  path: '/guides/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuidesSlugRoute = GuidesSlugRouteImport.update({
+  id: '/guides/$slug',
+  path: '/guides/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrdersIndexRoute = OrdersIndexRouteImport.update({
+  id: '/orders/',
+  path: '/orders/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrdersIdRoute = OrdersIdRouteImport.update({
+  id: '/orders/$id',
+  path: '/orders/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PetsIndexRoute = PetsIndexRouteImport.update({
+  id: '/pets/',
+  path: '/pets/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PetsIdRoute = PetsIdRouteImport.update({
+  id: '/pets/$id',
+  path: '/pets/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ShopIndexRoute = ShopIndexRouteImport.update({
   id: '/shop/',
   path: '/shop/',
@@ -70,94 +198,265 @@ const ShopIdRoute = ShopIdRouteImport.update({
   path: '/shop/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClinicsIdReviewsRoute = ClinicsIdReviewsRouteImport.update({
+  id: '/clinics/$id_/reviews',
+  path: '/clinics/$id/reviews',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShopIdReviewsRoute = ShopIdReviewsRouteImport.update({
+  id: '/shop/$id_/reviews',
+  path: '/shop/$id/reviews',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/bookings': typeof BookingsRoute
+  '/about': typeof AboutRoute
   '/cart': typeof CartRoute
+  '/delivery': typeof DeliveryRoute
+  '/emergency': typeof EmergencyRoute
   '/health': typeof HealthRoute
-  '/orders': typeof OrdersRoute
+  '/help': typeof HelpRoute
+  '/login': typeof LoginRoute
+  '/notifications': typeof NotificationsRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
+  '/refund': typeof RefundRoute
+  '/saved': typeof SavedRoute
+  '/search': typeof SearchRoute
+  '/settings': typeof SettingsRoute
+  '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
+  '/welcome': typeof WelcomeRoute
+  '/bookings/$id': typeof BookingsIdRoute
   '/clinics/$id': typeof ClinicsIdRoute
+  '/guides/$slug': typeof GuidesSlugRoute
+  '/orders/$id': typeof OrdersIdRoute
+  '/pets/$id': typeof PetsIdRoute
   '/shop/$id': typeof ShopIdRoute
+  '/bookings/': typeof BookingsIndexRoute
   '/clinics/': typeof ClinicsIndexRoute
+  '/guides/': typeof GuidesIndexRoute
+  '/orders/': typeof OrdersIndexRoute
+  '/pets/': typeof PetsIndexRoute
   '/shop/': typeof ShopIndexRoute
+  '/clinics/$id/reviews': typeof ClinicsIdReviewsRoute
+  '/shop/$id/reviews': typeof ShopIdReviewsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/bookings': typeof BookingsRoute
+  '/about': typeof AboutRoute
   '/cart': typeof CartRoute
+  '/delivery': typeof DeliveryRoute
+  '/emergency': typeof EmergencyRoute
   '/health': typeof HealthRoute
-  '/orders': typeof OrdersRoute
+  '/help': typeof HelpRoute
+  '/login': typeof LoginRoute
+  '/notifications': typeof NotificationsRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
+  '/refund': typeof RefundRoute
+  '/saved': typeof SavedRoute
+  '/search': typeof SearchRoute
+  '/settings': typeof SettingsRoute
+  '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
+  '/welcome': typeof WelcomeRoute
+  '/bookings/$id': typeof BookingsIdRoute
   '/clinics/$id': typeof ClinicsIdRoute
+  '/guides/$slug': typeof GuidesSlugRoute
+  '/orders/$id': typeof OrdersIdRoute
+  '/pets/$id': typeof PetsIdRoute
   '/shop/$id': typeof ShopIdRoute
+  '/bookings': typeof BookingsIndexRoute
   '/clinics': typeof ClinicsIndexRoute
+  '/guides': typeof GuidesIndexRoute
+  '/orders': typeof OrdersIndexRoute
+  '/pets': typeof PetsIndexRoute
   '/shop': typeof ShopIndexRoute
+  '/clinics/$id/reviews': typeof ClinicsIdReviewsRoute
+  '/shop/$id/reviews': typeof ShopIdReviewsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/bookings': typeof BookingsRoute
+  '/about': typeof AboutRoute
   '/cart': typeof CartRoute
+  '/delivery': typeof DeliveryRoute
+  '/emergency': typeof EmergencyRoute
   '/health': typeof HealthRoute
-  '/orders': typeof OrdersRoute
+  '/help': typeof HelpRoute
+  '/login': typeof LoginRoute
+  '/notifications': typeof NotificationsRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
+  '/refund': typeof RefundRoute
+  '/saved': typeof SavedRoute
+  '/search': typeof SearchRoute
+  '/settings': typeof SettingsRoute
+  '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
+  '/welcome': typeof WelcomeRoute
+  '/bookings/$id': typeof BookingsIdRoute
   '/clinics/$id': typeof ClinicsIdRoute
+  '/guides/$slug': typeof GuidesSlugRoute
+  '/orders/$id': typeof OrdersIdRoute
+  '/pets/$id': typeof PetsIdRoute
   '/shop/$id': typeof ShopIdRoute
+  '/bookings/': typeof BookingsIndexRoute
   '/clinics/': typeof ClinicsIndexRoute
+  '/guides/': typeof GuidesIndexRoute
+  '/orders/': typeof OrdersIndexRoute
+  '/pets/': typeof PetsIndexRoute
   '/shop/': typeof ShopIndexRoute
+  '/clinics/$id_/reviews': typeof ClinicsIdReviewsRoute
+  '/shop/$id_/reviews': typeof ShopIdReviewsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/bookings'
+    | '/about'
     | '/cart'
+    | '/delivery'
+    | '/emergency'
     | '/health'
-    | '/orders'
+    | '/help'
+    | '/login'
+    | '/notifications'
+    | '/privacy'
     | '/profile'
+    | '/refund'
+    | '/saved'
+    | '/search'
+    | '/settings'
+    | '/signup'
+    | '/sitemap.xml'
+    | '/terms'
+    | '/welcome'
+    | '/bookings/$id'
     | '/clinics/$id'
+    | '/guides/$slug'
+    | '/orders/$id'
+    | '/pets/$id'
     | '/shop/$id'
+    | '/bookings/'
     | '/clinics/'
+    | '/guides/'
+    | '/orders/'
+    | '/pets/'
     | '/shop/'
+    | '/clinics/$id/reviews'
+    | '/shop/$id/reviews'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/bookings'
+    | '/about'
     | '/cart'
+    | '/delivery'
+    | '/emergency'
     | '/health'
-    | '/orders'
+    | '/help'
+    | '/login'
+    | '/notifications'
+    | '/privacy'
     | '/profile'
+    | '/refund'
+    | '/saved'
+    | '/search'
+    | '/settings'
+    | '/signup'
+    | '/sitemap.xml'
+    | '/terms'
+    | '/welcome'
+    | '/bookings/$id'
     | '/clinics/$id'
+    | '/guides/$slug'
+    | '/orders/$id'
+    | '/pets/$id'
     | '/shop/$id'
+    | '/bookings'
     | '/clinics'
+    | '/guides'
+    | '/orders'
+    | '/pets'
     | '/shop'
+    | '/clinics/$id/reviews'
+    | '/shop/$id/reviews'
   id:
     | '__root__'
     | '/'
-    | '/bookings'
+    | '/about'
     | '/cart'
+    | '/delivery'
+    | '/emergency'
     | '/health'
-    | '/orders'
+    | '/help'
+    | '/login'
+    | '/notifications'
+    | '/privacy'
     | '/profile'
+    | '/refund'
+    | '/saved'
+    | '/search'
+    | '/settings'
+    | '/signup'
+    | '/sitemap.xml'
+    | '/terms'
+    | '/welcome'
+    | '/bookings/$id'
     | '/clinics/$id'
+    | '/guides/$slug'
+    | '/orders/$id'
+    | '/pets/$id'
     | '/shop/$id'
+    | '/bookings/'
     | '/clinics/'
+    | '/guides/'
+    | '/orders/'
+    | '/pets/'
     | '/shop/'
+    | '/clinics/$id_/reviews'
+    | '/shop/$id_/reviews'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  BookingsRoute: typeof BookingsRoute
+  AboutRoute: typeof AboutRoute
   CartRoute: typeof CartRoute
+  DeliveryRoute: typeof DeliveryRoute
+  EmergencyRoute: typeof EmergencyRoute
   HealthRoute: typeof HealthRoute
-  OrdersRoute: typeof OrdersRoute
+  HelpRoute: typeof HelpRoute
+  LoginRoute: typeof LoginRoute
+  NotificationsRoute: typeof NotificationsRoute
+  PrivacyRoute: typeof PrivacyRoute
   ProfileRoute: typeof ProfileRoute
+  RefundRoute: typeof RefundRoute
+  SavedRoute: typeof SavedRoute
+  SearchRoute: typeof SearchRoute
+  SettingsRoute: typeof SettingsRoute
+  SignupRoute: typeof SignupRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TermsRoute: typeof TermsRoute
+  WelcomeRoute: typeof WelcomeRoute
+  BookingsIdRoute: typeof BookingsIdRoute
   ClinicsIdRoute: typeof ClinicsIdRoute
+  GuidesSlugRoute: typeof GuidesSlugRoute
+  OrdersIdRoute: typeof OrdersIdRoute
+  PetsIdRoute: typeof PetsIdRoute
   ShopIdRoute: typeof ShopIdRoute
+  BookingsIndexRoute: typeof BookingsIndexRoute
   ClinicsIndexRoute: typeof ClinicsIndexRoute
+  GuidesIndexRoute: typeof GuidesIndexRoute
+  OrdersIndexRoute: typeof OrdersIndexRoute
+  PetsIndexRoute: typeof PetsIndexRoute
   ShopIndexRoute: typeof ShopIndexRoute
+  ClinicsIdReviewsRoute: typeof ClinicsIdReviewsRoute
+  ShopIdReviewsRoute: typeof ShopIdReviewsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -169,11 +468,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/bookings': {
-      id: '/bookings'
-      path: '/bookings'
-      fullPath: '/bookings'
-      preLoaderRoute: typeof BookingsRouteImport
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cart': {
@@ -183,6 +482,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CartRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/delivery': {
+      id: '/delivery'
+      path: '/delivery'
+      fullPath: '/delivery'
+      preLoaderRoute: typeof DeliveryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/emergency': {
+      id: '/emergency'
+      path: '/emergency'
+      fullPath: '/emergency'
+      preLoaderRoute: typeof EmergencyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/health': {
       id: '/health'
       path: '/health'
@@ -190,11 +503,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HealthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/orders': {
-      id: '/orders'
-      path: '/orders'
-      fullPath: '/orders'
-      preLoaderRoute: typeof OrdersRouteImport
+    '/help': {
+      id: '/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof HelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -202,6 +536,76 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/refund': {
+      id: '/refund'
+      path: '/refund'
+      fullPath: '/refund'
+      preLoaderRoute: typeof RefundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/saved': {
+      id: '/saved'
+      path: '/saved'
+      fullPath: '/saved'
+      preLoaderRoute: typeof SavedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/welcome': {
+      id: '/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof WelcomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bookings/': {
+      id: '/bookings/'
+      path: '/bookings'
+      fullPath: '/bookings/'
+      preLoaderRoute: typeof BookingsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bookings/$id': {
+      id: '/bookings/$id'
+      path: '/bookings/$id'
+      fullPath: '/bookings/$id'
+      preLoaderRoute: typeof BookingsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/clinics/': {
@@ -218,6 +622,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClinicsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/guides/': {
+      id: '/guides/'
+      path: '/guides'
+      fullPath: '/guides/'
+      preLoaderRoute: typeof GuidesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guides/$slug': {
+      id: '/guides/$slug'
+      path: '/guides/$slug'
+      fullPath: '/guides/$slug'
+      preLoaderRoute: typeof GuidesSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders/': {
+      id: '/orders/'
+      path: '/orders'
+      fullPath: '/orders/'
+      preLoaderRoute: typeof OrdersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders/$id': {
+      id: '/orders/$id'
+      path: '/orders/$id'
+      fullPath: '/orders/$id'
+      preLoaderRoute: typeof OrdersIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pets/': {
+      id: '/pets/'
+      path: '/pets'
+      fullPath: '/pets/'
+      preLoaderRoute: typeof PetsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pets/$id': {
+      id: '/pets/$id'
+      path: '/pets/$id'
+      fullPath: '/pets/$id'
+      preLoaderRoute: typeof PetsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/shop/': {
       id: '/shop/'
       path: '/shop'
@@ -232,20 +678,57 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/clinics/$id_/reviews': {
+      id: '/clinics/$id_/reviews'
+      path: '/clinics/$id/reviews'
+      fullPath: '/clinics/$id/reviews'
+      preLoaderRoute: typeof ClinicsIdReviewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shop/$id_/reviews': {
+      id: '/shop/$id_/reviews'
+      path: '/shop/$id/reviews'
+      fullPath: '/shop/$id/reviews'
+      preLoaderRoute: typeof ShopIdReviewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  BookingsRoute: BookingsRoute,
+  AboutRoute: AboutRoute,
   CartRoute: CartRoute,
+  DeliveryRoute: DeliveryRoute,
+  EmergencyRoute: EmergencyRoute,
   HealthRoute: HealthRoute,
-  OrdersRoute: OrdersRoute,
+  HelpRoute: HelpRoute,
+  LoginRoute: LoginRoute,
+  NotificationsRoute: NotificationsRoute,
+  PrivacyRoute: PrivacyRoute,
   ProfileRoute: ProfileRoute,
+  RefundRoute: RefundRoute,
+  SavedRoute: SavedRoute,
+  SearchRoute: SearchRoute,
+  SettingsRoute: SettingsRoute,
+  SignupRoute: SignupRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TermsRoute: TermsRoute,
+  WelcomeRoute: WelcomeRoute,
+  BookingsIdRoute: BookingsIdRoute,
   ClinicsIdRoute: ClinicsIdRoute,
+  GuidesSlugRoute: GuidesSlugRoute,
+  OrdersIdRoute: OrdersIdRoute,
+  PetsIdRoute: PetsIdRoute,
   ShopIdRoute: ShopIdRoute,
+  BookingsIndexRoute: BookingsIndexRoute,
   ClinicsIndexRoute: ClinicsIndexRoute,
+  GuidesIndexRoute: GuidesIndexRoute,
+  OrdersIndexRoute: OrdersIndexRoute,
+  PetsIndexRoute: PetsIndexRoute,
   ShopIndexRoute: ShopIndexRoute,
+  ClinicsIdReviewsRoute: ClinicsIdReviewsRoute,
+  ShopIdReviewsRoute: ShopIdReviewsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

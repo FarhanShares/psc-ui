@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800">
+<defs><radialGradient id="bg" cx="50%" cy="42%" r="70%"><stop offset="0" stop-color="#fffdf8"/><stop offset=".55" stop-color="#d9eef0"/><stop offset="1" stop-color="#bfe0e4"/></radialGradient>
+<linearGradient id="sheen" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity=".0"/><stop offset=".35" stop-color="#fff" stop-opacity=".22"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<filter id="sh" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#3b2a14" flood-opacity=".22"/></filter></defs>
+<rect width="800" height="800" fill="url(#bg)"/>
+<ellipse cx="400" cy="705" rx="230" ry="26" fill="#3b2a14" opacity=".10"/>
+<g filter="url(#sh)"><rect x="315" y="250" width="170" height="440" rx="44" fill="#2d6f78"/></g>
+<rect x="355" y="170" width="90" height="90" rx="12" fill="#e9eef0"/><rect x="340" y="150" width="120" height="36" rx="10" fill="#cfd8dc"/>
+<rect x="335" y="360" width="130" height="220" rx="16" fill="#fffdf8"/>
+<text x="400" y="405" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="16" font-weight="800" fill="#2d6f78" text-anchor="middle" letter-spacing="3" opacity="1">COATWISE</text>
+<text x="400" y="450" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="30" font-weight="700" fill="#23313a" text-anchor="middle" letter-spacing="0" opacity="1">Oatmeal</text><text x="400" y="486" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="30" font-weight="700" fill="#23313a" text-anchor="middle" letter-spacing="0" opacity="1">Soothing</text><text x="400" y="522" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="30" font-weight="700" fill="#23313a" text-anchor="middle" letter-spacing="0" opacity="1">Shampoo</text>
+<text x="400" y="560" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="18" font-weight="600" fill="#56656e" text-anchor="middle" letter-spacing="0" opacity="1">500 ml</text>
+<rect x="315" y="250" width="170" height="440" rx="44" fill="url(#sheen)"/></svg>

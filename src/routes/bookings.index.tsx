@@ -4,11 +4,17 @@ import { CalendarDays } from 'lucide-react'
 
 import { BookingCard } from '../components/cards'
 import { EmptyState } from '../components/ui'
-import { cancelBooking, useAppState } from '../lib/store'
+import { useAppState } from '../lib/store'
+import { seo } from '../lib/seo'
+import { RequireAccount } from '../components/gate'
 
-export const Route = createFileRoute('/bookings')({
-  head: () => ({ meta: [{ title: 'Bookings · PetSafeCare' }] }),
-  component: BookingsPage,
+export const Route = createFileRoute('/bookings/')({
+  head: () => seo({ title: 'Bookings', path: '/bookings', noindex: true }),
+  component: () => (
+    <RequireAccount kind="bookings">
+      <BookingsPage />
+    </RequireAccount>
+  ),
 })
 
 type TabId = 'upcoming' | 'completed' | 'cancelled'
@@ -64,16 +70,7 @@ function BookingsPage() {
       {list.length > 0 ? (
         <div className="history-grid rise" style={{ '--i': 2 } as React.CSSProperties}>
           {list.map((b) => (
-            <div key={b.id}>
-              <BookingCard booking={b} />
-              {b.status === 'upcoming' && (
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'var(--space-2xs)' }}>
-                  <button type="button" className="btn btn--quiet btn--sm" onClick={() => cancelBooking(b.id)}>
-                    Cancel booking
-                  </button>
-                </div>
-              )}
-            </div>
+            <BookingCard key={b.id} booking={b} />
           ))}
         </div>
       ) : (
@@ -87,6 +84,9 @@ function BookingsPage() {
             }
             actionLabel={tab === 'upcoming' ? 'Find a clinic' : undefined}
             actionTo={tab === 'upcoming' ? '/clinics' : undefined}
+            secondaryLabel={tab === 'upcoming' ? 'Book a vaccination' : undefined}
+            secondaryTo={tab === 'upcoming' ? '/clinics' : undefined}
+            secondarySearch={tab === 'upcoming' ? { service: 'vaccination' } : undefined}
             icon={<CalendarDays size={20} strokeWidth={1.75} />}
           />
         </div>
